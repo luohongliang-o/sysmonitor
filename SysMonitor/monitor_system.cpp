@@ -125,7 +125,7 @@ CSysInfo::WritePerformaceVaule(char* str_counter_path_buffer)
 		goto Cleanup;
 	}
 	int performace_num = m_loadconfig->get_performace_counter_num();
-	int sleeptime = (4000 / performace_num)>1000 ? 1000 : 4000 / performace_num;
+	int sleeptime = 1000 / performace_num;
 	Sleep(sleeptime);
 
 	Status = PdhCollectQueryData(Query);
@@ -192,8 +192,9 @@ CProcessMonitor::write(int fd, char* buf)
 				nread_line++;
 			}
 			printf("\ncurrent process id is %d", v_pidlist[j]);
-// 			if (feof(ppipe))
-// 				printf("\nProcess returned %d\n", _pclose(ppipe));
+			if (feof(ppipe))
+				//printf("\nProcess returned %d\n", _pclose(ppipe));
+				_pclose(ppipe);
 // 			else
 // 				printf("Error: Failed to read the pipe to the end.\n");
 		}

@@ -47,7 +47,8 @@ public:
 		MONITORTYPE_MSSQL,
 		MONITORTYPE_ORACAL,
 		MONITORTYPE_WEB,
-		MONITORTYPE_PROCESS
+		MONITORTYPE_PROCESS,
+		MONITORTYPE_LINUX_SYSINFO,
 	};
 
 
@@ -96,6 +97,17 @@ private:
 
 
 // cross platform
+
+class CLinuxSysinfo :public CMonitorSystem
+{
+public:
+	CLinuxSysinfo(){ ; };
+	CLinuxSysinfo(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){ ; };
+	~CLinuxSysinfo(){ ; };
+
+	virtual int write(int fd, char *buf);
+};
+
 class CMySqlMonitor :public CMonitorSystem
 {
 public:
