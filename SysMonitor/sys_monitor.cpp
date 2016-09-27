@@ -39,7 +39,7 @@
 
 /* Length of each buffer in the buffer queue.  Also becomes the amount
 * of data we try to read per call to read(2). */
-#define BUFLEN 1024
+#define BUFLEN 1024*4
 
 /**
 * In event based programming we need to queue up data to be written
@@ -114,24 +114,25 @@ setnonblock(evutil_socket_t fd)
 #endif
 }
 
-/*
+
 void
 on_timer(evutil_socket_t fd, short event, void *arg)
 {
 	client *ins_client = (client*)arg;
-	if (ins_client->proto_manage)
-		ins_client->proto_manage->write(fd);
+	if (!ins_client->proto_manage)
+		ins_client->proto_manage = new CProtocolManage(ins_client->load_config);
+	ins_client->proto_manage->write(fd);
 	
-	time_val.tv_sec = 5;
+	time_val.tv_sec = 1;
 	time_val.tv_usec = 0;
 	evtimer_del(ins_client->ev_timer);
 	evtimer_add(ins_client->ev_timer, &time_val);
 }
-*/
+
 /**
 * This function will be called by libevent when the client socket is
 * ready for reading.
-*/
+*/	
 void
 on_read(evutil_socket_t fd, short ev, void *arg)
 {
@@ -161,7 +162,7 @@ on_read(evutil_socket_t fd, short ev, void *arg)
 		close(fd);
 #endif
 		event_del(&client->ev_read);
-		//evtimer_del(client->ev_timer);
+		evtimer_del(client->ev_timer);
 		delete client->proto_manage;
 		client->proto_manage = NULL;
 		delete client->load_config;
@@ -274,12 +275,12 @@ on_accept(evutil_socket_t fd, short ev, void *arg)
 {
 	CLoadConfig *load_config_ins = new CLoadConfig;
 	CLoadConfig::LoadConfig(load_config_ins);
-
+	struct event_base* eventbase = (event_base*)arg;
 	evutil_socket_t client_fd;
 	struct sockaddr_in client_addr;
 	socklen_t client_len = sizeof(client_addr);
 	struct client *ins_client;
-
+	
 	/* Accept the new connection. */
 	client_fd = accept(fd, (struct sockaddr *)&client_addr, &client_len);
 	if (client_fd == -1) {
@@ -322,12 +323,12 @@ on_accept(evutil_socket_t fd, short ev, void *arg)
 	event_set(&ins_client->ev_write, client_fd, EV_WRITE, on_write, ins_client);
 
 	/*add timer to stat system performace data. */
-	/*
+	
 	ins_client->ev_timer = event_new(eventbase, fd, 0, on_timer, ins_client);
 	time_val.tv_sec = 1;
 	time_val.tv_usec = 0;
 	evtimer_add(ins_client->ev_timer, &time_val);
-	*/
+	
 	/* Initialize the clients write queue. */
 	TAILQ_INIT(&ins_client->writeq);
 
@@ -341,7 +342,7 @@ main(int argc, char **argv)
 #ifdef _WIN32
 	WORD w_version_requested;
 	WSADATA wsa_data;
-
+	struct event_base* eventbase;
 	w_version_requested = MAKEWORD(2, 2);
 
 	(void)WSAStartup(w_version_requested, &wsa_data);
@@ -354,7 +355,7 @@ main(int argc, char **argv)
 	struct event ev_accept;
 	
 	/* Initialize libevent. */
-	event_init();
+	eventbase = event_init();
 
 	/* Create our listening socket. This is largely boiler plate
 	* code that I'll abstract away in the future. */
@@ -389,7 +390,7 @@ main(int argc, char **argv)
 
 	/* We now have a listening socket, we create a read event to
 	* be notified when a client connects. */
-	event_set(&ev_accept, listen_fd, EV_READ | EV_PERSIST, on_accept, NULL);
+	event_set(&ev_accept, listen_fd, EV_READ | EV_PERSIST, on_accept, eventbase);
 	event_add(&ev_accept, NULL);
 
 	/* Start the libevent event loop. */
