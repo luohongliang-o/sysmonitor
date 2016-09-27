@@ -8,6 +8,7 @@ using std::string;
 
 #include <map>
 #include <vector>
+#include <list>
 using namespace std;
 
 #include "func.h"
