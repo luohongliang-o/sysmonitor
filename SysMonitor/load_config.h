@@ -1,5 +1,6 @@
 #ifndef LOAD_CONFIG_H
 #define LOAD_CONFIG_H
+#include "sys_config.h"
 class CLoadConfig
 {
 public:
