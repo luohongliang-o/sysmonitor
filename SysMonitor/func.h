@@ -1,9 +1,9 @@
 #ifndef FUNC_H
 #define FUNC_H
-#include <string>
 #include <stdio.h>
 #include <stdarg.h>
 #ifdef WIN32
+#include <string>
 #include <Windows.h>
 #else
 #define  MAX_PATH 260
@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 #define _vsnprintf vnsprintf
 #define sprintf_s  snprintf
 #endif
