@@ -15,9 +15,12 @@ using namespace std;
 
 #ifndef WIN32
 #define  SSIZE_T unsigned int
+#else
+#define NULL        0
+#include <fstream>
 #endif
 
 
-#define NULL        0
+
 
 #endif // SYS_CONFIG_H
