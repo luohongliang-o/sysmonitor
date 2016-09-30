@@ -4,9 +4,43 @@
 #ifdef WIN32
 #include <pdh.h>
 #include <pdhmsg.h>
+#include <process.h>
 #pragma comment(lib, "pdh.lib")
 #define LOGFILENAME "performace"
 
+//////////////////////////////////////////////////////////////////////////
+/* Thread */
+//////////////////////////////////////////////////////////////////////////
+
+Thread::Thread(CLoadConfig* loadconfig)
+{
+	int performace_num = loadconfig->get_performace_counter_num();
+	m_performace_name = loadconfig->get_performace_name();
+	for (int i = 0; i < performace_num;i++)
+	{
+		m_ncur_performace_index = i;
+		m_vthreadid.push_back((HANDLE)_beginthreadex(NULL, 0, ThreadProc, this, 0, NULL));
+	}
+}
+
+UINT WINAPI Thread::ThreadProc(LPVOID pParam)
+{
+
+	Thread* thisthread = (Thread*)pParam;
+	CAutoLock autolock(&thisthread->m_lock);
+	thisthread->ThreadKernalFunc((WPARAM)thisthread->m_ncur_performace_index);
+	return 0;
+}
+
+Thread::~Thread()
+{
+	for (int i = 0; i < m_vthreadid.size();i++)
+	{
+		while (WaitForSingleObject(m_vthreadid[i], 50) == WAIT_TIMEOUT);
+		CLOSEHANDLE(m_vthreadid[i]);
+	}
+	
+}
 //////////////////////////////////////////////////////////////////////////
 /*CSysInfo*/
 //////////////////////////////////////////////////////////////////////////
@@ -85,6 +119,7 @@ CSysInfo::write(int fd, char *buf)
 			AddJsonKeyValue(performace_key, json_data, json_value);
 		}
 	}
+	//json_value["performace"].append(m_jsonvalue_performace);
 	jsonstr = json_write.write(json_value);
 	memcpy(buf, jsonstr.c_str(), jsonstr.length() + 1);
 	
@@ -152,6 +187,18 @@ Cleanup:
 	return 0;
 }
 
+// int CSysInfo::ThreadKernalFunc(WPARAM wparam /* = 0 */, LPARAM lparam /* = 0 */)
+// {
+// 	char json_data[50] = "";
+// 	int performace_index = (int)wparam;
+// 	string* cur_performace_counter = m_loadconfig->get_performace_name()[performace_index];
+// 	char performace_key[20] = "";
+// 	sprintf_s(performace_key, "performacename%d", performace_index + 1);
+// 	double perfordata = WritePerformaceVaule((char*)(cur_performace_counter->c_str()));
+// 	_gcvt(perfordata, 31, json_data);
+// 	AddJsonKeyValue(performace_key, json_data, m_jsonvalue_performace);
+// 	return 0;
+// }
 //////////////////////////////////////////////////////////////////////////
 /*CProcessMonitor*/
 //////////////////////////////////////////////////////////////////////////
@@ -310,12 +357,7 @@ void CBuildMonitor::ConcreteMonotor(int type, CLoadConfig* loadconfig)
 
 CBuildMonitor::~CBuildMonitor()
 {
-
-	if (m_system_monitor)
-	{
-		delete m_system_monitor;
-		m_system_monitor = NULL;
-	}
+	TDEL(m_system_monitor);
 }
 
 CMonitorSystem* CBuildMonitor::get_monitor_obj()

@@ -2,6 +2,30 @@
 #define MONITOR_SYSTEM_H
 
 #include "load_config.h"
+
+
+class CLock
+{
+public:
+	CLock()	{ InitializeCriticalSection(&m_cs); }
+	~CLock() { DeleteCriticalSection(&m_cs); };
+	VOID Lock() { EnterCriticalSection(&m_cs); };
+	VOID Unlock() { LeaveCriticalSection(&m_cs); };
+private:
+	CRITICAL_SECTION m_cs;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ×Ô¶¯Ëø
+class CAutoLock
+{
+public:
+	CAutoLock(CLock* pLock){ m_pLock = pLock; pLock->Lock(); }
+	~CAutoLock() { m_pLock->Unlock(); }
+protected:
+	CLock* m_pLock;
+};
+
 class CMonitorSystem
 {
 public:
@@ -39,6 +63,7 @@ class CMySqlMonitor;
 class CBuildMonitor
 {
 public:
+	CBuildMonitor(){};
 	enum
 	{
 		MONITORTYPE_SYSTEM_INFO = 1,
@@ -51,8 +76,6 @@ public:
 		MONITORTYPE_LINUX_SYSINFO,
 	};
 
-
-
 	void ConcreteMonotor(int type, CLoadConfig* loadconfig);
 	~CBuildMonitor();
 	CMonitorSystem* get_monitor_obj();
@@ -62,20 +85,41 @@ private:
 };
 
 #ifdef WIN32
-class CSysInfo :public CMonitorSystem
+
+class Thread
+{
+public:
+	
+	static UINT WINAPI ThreadProc(LPVOID pParam);
+	~Thread();
+protected:
+	Thread();
+	Thread(CLoadConfig* loadconfig);
+	virtual int ThreadKernalFunc(WPARAM wparam = 0, LPARAM lparam = 0) { return 0; };
+	CLock m_lock;
+private:
+	vector<HANDLE> m_vthreadid;
+	string** m_performace_name;
+	int      m_ncur_performace_index;
+	
+};
+
+
+class CSysInfo :public CMonitorSystem//,public Thread
 {
 public:
 	CSysInfo(){ ; };
-	CSysInfo(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){ ; };
+	CSysInfo(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig)//,Thread(loadconfig)
+	{ ; };
 
 	~CSysInfo(){ ; };
 
 	virtual int write(int fd, char *buf);
-protected:
 	
+protected:
+	//virtual int ThreadKernalFunc(WPARAM wparam = 0, LPARAM lparam = 0);
 	double WritePerformaceVaule(char* str_counter_path_buffer);
-private:
-
+	//Value m_jsonvalue_performace;
 };
 
 #include <tlhelp32.h>
@@ -106,6 +150,8 @@ public:
 	~CLinuxSysinfo(){ ; };
 
 	virtual int write(int fd, char *buf);
+protected:
+	void  get_meminfo(Value& json_value);
 };
 
 class CMySqlMonitor :public CMonitorSystem
@@ -116,9 +162,8 @@ public:
 	~CMySqlMonitor(){ ; };
 
 	virtual int write(int fd, char *buf);
-
+	
 private:
 
 };
-
 #endif

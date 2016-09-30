@@ -9,11 +9,13 @@ CProtocolManage::CProtocolManage(CLoadConfig* loadconfg)
 	int object_num = m_load_config->get_object_num();
 	short* object_type = m_load_config->get_object_type();
 	m_bget_systeminfo = false;
+	m_build_monitor = new CBuildMonitor;
 	get_global_info();
 }
 
 CProtocolManage::~CProtocolManage()
 {
+	TDEL(m_build_monitor);
 }
 
 int 
@@ -97,18 +99,14 @@ int CProtocolManage::write(int fd)
 	char* buf = new char[1024 * 4];
 	for (int i = 0; i < object_num; i++){
 		Value json_value;
-		CBuildMonitor build_monitor;
-		build_monitor.ConcreteMonotor(object_type[i], m_load_config);
-		CMonitorSystem* monitorsys = build_monitor.get_monitor_obj();
+		m_build_monitor->ConcreteMonotor(object_type[i], m_load_config);
+		CMonitorSystem* monitorsys = m_build_monitor->get_monitor_obj();
 		monitorsys->write(fd, buf);
 		json_value["type"] = object_type[i];
 		json_value["data"] = buf;
 		last_json_value["data"].append(json_value);
 	}
-	if (buf){
-		delete buf;
-		buf = NULL;
-	}
+	TDELARRAY(buf);
 	get_global_info();
 	if (is_init_global_info())
 	{
@@ -148,16 +146,11 @@ void CProtocolManage::get_global_info()
 				strcpy_s(m_os_version, tempvalue);
 			else if (nread_line == 14)
 				strcpy_s(m_os_type, tempvalue);
-			delete[] tempvalue;
-			tempvalue = NULL;
+			TDELARRAY(tempvalue);
 			tembufer = tembufer + len + 1;
 			nread_line++;
 		}
-		if (pbuffer)
-		{
-			delete[] pbuffer;
-			pbuffer = NULL;
-		}
+		TDELARRAY(pbuffer);
 		if (feof(ppipe))
 			_pclose(ppipe);
 		m_bget_systeminfo = true;
