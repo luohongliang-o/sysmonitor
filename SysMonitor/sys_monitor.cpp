@@ -163,10 +163,8 @@ on_read(evutil_socket_t fd, short ev, void *arg)
 #endif
 		event_del(&client->ev_read);
 		evtimer_del(client->ev_timer);
-		delete client->proto_manage;
-		client->proto_manage = NULL;
-		delete client->load_config;
-		client->load_config = NULL;
+		TDEL(client->proto_manage);
+		TDEL(client->load_config);
 		free(client);
 		return;
 	}
@@ -182,10 +180,8 @@ on_read(evutil_socket_t fd, short ev, void *arg)
 #endif
 		event_del(&client->ev_read);
 		evtimer_del(client->ev_timer);
-		delete client->proto_manage;
-		client->proto_manage = NULL;
-		delete client->load_config;
-		client->load_config = NULL;
+		TDEL(client->proto_manage);
+		TDEL(client->load_config);
 		free(client);
 		return;
 	}
@@ -373,8 +369,7 @@ main(int argc, char **argv)
 	listen_addr.sin_addr.s_addr = INADDR_ANY;
 	listen_addr.sin_port = htons(load_config_ins->get_port());
 
-	delete load_config_ins;
-	load_config_ins = NULL;
+	TDEL(load_config_ins);
 
 	if (bind(listen_fd, (struct sockaddr *)&listen_addr,
 		sizeof(listen_addr)) < 0)
