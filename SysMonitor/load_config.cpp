@@ -11,40 +11,22 @@ CLoadConfig::CLoadConfig()
 
 CLoadConfig::~CLoadConfig()
 {
-	if (NULL != m_monitor_config->object_type)
-	{
-		delete[] m_monitor_config->object_type;
-		m_monitor_config->object_type = NULL;
-	}
+	
+	TDELARRAY(m_monitor_config->object_type);
+
 #ifdef WIN32
-	if (NULL != m_monitor_config->performace_name)
-	{
+	if (NULL != m_monitor_config->performace_name){
 		for (int i = 0; i < m_monitor_config->performace_counter_num;i++)
-		{
-			delete m_monitor_config->performace_name[i];
-			m_monitor_config->performace_name[i] = NULL;
-		}
-		delete[] m_monitor_config->performace_name;
-		m_monitor_config->performace_name = NULL;
+			TDEL(m_monitor_config->performace_name[i]);;
+		TDELARRAY(m_monitor_config->performace_name);
 	}
 #endif
-	if (NULL != m_monitor_config->process_name)
-	{
+	if (NULL != m_monitor_config->process_name){
 		for (int i = 0; i < m_monitor_config->process_num; i++)
-		{
-			delete m_monitor_config->process_name[i];
-			m_monitor_config->process_name[i] = NULL;
-		}
-		delete[] m_monitor_config->process_name;
-		m_monitor_config->process_name = NULL;
+			TDEL(m_monitor_config->process_name[i]);
+		TDELARRAY(m_monitor_config->process_name);
 	}
-
-	if (NULL != m_monitor_config)
-	{
-		delete m_monitor_config;
-		m_monitor_config = NULL;
-	}
-
+	TDEL(m_monitor_config);
 }
 
 void CLoadConfig::LoadConfig(CLoadConfig* this_ins)
