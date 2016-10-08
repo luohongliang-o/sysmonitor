@@ -346,7 +346,7 @@ main(int argc, char **argv)
 	evutil_socket_t listen_fd;
 	struct sockaddr_in listen_addr;
 	int reuseaddr_on = 1;
-
+	int port = 0;
 	/* The socket accept event. */
 	struct event ev_accept;
 	
@@ -367,8 +367,9 @@ main(int argc, char **argv)
 	memset(&listen_addr, 0, sizeof(listen_addr));
 	listen_addr.sin_family = AF_INET;
 	listen_addr.sin_addr.s_addr = INADDR_ANY;
-	listen_addr.sin_port = htons(load_config_ins->get_port());
-
+	port = load_config_ins->get_port();
+	listen_addr.sin_port = htons(port);
+	
 	TDEL(load_config_ins);
 
 	if (bind(listen_fd, (struct sockaddr *)&listen_addr,
@@ -382,7 +383,7 @@ main(int argc, char **argv)
 	* based programming with libevent. */
 	if (setnonblock(listen_fd) < 0)
 		err_plantform(1, "failed to set server socket to non-blocking");
-
+	printf("system monitor start success,listen to %d\n", port);
 	/* We now have a listening socket, we create a read event to
 	* be notified when a client connects. */
 	event_set(&ev_accept, listen_fd, EV_READ | EV_PERSIST, on_accept, eventbase);
