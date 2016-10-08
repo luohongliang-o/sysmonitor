@@ -60,9 +60,9 @@ char *GetIniKeyString(char *title, char *key, char *filename)
 		}
 		if (rtnval == '\n')
 		{
-#ifndef WIN32
-			i--;
-#endif	
+// #ifndef WIN32
+// 			i--;
+// #endif	
 			szLine[--i] = '\0';
 			i = 0;
 			tmp = strchr(szLine, '=');
