@@ -3,14 +3,14 @@
 
 #include "load_config.h"
 
-
+#ifdef WIN32
 class CLock
 {
 public:
 	CLock()	{ InitializeCriticalSection(&m_cs); }
 	~CLock() { DeleteCriticalSection(&m_cs); };
-	VOID Lock() { EnterCriticalSection(&m_cs); };
-	VOID Unlock() { LeaveCriticalSection(&m_cs); };
+	void Lock() { EnterCriticalSection(&m_cs); };
+	void Unlock() { LeaveCriticalSection(&m_cs); };
 private:
 	CRITICAL_SECTION m_cs;
 };
@@ -25,7 +25,7 @@ public:
 protected:
 	CLock* m_pLock;
 };
-
+#endif
 class CMonitorSystem
 {
 public:
