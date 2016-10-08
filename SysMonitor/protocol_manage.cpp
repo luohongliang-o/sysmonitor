@@ -101,7 +101,8 @@ int CProtocolManage::write(int fd)
 		Value json_value;
 		m_build_monitor->ConcreteMonotor(object_type[i], m_load_config);
 		CMonitorSystem* monitorsys = m_build_monitor->get_monitor_obj();
-		monitorsys->write(fd, buf);
+		if (monitorsys)
+			monitorsys->write(fd, buf);
 		json_value["type"] = object_type[i];
 		json_value["data"] = buf;
 		last_json_value["data"].append(json_value);
