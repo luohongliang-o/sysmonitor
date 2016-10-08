@@ -109,7 +109,7 @@ void CLinuxSysinfo::get_os_type(Value& json_value){
 }
 void CLinuxSysinfo::get_diskinfo(Value& json_value){
 	FILE *fp;
-	ssize_t len = 0;
+	size_t len = 0;
 	int nread = 0;
 	char *buffer = NULL;
 	char buf[4][32];
@@ -136,7 +136,7 @@ void CLinuxSysinfo::get_disk_stat(Value& json_value){
 	
 	FILE *fp;
 	int nread = 0;
-	ssize_t len = 0;
+	size_t len = 0;
 	char *buffer = NULL;
 	char buf[20][32];
 	char *file = "/proc/diskstats";
@@ -170,7 +170,7 @@ void CLinuxSysinfo::get_cpu_rate(Value& json_value)//获取CPU利用率进程数
 {
 	FILE *fp;
 	int nread = 0;
-	ssize_t len = 0;
+	size_t len = 0;
 	char *buf = NULL;
 	char *buffer = NULL;
 	char *file = "/proc/stat";
@@ -219,7 +219,7 @@ void CLinuxSysinfo::get_meminfo(Value& json_value)
 {
 	FILE *fp;
 	int nread = 0;
-	ssize_t len = 0;
+	size_t len = 0;
 	char *buf = NULL;
 	char *buffer = NULL;
 	char *file = "/proc/meminfo";
