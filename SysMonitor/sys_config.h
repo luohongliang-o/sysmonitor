@@ -19,7 +19,7 @@ using namespace std;
 #define NULL        0
 #include <fstream>
 #endif
-
+#ifdef WIN32
 typedef signed char        int8_t;
 typedef short              int16_t;
 typedef int                int32_t;
@@ -118,7 +118,7 @@ typedef unsigned long long uint_fast64_t;
 
 #define INTMAX_C(x)  INT64_C(x)
 #define UINTMAX_C(x) UINT64_C(x)
-
+#endif // WIN32
 
 #ifndef TDEL
 #define TDEL(a)				if(a!=NULL) { delete a; a=NULL; }
