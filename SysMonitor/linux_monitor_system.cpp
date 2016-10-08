@@ -1,5 +1,5 @@
-#ifndef WIN32
 #include "monitor_system.h"
+#ifndef WIN32
 #include <stdio.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -8,16 +8,31 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
-
+#endif
 int 
 CLinuxSysinfo::write(int fd, char *buf)
 {
-
+	FastWriter json_write;
+	Value  json_value;
+	string jsonstr;
+	get_loadavg(json_value);
+	get_systemtime(json_value);
+	get_kernel_version(json_value);
+	get_os_release( json_value);
+	get_os_type(json_value);
+	get_diskinfo(json_value);
+	get_disk_stat(json_value);
+	get_cpu_rate(json_value);
+	get_meminfo(json_value);
+	jsonstr = json_write.write(json_value);
+	memcpy(buf, jsonstr.c_str(), jsonstr.length() + 1);
+	return jsonstr.length() + 1;
 	return 0;
 }
 
 
 void CLinuxSysinfo::get_loadavg(Value& json_value){//cpu平均负载
+#ifndef WIN32
 	int f = 0;
 	char buffer[80] = "";                         /* 定义字符串并初始化为'\0' */
 	char buf[5][10];
@@ -38,8 +53,10 @@ void CLinuxSysinfo::get_loadavg(Value& json_value){//cpu平均负载
 	json_value["time_interval"] = buf[3];
 	json_value["maxthreadnum"] = buf[4];
 	close(f);
+#endif
 }
 void CLinuxSysinfo::get_systemtime(Value& json_value){
+#ifndef WIN32
 	int f = 0;
 	char buffer[80] = "";
 	char buf[2][10];
@@ -58,9 +75,11 @@ void CLinuxSysinfo::get_systemtime(Value& json_value){
 	json_value["system_run"] = buf[0];
 	json_value["system_idle"] = buf[1];
 	close(f);
+#endif
 }
 
 void CLinuxSysinfo::get_kernel_version(Value& json_value){
+#ifndef WIN32
 	int f = 0;
 	char buffer[80] = "";
 	char *file = "/proc/sys/kernel/version";
@@ -74,9 +93,11 @@ void CLinuxSysinfo::get_kernel_version(Value& json_value){
 	buffer[strlen(buffer) - 1] = 0;                 /* 简单实现tr()函数的功能 */
 	json_value["on_version"] = buffer;
 	close(f);
+#endif
 }
 
 void CLinuxSysinfo::get_os_release(Value& json_value){
+#ifndef WIN32
 	int f = 0;
 	char buffer[80] = "";
 	char *file = "/proc/sys/kernel/osrelease";
@@ -90,9 +111,11 @@ void CLinuxSysinfo::get_os_release(Value& json_value){
 	buffer[strlen(buffer) - 1] = 0;
 	json_value["os_release_version"] = buffer;
 	close(f);
+#endif
 }
 
 void CLinuxSysinfo::get_os_type(Value& json_value){
+#ifndef WIN32
 	int f = 0;
 	char buffer[80] = "";
 	char *file = "/proc/sys/kernel/ostype";
@@ -106,8 +129,10 @@ void CLinuxSysinfo::get_os_type(Value& json_value){
 	buffer[strlen(buffer) - 1] = 0;
 	json_value["os_type"] = buffer;
 	close(f);
+#endif
 }
 void CLinuxSysinfo::get_diskinfo(Value& json_value){
+#ifndef WIN32
 	FILE *fp;
 	size_t len = 0;
 	int nread = 0;
@@ -131,9 +156,10 @@ void CLinuxSysinfo::get_diskinfo(Value& json_value){
 	if (buffer)
 		free(buffer);
 	fclose(fp);
+#endif
 }
 void CLinuxSysinfo::get_disk_stat(Value& json_value){
-	
+#ifndef WIN32
 	FILE *fp;
 	int nread = 0;
 	size_t len = 0;
@@ -164,10 +190,12 @@ void CLinuxSysinfo::get_disk_stat(Value& json_value){
 	if (buffer)
 		free(buffer);
 	fclose(fp);
+#endif
 }
 
 void CLinuxSysinfo::get_cpu_rate(Value& json_value)//获取CPU利用率进程数
 {
+#ifndef WIN32
 	FILE *fp;
 	int nread = 0;
 	size_t len = 0;
@@ -213,10 +241,12 @@ void CLinuxSysinfo::get_cpu_rate(Value& json_value)//获取CPU利用率进程数
 	if (buffer)
 		free(buffer);
 	fclose(fp);
+#endif
 }
 
 void CLinuxSysinfo::get_meminfo(Value& json_value)
 {
+#ifndef WIN32
 	FILE *fp;
 	int nread = 0;
 	size_t len = 0;
@@ -277,5 +307,5 @@ void CLinuxSysinfo::get_meminfo(Value& json_value)
 	if (buffer)
 		free(buffer);
 	fclose(fp);
-}
 #endif
+}
