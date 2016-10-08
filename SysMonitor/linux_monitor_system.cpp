@@ -111,6 +111,7 @@ void CLinuxSysinfo::get_diskinfo(Value& json_value){
 	FILE *fp;
 	ssize_t len = 0;
 	int nread = 0;
+	char *buffer = NULL;
 	char buf[4][32];
 	char *file = "/proc/partitions";
 	fp = fopen(file, "rb");
@@ -127,6 +128,9 @@ void CLinuxSysinfo::get_diskinfo(Value& json_value){
 			json_value[keystr] = buf[2];
 		}
 	}
+	if (buffer)
+		free(buffer);
+	fclose(fp);
 }
 void CLinuxSysinfo::get_disk_stat(Value& json_value){
 	
