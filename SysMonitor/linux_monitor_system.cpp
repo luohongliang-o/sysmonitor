@@ -17,7 +17,7 @@ CLinuxSysinfo::write(int fd, char *buf)
 }
 
 
-void CLinuxSysinfo::get_loadavg(Value& json_value){
+void CLinuxSysinfo::get_loadavg(Value& json_value){//cpu平均负载
 	int f = 0;
 	char buffer[80] = "";                         /* 定义字符串并初始化为'\0' */
 	char buf[5][10];
@@ -28,6 +28,7 @@ void CLinuxSysinfo::get_loadavg(Value& json_value){
 		printf("error to open: %s\n", file);
 		exit(EXIT_FAILURE);
 	}
+
 	read(f, (void *)buffer, 80);
 	sscanf(buffer, "%s %s %s %s %s",            /* sscanf()拆分成多个字符串 */
 		&buf[0], &buf[1], &buf[2], &buf[3], &buf[4]);
@@ -121,6 +122,9 @@ void CLinuxSysinfo::get_diskinfo(Value& json_value){
 	while ((nread = getline(&buffer, &len, fp)) != -1) { /* 简单实现读行的功能 */
 		sscanf(buffer, "%s %s %s %s",&buf[0],&buf[1],&buf[2],&buf[3]);
 		if (strstr(buf[3],"da")!=NULL){
+			string keystr = "disk_kb_";
+			keystr += buf[3];
+			json_value[keystr] = buf[2];
 		}
 	}
 }
@@ -148,13 +152,9 @@ void CLinuxSysinfo::get_disk_stat(Value& json_value){
 		{
 			string key = buf[2];
 			string keyread = key + "disk_read_";
-			json_value[keyread.c_str()] = &buf[3];                                  /* loop本地回路不作操作 */
-			string keywrite = key + "disk_read_";
-			json_value[keywrite.c_str()] = &buf[7];
-		}
-		else {
-			printf("%06s%08s%08s\n",
-				&buf[2], &buf[3], &buf[7]);
+			json_value[keyread.c_str()] = buf[3];                                  /* loop本地回路不作操作 */
+			string keywrite = key + "disk_write_";
+			json_value[keywrite.c_str()] = buf[7];
 		}
 	}
 	if (buffer)
@@ -162,7 +162,7 @@ void CLinuxSysinfo::get_disk_stat(Value& json_value){
 	fclose(fp);
 }
 
-void CLinuxSysinfo::get_processes(void)
+void CLinuxSysinfo::get_cpu_rate(Value& json_value)//获取CPU利用率进程数
 {
 	FILE *fp;
 	int nread = 0;
@@ -170,12 +170,21 @@ void CLinuxSysinfo::get_processes(void)
 	char *buf = NULL;
 	char *buffer = NULL;
 	char *file = "/proc/stat";
+	char cpu[5]; 
+	long int user,nice,sys,idle,iowait,irq,softirq;
+	long int all1,all2,idle1,idle2;
+	float usage;
 	fp = fopen(file, "rb");
 	if (fp == NULL)
 	{
 		printf("error to open: %s\n", file);
 		exit(EXIT_FAILURE);
 	}
+
+	getline(&buffer,&len,fp);
+	sscanf(buffer,"%s%d%d%d%d%d%d%d",cpu,&user,&nice,&sys,&idle,&iowait,&irq,&softirq);
+	all1 = user+nice+sys+idle+iowait+irq+softirq;  
+	idle1 = idle;
 	while ((nread = getline(&buffer, &len, fp)) != -1) {
 		if ((buf = strstr(buffer, "processes")) != NULL)  /* 简单实现grep的功能 */
 			break;
@@ -183,13 +192,26 @@ void CLinuxSysinfo::get_processes(void)
 	buffer[strlen(buffer) - 1] = 0;                 /* 简单实现tr()函数的功能 */
 	char count[16] = "";
 	sscanf(buffer, "%s%s", count, count);
-	printf("执行线程数目:\t%s\n", count);
+	json_value["processes"] = count;
+	
+	rewind(fp);
+	Sleep(1);
+	memset(buffer,0,sizeof(buffer)); 
+	cpu[0] = '\0';  
+	user=nice=sys=idle=iowait=irq=softirq=0;  
+	getline(&buffer,&len,fp);
+	sscanf(buf,"%s%d%d%d%d%d%d%d",cpu,&user,&nice,&sys,&idle,&iowait,&irq,&softirq);
+	all2 = user+nice+sys+idle+iowait+irq+softirq;  
+	idle2 = idle;  
+
+	usage = (float)(all2-all1-(idle2-idle1)) / (all2-all1)*100 ; 
+	json_value["cpu_usage"] = usage;
 	if (buffer)
 		free(buffer);
 	fclose(fp);
 }
 
-void CLinuxSysinfo::get_meminfo()
+void CLinuxSysinfo::get_meminfo(Value& json_value)
 {
 	FILE *fp;
 	int nread = 0;
@@ -210,41 +232,42 @@ void CLinuxSysinfo::get_meminfo()
 			buffer[strlen(buffer) - 1] = 0;             /* 简单实现tr()函数的功能 */
 			sscanf(buffer, "%s%s", content, content);
 			int memtotal_kb = (int)(strtof(content, NULL));
-			printf("内存总容量:\t%dG%4dM %4dK\n",
-				memtotal_kb / (1024 * 1024),           /* Gb */
-				(memtotal_kb / (1024)) % 1024,         /* Mb */
-				(memtotal_kb % (1024 * 1024)) % 1024);   /* Kb */
+			json_value["MemTotalKB"] = memtotal_kb;
 		}
 		if ((buf = strstr(buffer, "MemFree")) != NULL)  /* 简单实现grep的功能 */
 		{
 			buffer[strlen(buffer) - 1] = 0;                 /* 简单实现tr()函数的功能 */
 			sscanf(buffer, "%s%s", content, content);
 			int memfree_kb = (int)(strtof(content, NULL));
-			printf("内存可用容量:\t%dG%4dM %4dK\n",
-				memfree_kb / (1024 * 1024),           /* Gb */
-				(memfree_kb / (1024)) % 1024,         /* Mb */
-				(memfree_kb % (1024 * 1024)) % 1024);   /* Kb */
+			json_value["MemFreeKB"] = memfree_kb ;
 		}
 		if ((buf = strstr(buffer, "SwapTotal")) != NULL)  /* 简单实现grep的功能 */
 		{
 			buffer[strlen(buffer) - 1] = 0;                 /* 简单实现tr()函数的功能 */
 			sscanf(buffer, "%s%s", content, content);
 			int swaptotal_kb = (int)(strtof(content, NULL));
-			printf("SWAP总容量:\t%dG%4dM %4dK\n",
-				swaptotal_kb / (1024 * 1024),           /* Gb */
-				(swaptotal_kb / (1024)) % 1024,         /* Mb */
-				(swaptotal_kb % (1024 * 1024)) % 1024);   /* Kb */
+			json_value["SwapTotalKB"] = swaptotal_kb;
 		}
 		if ((buf = strstr(buffer, "SwapFree")) != NULL)  /* 简单实现grep的功能 */
 		{
 			buffer[strlen(buffer) - 1] = 0;                 /* 简单实现tr()函数的功能 */
 			sscanf(buffer, "%s%s", content, content);
 			int swapfree_kb = (int)(strtof(content, NULL));
-			printf("SWAP可用容量:\t%dG%4dM %4dK\n",
-				swapfree_kb / (1024 * 1024),           /* Gb */
-				(swapfree_kb / (1024)) % 1024,         /* Mb */
-				(swapfree_kb % (1024 * 1024)) % 1024);   /* Kb */
-			break;                              /* 所需的信息已满足，退出循环 */
+			json_value["SwapFreeKB"] = swapfree_kb;
+		}
+		if ((buf = strstr(buffer, "VmallocTotal")) != NULL)  /* 简单实现grep的功能 */
+		{
+			buffer[strlen(buffer) - 1] = 0;                 /* 简单实现tr()函数的功能 */
+			sscanf(buffer, "%s%s", content, content);
+			int vmalloctotal_kb = (int)(strtof(content, NULL));
+			json_value["VmallocTotalKB"] = vmalloctotal_kb ;
+		}
+		if ((buf = strstr(buffer, "VmallocUsed")) != NULL)  /* 简单实现grep的功能 */
+		{
+			buffer[strlen(buffer) - 1] = 0;                 /* 简单实现tr()函数的功能 */
+			sscanf(buffer, "%s%s", content, content);
+			int vmallocused_kb = (int)(strtof(content, NULL));
+			json_value["VmallocUsedKB"] = vmallocused_kb;
 		}
 	}
 	if (buffer)
