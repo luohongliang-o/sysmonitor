@@ -294,7 +294,7 @@ void CLinuxSysinfo::get_meminfo(Value& json_value)
 		{
 			buffer[strlen(buffer) - 1] = 0;                 /* 简单实现tr()函数的功能 */
 			sscanf(buffer, "%s%s", content, content);
-			int vmalloctotal_kb = (long)(strtof(content, NULL));
+			long vmalloctotal_kb = (long)(strtof(content, NULL));
 			json_value["VmallocTotalKB"] = vmalloctotal_kb ;
 		}
 		if ((buf = strstr(buffer, "VmallocUsed")) != NULL)  /* 简单实现grep的功能 */
