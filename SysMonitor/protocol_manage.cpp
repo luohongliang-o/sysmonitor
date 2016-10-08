@@ -124,6 +124,7 @@ int CProtocolManage::write(int fd)
 
 void CProtocolManage::get_global_info()
 {
+#ifdef WIN32
 	if (!m_bget_systeminfo)
 	{
 		FILE *ppipe = NULL;
@@ -155,6 +156,7 @@ void CProtocolManage::get_global_info()
 			_pclose(ppipe);
 		m_bget_systeminfo = true;
 	}
+#endif // WIN32
 }
 bool CProtocolManage::is_init_global_info()
 {
