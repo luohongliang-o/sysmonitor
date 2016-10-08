@@ -151,6 +151,15 @@ public:
 
 	virtual int write(int fd, char *buf);
 protected:
+	
+	void  get_loadavg(Value& json_value);
+	void  get_systemtime(Value& json_value);
+	void  get_kernel_version(Value& json_value);
+	void  get_os_release(Value& json_value);
+	void  get_os_type(Value& json_value);
+	void  get_diskinfo(Value& json_value);
+	void  get_disk_stat(Value& json_value);
+	void  get_cpu_rate(Value& json_value);
 	void  get_meminfo(Value& json_value);
 };
 
