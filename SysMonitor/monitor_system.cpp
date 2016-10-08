@@ -344,15 +344,16 @@ CMySqlMonitor::write(int fd, char* buf)
 //////////////////////////////////////////////////////////////////////////
 void CBuildMonitor::ConcreteMonotor(int type, CLoadConfig* loadconfig)
 {
-#ifdef WIN32
+
 	if (MONITORTYPE_SYSTEM_INFO == type)
 		m_system_monitor = new CSysInfo(loadconfig);
 	if (MONITORTYPE_PROCESS == type)
 		m_system_monitor = new CProcessMonitor(loadconfig);
-#endif // WIN32
 
 	if (MONITORTYPE_MYSQL == type)
 		m_system_monitor = new CMySqlMonitor(loadconfig);
+	if (MONITORTYPE_LINUX_SYSINFO == type)
+		m_system_monitor = new CLinuxSysinfo(loadconfig);
 }
 
 CBuildMonitor::~CBuildMonitor()
