@@ -338,11 +338,11 @@ main(int argc, char **argv)
 #ifdef _WIN32
 	WORD w_version_requested;
 	WSADATA wsa_data;
-	struct event_base* eventbase;
 	w_version_requested = MAKEWORD(2, 2);
 
 	(void)WSAStartup(w_version_requested, &wsa_data);
 #endif
+	struct event_base* eventbase;
 	evutil_socket_t listen_fd;
 	struct sockaddr_in listen_addr;
 	int reuseaddr_on = 1;
