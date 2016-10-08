@@ -199,7 +199,7 @@ void CLinuxSysinfo::get_cpu_rate(Value& json_value)//获取CPU利用率进程数
 	json_value["processes"] = count;
 	
 	rewind(fp);
-	Sleep(1);
+	sleep(1);
 	memset(buffer,0,sizeof(buffer)); 
 	cpu[0] = '\0';  
 	user=nice=sys=idle=iowait=irq=softirq=0;  
