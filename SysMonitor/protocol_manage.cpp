@@ -9,13 +9,12 @@ CProtocolManage::CProtocolManage(CLoadConfig* loadconfg)
 	int object_num = m_load_config->get_object_num();
 	short* object_type = m_load_config->get_object_type();
 	m_bget_systeminfo = false;
-	m_build_monitor = new CBuildMonitor;
+	
 	get_global_info();
 }
 
 CProtocolManage::~CProtocolManage()
 {
-	TDEL(m_build_monitor);
 }
 
 int 
@@ -99,8 +98,9 @@ int CProtocolManage::write(int fd)
 	char* buf = new char[1024 * 4];
 	for (int i = 0; i < object_num; i++){
 		Value json_value;
-		m_build_monitor->ConcreteMonotor(object_type[i], m_load_config);
-		CMonitorSystem* monitorsys = m_build_monitor->get_monitor_obj();
+		CBuildMonitor build_monitor;
+		build_monitor.ConcreteMonotor(object_type[i], m_load_config);
+		CMonitorSystem* monitorsys = build_monitor.get_monitor_obj();
 		if (monitorsys){
 			monitorsys->write(fd, buf);
 			json_value["type"] = object_type[i];
