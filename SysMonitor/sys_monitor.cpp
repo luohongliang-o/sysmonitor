@@ -226,6 +226,25 @@ on_write(evutil_socket_t fd, short ev, void *arg)
 	/* Write the buffer.  A portion of the buffer may have been
 	* written in a previous write, so only write the remaining
 	* bytes. */
+/*
+	struct AnsHeader
+	{
+		int len;
+		long separator;
+	};
+	struct AnsBuffer
+	{
+		AnsHeader anshead;
+		char ansbuffer[BUFLEN];
+	};
+	AnsBuffer ansbuf = {0};
+	
+	ansbuf.anshead.len = len;
+	ansbuf.anshead.separator = 7654321;
+	memcpy(ansbuf.ansbuffer, (ins_bufferq->buf + ins_bufferq->offset), len);
+	char psend[BUFLEN];
+	memcpy(psend, &ansbuf, BUFLEN);
+*/
 	len = ins_bufferq->len - ins_bufferq->offset;
 #ifdef WIN32
 	len = send(fd, (char*)(ins_bufferq->buf + ins_bufferq->offset),
