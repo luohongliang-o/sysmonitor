@@ -63,7 +63,10 @@ class CMySqlMonitor;
 class CBuildMonitor
 {
 public:
-	CBuildMonitor(){};
+	CBuildMonitor()
+	{
+		m_system_monitor = NULL;
+	};
 	enum
 	{
 		MONITORTYPE_SYSTEM_INFO = 1,
