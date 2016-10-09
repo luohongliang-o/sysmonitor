@@ -182,9 +182,9 @@ void CLinuxSysinfo::get_disk_stat(Value& json_value){
 		if ((p = strstr(buf[2], "da")) != NULL)
 		{
 			string key = buf[2];
-			string keyread = key + "disk_read_";
+			string keyread = "disk_read_" + key ;
 			json_value[keyread.c_str()] = buf[3];                                  /* loop本地回路不作操作 */
-			string keywrite = key + "disk_write_";
+			string keywrite = "disk_write_" + key ;
 			json_value[keywrite.c_str()] = buf[7];
 		}
 	}
