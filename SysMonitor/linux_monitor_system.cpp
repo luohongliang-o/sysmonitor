@@ -204,9 +204,8 @@ void CLinuxSysinfo::get_cpu_rate(Value& json_value)//获取CPU利用率进程数
 	char *buffer = NULL;
 	char *file = "/proc/stat";
 	char cpu[5]; 
-	long int user,nice,sys,idle,iowait,irq,softirq;
-	long int all1,all2,idle1,idle2;
-	float usage;
+	int user,nice,sys,idle,iowait,irq,softirq;
+	int all1,all2,idle1,idle2;
 	fp = fopen(file, "rb");
 	if (fp == NULL)
 	{
@@ -233,12 +232,12 @@ void CLinuxSysinfo::get_cpu_rate(Value& json_value)//获取CPU利用率进程数
 	cpu[0] = '\0';  
 	user=nice=sys=idle=iowait=irq=softirq=0;  
 	getline(&buffer,&len,fp);
-	sscanf(buf,"%s%d%d%d%d%d%d%d",cpu,&user,&nice,&sys,&idle,&iowait,&irq,&softirq);
+	sscanf(buffer,"%s%d%d%d%d%d%d%d",cpu,&user,&nice,&sys,&idle,&iowait,&irq,&softirq);
 	all2 = user+nice+sys+idle+iowait+irq+softirq;  
 	idle2 = idle;  
-
-	usage = (float)(all2-all1-(idle2-idle1)) / (all2-all1)*100 ; 
-	json_value["cpu_usage"] = usage;
+	char str_usage[10];
+	sprintf_s(str_usage,sizeof(str_usage),"%.2f",(float)(all2-all1-(idle2-idle1)) / (all2-all1)*100 ); 
+	json_value["cpu_usage"] = str_usage;
 	if (buffer)
 		free(buffer);
 	fclose(fp);
