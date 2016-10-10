@@ -115,7 +115,7 @@ int CProtocolManage::write(int fd)
 			last_json_value["data"].append(json_value);
 		}else{
 			json_value["type"] = object_type[i];
-			last_json_value["data"]= "[]";
+			last_json_value["data"].append(json_value);
 		}
 	}
 	TDELARRAY(buf);
