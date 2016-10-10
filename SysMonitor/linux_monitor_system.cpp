@@ -122,9 +122,11 @@ void CLinuxSysinfo::get_diskinfo(Value& json_value){
 	while ((nread = getline(&buffer, &len, fp)) != -1) {
 		sscanf(buffer, "%s %s %s %s",&buf[0],&buf[1],&buf[2],&buf[3]);
 		if (strstr(buf[3],"da")!=NULL){
-			string keystr = DISK_TOTAL;
-			keystr = keystr+"_"+buf[3];
-			json_value[keystr] = buf[2];
+			Value disk_data;
+			disk_data["disk_name"] = buf[3];
+			disk_data[DISK_TOTAL] = buf[2];
+			disk_data[DISK_FREE] = 0;
+			json_value["disk"].append(disk_data);
 		}
 	}
 	if (buffer)
@@ -161,7 +163,7 @@ void CLinuxSysinfo::get_disk_io(int& io_num)
 #endif
 }
 
-void CLinuxSysinfo::get_cpu_time(int &all_time, int& idle_time)//获取CPU利用率进程数
+void CLinuxSysinfo::get_cpu_time(int &all_time, int& idle_time)
 {
 #ifndef WIN32
 	FILE *fp;

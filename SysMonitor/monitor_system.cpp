@@ -99,12 +99,13 @@ CSysInfo::write(int fd, char *buf)
 					(PULARGE_INTEGER)&i64totalbytes,
 					(PULARGE_INTEGER)&i64freebytes);
 				if (fResult){
+					Value disk_data;
 					_gcvt(i64totalbytes/1024, 31, json_data);
-					string drivername = strdriver.substr(0, 1) + "_" + DISK_TOTAL;
-					AddJsonKeyValue((char*)drivername.c_str(), json_data, json_value);
+					AddJsonKeyValue("disk_name", (char*)strdriver.substr(0, 1).c_str(), disk_data);
+					AddJsonKeyValue(DISK_TOTAL, json_data, disk_data);
 					_gcvt(i64freebytes/1024, 31, json_data);
-					drivername = strdriver.substr(0, 1) + "_" + DISK_FREE;
-					AddJsonKeyValue((char*)drivername.c_str(), json_data, json_value);
+					AddJsonKeyValue(DISK_FREE, json_data, disk_data);
+					json_value["disk"].append(disk_data);
 				}
 			}
 		}
@@ -252,15 +253,12 @@ CProcessMonitor::write(int fd, char* buf)
 			}
 			printf("\ncurrent process id is %d", v_pidlist[j]);
 			if (feof(ppipe))
-				//printf("\nProcess returned %d\n", _pclose(ppipe));
 				_pclose(ppipe);
-// 			else
-// 				printf("Error: Failed to read the pipe to the end.\n");
 		}
-		
-		sprintf_s(json_data,"%d",tcpnum);
-		string key = *process_name[i]  + "_" + PROCESS_TCP_CONNECTION;
-		AddJsonKeyValue((char*)key.c_str(), json_data, json_value);
+		Value process_data;
+		process_data["process_name"] = process_name[i]->c_str();
+		process_data[PROCESS_TCP_CONNECTION] = tcpnum;
+		json_value["process"].append(process_data);
 	}	
 	jsonstr = json_write.write(json_value);
 	memcpy(buf, jsonstr.c_str(), jsonstr.length() + 1);
