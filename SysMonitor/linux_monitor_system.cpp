@@ -66,7 +66,7 @@ void CLinuxSysinfo::get_systemtime(Value& json_value)
 	read(f, (void *)buffer, 80);
 	sscanf(buffer, "%f %f", &alltime, &idletime);
 	close(f);
-	sprintf_s(stridle,sizeof(stridle),"%.2f",idletime/alltime);
+	sprintf_s(stridle,sizeof(stridle),"%.2f",idletime/alltime*100);
 	json_value[SYSTEM_IDLE] = stridle;
 	close(f);
 #endif
