@@ -163,7 +163,7 @@ protected:
 	void  get_tcp_connections(Value& json_value);
 
 	void  get_monitor_data_sec(Value& json_value);
-	void  get_network_transfers(Int64& bytes);
+	void  get_network_transfers(long& bytes);
 	void  get_disk_io(int& io_num);
 	void  get_cpu_time(int& all_time,int& idle_time);
 };

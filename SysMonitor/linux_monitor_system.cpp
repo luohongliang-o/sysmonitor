@@ -261,8 +261,8 @@ CLinuxSysinfo::get_monitor_data_sec(Value& json_value)
 	int cpu_idle2 = 0;
 	char cpu_usage[10];
 	
-	int network_transfers1 = 0;
-	int network_transfers2 = 0;
+	long network_transfers1 = 0;
+	long network_transfers2 = 0;
 
 	get_disk_io(disk_io1);
 	get_cpu_time(cpu_all_time1,cpu_idle1);
@@ -282,7 +282,7 @@ CLinuxSysinfo::get_monitor_data_sec(Value& json_value)
 #endif
 }
 
-void CLinuxSysinfo::get_network_transfers(Int64& bytes)
+void CLinuxSysinfo::get_network_transfers(long& bytes)
 {
 #ifndef WIN32
 	FILE *fp;
@@ -290,7 +290,7 @@ void CLinuxSysinfo::get_network_transfers(Int64& bytes)
 	int nread = 0;
 	char *buffer = NULL;
 	char buf[8][32];
-	Int64 receive_bytes = 0,transmit_bytes = 0;
+	long receive_bytes = 0,transmit_bytes = 0;
 	char *file = "/proc/net/dev";
 	fp = fopen(file, "rb");
 	if (fp == NULL){
