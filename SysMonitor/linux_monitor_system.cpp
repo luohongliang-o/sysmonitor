@@ -261,8 +261,8 @@ CLinuxSysinfo::get_monitor_data_sec(Value& json_value)
 	int cpu_idle2 = 0;
 	char cpu_usage[10];
 	
-	long network_transfers1 = 0;
-	long network_transfers2 = 0;
+	Int64 network_transfers1 = 0;
+	Int64 network_transfers2 = 0;
 
 	get_disk_io(disk_io1);
 	get_cpu_time(cpu_all_time1,cpu_idle1);
