@@ -301,7 +301,7 @@ void CLinuxSysinfo::get_network_transfers(long& bytes)
 		if (strstr(buffer,"eth")){
 			sscanf(buffer, "%s %d %s %s %s %s %s %s %d %s", &buf[0], &receive_bytes, &buf[1], &buf[2],
 				&buf[3], &buf[4], &buf[5], &buf[6],&transmit_bytes, &buf[7]);
-			bytes+=receive_bytes+transmit_bytes
+			bytes+=receive_bytes+transmit_bytes;
 		}
 		
 	}
