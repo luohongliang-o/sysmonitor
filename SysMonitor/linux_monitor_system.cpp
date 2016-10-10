@@ -266,12 +266,12 @@ CLinuxSysinfo::get_monitor_data_sec(Value& json_value)
 
 	get_disk_io(disk_io1);
 	get_cpu_time(cpu_all_time1,cpu_idle1);
-	get_network_transfers((long)network_transfers1);
+	get_network_transfers((long&)network_transfers1);
 	sleep(1);
 
 	get_disk_io(disk_io2);
 	get_cpu_time(cpu_all_time2,cpu_idle2);
-	get_network_transfers((long)network_transfers2);
+	get_network_transfers((long&)network_transfers2);
 
 	json_value[DISK_IO] = disk_io2 - disk_io1;
 	sprintf_s(cpu_usage, sizeof(cpu_usage), "%.2f",\
