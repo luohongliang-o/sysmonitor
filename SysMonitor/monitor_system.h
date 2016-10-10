@@ -37,7 +37,7 @@ public:
 	virtual ~CMonitorSystem()
 	{
 	};
-	virtual int write(int fd,char* buf) = 0;
+	virtual int write(int fd, Value& json_value) = 0;
 
 	void AddJsonKeyValue(char* str_key, char* str_data, Value& json_value)
 	{
@@ -117,7 +117,7 @@ public:
 
 	~CSysInfo(){ ; };
 
-	virtual int write(int fd, char *buf);
+	virtual int write(int fd, Value& json_value);
 	
 protected:
 	//virtual int ThreadKernalFunc(WPARAM wparam = 0, LPARAM lparam = 0);
@@ -133,7 +133,7 @@ public:
 	CProcessMonitor(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){ ; }
 	
 	~CProcessMonitor(){ ; }
-	virtual int write(int fd, char* buf);
+	virtual int write(int fd, Value& json_value);
 protected:
 	BOOL GetProcessList();
 	void printError(TCHAR* msg);
@@ -151,7 +151,7 @@ public:
 	CLinuxSysinfo(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){ ; };
 	~CLinuxSysinfo(){ ; };
 
-	virtual int write(int fd, char *buf);
+	virtual int write(int fd, Value& json_value);
 protected:
 	
 	void  get_loadavg(Value& json_value);         //cpu∏∫‘ÿ
@@ -175,7 +175,7 @@ public:
 	CMySqlMonitor(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){ ; };
 	~CMySqlMonitor(){ ; };
 
-	virtual int write(int fd, char *buf);
+	virtual int write(int fd, Value& json_value);
 	
 private:
 

@@ -36,9 +36,8 @@ CProtocolManage::read(int fd, char *buf)
 		string user_name;
 		Value json_value;
 		user_name = temp_instance_value["username"].asString();
-		if (user_name == m_load_config->get_check_user_name()){
+		if (user_name == m_load_config->get_check_user_name())
 			m_bCheck = true;
-		}
 		json_value["bcheck"] = m_bCheck;
 		json_value["erromsg"] = "checkuser success.";
 		strJsonData = temp_inswrite.write(json_value);
@@ -102,22 +101,26 @@ int CProtocolManage::write(int fd)
 		build_monitor.ConcreteMonotor(object_type[i], m_load_config);
 		CMonitorSystem* monitorsys = build_monitor.get_monitor_obj();
 		if (monitorsys){
-			monitorsys->write(fd, buf);
+			monitorsys->write(fd, json_value);
+			//兼容处理linux 系统版本信息
+			if (object_type[i] == build_monitor.MONITORTYPE_LINUX_SYSINFO){
+				Value temp_json_value;
+				temp_json_value[OS_NAME] = json_value[OS_NAME];
+				temp_json_value[OS_VERSION] = json_value[OS_VERSION];
+				last_json_value["global"].append(temp_json_value);
+				json_value.removeMember(OS_NAME);
+				json_value.removeMember(OS_VERSION);
+			}
 			json_value["type"] = object_type[i];
-			json_value["data"] = buf;
 			last_json_value["data"].append(json_value);
-		}
-		else
-		{
+		}else{
 			json_value["type"] = object_type[i];
-			json_value["data"] = "";
-			last_json_value["data"].append(json_value);
+			last_json_value["data"]= "[]";
 		}
 	}
 	TDELARRAY(buf);
 	get_global_info();
-	if (is_init_global_info())
-	{
+	if (is_init_global_info()){
 		Value json_value;
 		json_value[OS_NAME] = m_os_name;
 		json_value[OS_VERSION] = m_os_version;
@@ -132,8 +135,7 @@ int CProtocolManage::write(int fd)
 void CProtocolManage::get_global_info()
 {
 #ifdef WIN32
-	if (!m_bget_systeminfo)
-	{
+	if (!m_bget_systeminfo){
 		FILE *ppipe = NULL;
 		char* pbuffer = new char[1000];
 		int nread_line = 0;
@@ -141,8 +143,7 @@ void CProtocolManage::get_global_info()
 		ppipe = _popen("systeminfo /FO CSV /NH ", "rt");
 		fgets(pbuffer, 1000, ppipe);
 		char* tembufer = pbuffer;
-		while (nread_line < 3)
-		{
+		while (nread_line < 3){
 			char* tempstr = strchr(tembufer, ',');
 			len = tempstr - tembufer;
 			char* tempvalue = new char[len + 1];

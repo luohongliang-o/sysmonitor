@@ -46,10 +46,10 @@ Thread::~Thread()
 //////////////////////////////////////////////////////////////////////////
 
 int
-CSysInfo::write(int fd, char *buf)
+CSysInfo::write(int fd, Value& json_value)
 {
 	FastWriter json_write;
-	Value  json_value;
+	Value  temp_json_value;
 	string jsonstr;
 	char json_data[50] = "";
 	char performace_key[16] = "";
@@ -59,17 +59,17 @@ CSysInfo::write(int fd, char *buf)
 		memory_status.dwLength = sizeof(memory_status);
 		GlobalMemoryStatusEx(&memory_status);
 		_gcvt(memory_status.ullTotalPhys, 31, json_data);
-		AddJsonKeyValue(MEMORY_TOTAL, json_data, json_value);
+		AddJsonKeyValue(MEMORY_TOTAL, json_data, temp_json_value);
 		_gcvt(memory_status.ullTotalVirtual, 31, json_data);
-		AddJsonKeyValue(VIRTUAL_MEM_TATAL, json_data, json_value);
+		AddJsonKeyValue(VIRTUAL_MEM_TATAL, json_data, temp_json_value);
 /*
 		_gcvt(memory_status.dwMemoryLoad, 31, json_data);
-		AddJsonKeyValue("MemoryLoad", json_data, json_value);
+		AddJsonKeyValue("MemoryLoad", json_data, temp_json_value);
 */
 		_gcvt(memory_status.ullAvailPhys, 31, json_data);
-		AddJsonKeyValue(MEMORY_FREE, json_data, json_value);
+		AddJsonKeyValue(MEMORY_FREE, json_data, temp_json_value);
 		_gcvt(memory_status.ullAvailVirtual, 31, json_data);
-		AddJsonKeyValue(VIRTUAL_MEM_FREE, json_data, json_value);
+		AddJsonKeyValue(VIRTUAL_MEM_FREE, json_data, temp_json_value);
 	}
 	//disk
 	{
@@ -105,7 +105,7 @@ CSysInfo::write(int fd, char *buf)
 					AddJsonKeyValue(DISK_TOTAL, json_data, disk_data);
 					_gcvt(i64freebytes/1024, 31, json_data);
 					AddJsonKeyValue(DISK_FREE, json_data, disk_data);
-					json_value["disk"].append(disk_data);
+					temp_json_value["disk"].append(disk_data);
 				}
 			}
 		}
@@ -127,14 +127,12 @@ CSysInfo::write(int fd, char *buf)
 		for (int i = 0; i < performace_num; i++){
 			double perfordata = WritePerformaceVaule(i,3,(char*)(performace_name[i])->c_str());
 			_gcvt(perfordata, 31, json_data);
-			AddJsonKeyValue(key_name[i], json_data, json_value);
+			AddJsonKeyValue(key_name[i], json_data, temp_json_value);
 		}
 	}
-	//json_value["performace"].append(m_jsonvalue_performace);
-	jsonstr = json_write.write(json_value);
-	memcpy(buf, jsonstr.c_str(), jsonstr.length() + 1);
+	json_value["system"].append(temp_json_value);
 	
-	return jsonstr.length() + 1;
+	return 0;
 }
 
 double 
@@ -219,14 +217,14 @@ Cleanup:
 #include <fstream>
 
 int
-CProcessMonitor::write(int fd, char* buf)
+CProcessMonitor::write(int fd, Value& json_value)
 {
 	if (!GetProcessList()){
 		printf(" Init process snapshot list failed.\n");
 		return 0;
 	}
 	FastWriter json_write;
-	Value  json_value;
+//	Value  json_value;
 	string jsonstr;
 	char json_data[51] = "";
 	int process_num = m_loadconfig->get_process_num();
@@ -260,9 +258,7 @@ CProcessMonitor::write(int fd, char* buf)
 		process_data[PROCESS_TCP_CONNECTION] = tcpnum;
 		json_value["process"].append(process_data);
 	}	
-	jsonstr = json_write.write(json_value);
-	memcpy(buf, jsonstr.c_str(), jsonstr.length() + 1);
-	return jsonstr.length() + 1;
+	return 0;
 }
 
 BOOL
@@ -345,7 +341,7 @@ CProcessMonitor::printError(TCHAR* msg)
 //////////////////////////////////////////////////////////////////////////
 
 int
-CMySqlMonitor::write(int fd, char* buf)
+CMySqlMonitor::write(int fd, Value& json_value)
 {
 	return 0;
 }

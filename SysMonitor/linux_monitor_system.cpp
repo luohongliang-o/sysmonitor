@@ -11,10 +11,10 @@
 #include <string.h>
 #endif
 int 
-CLinuxSysinfo::write(int fd, char *buf)
+CLinuxSysinfo::write(int fd, Value& json_value)
 {
 	FastWriter json_write;
-	Value  json_value;
+	//Value  json_value;
 	string jsonstr;
 	get_loadavg(json_value);
 	get_systemtime(json_value);
@@ -24,9 +24,6 @@ CLinuxSysinfo::write(int fd, char *buf)
 	get_meminfo(json_value);
 	get_monitor_data_sec(json_value);
 	jsonstr = json_write.write(json_value);
-	memcpy(buf, jsonstr.c_str(), jsonstr.length() + 1);
-	printf("%s\n", buf);
-	return jsonstr.length() + 1;
 	return 0;
 }
 
