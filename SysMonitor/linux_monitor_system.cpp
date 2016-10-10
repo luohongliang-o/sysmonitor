@@ -13,17 +13,15 @@
 int 
 CLinuxSysinfo::write(int fd, Value& json_value)
 {
-	FastWriter json_write;
-	//Value  json_value;
-	string jsonstr;
-	get_loadavg(json_value);
-	get_systemtime(json_value);
-	get_kernel_version(json_value);
-	get_os_name(json_value);
-	get_diskinfo(json_value);
-	get_meminfo(json_value);
-	get_monitor_data_sec(json_value);
-	jsonstr = json_write.write(json_value);
+	Value temp_json_value;
+	get_loadavg(temp_json_value);
+	get_systemtime(temp_json_value);
+	get_kernel_version(temp_json_value);
+	get_os_name(temp_json_value);
+	get_diskinfo(temp_json_value);
+	get_meminfo(temp_json_value);
+	get_monitor_data_sec(temp_json_value);
+	json_value["linux_system"].append(temp_json_value);
 	return 0;
 }
 

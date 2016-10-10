@@ -48,9 +48,7 @@ Thread::~Thread()
 int
 CSysInfo::write(int fd, Value& json_value)
 {
-	FastWriter json_write;
 	Value  temp_json_value;
-	string jsonstr;
 	char json_data[50] = "";
 	char performace_key[16] = "";
 	//memory

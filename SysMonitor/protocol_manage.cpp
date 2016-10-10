@@ -108,8 +108,8 @@ int CProtocolManage::write(int fd)
 				temp_json_value[OS_NAME] = json_value[OS_NAME];
 				temp_json_value[OS_VERSION] = json_value[OS_VERSION];
 				last_json_value["global"].append(temp_json_value);
-				json_value.removeMember(OS_NAME);
-				json_value.removeMember(OS_VERSION);
+				json_value = json_value.removeMember(OS_NAME);
+				json_value = json_value.removeMember(OS_VERSION);
 			}
 			json_value["type"] = object_type[i];
 			last_json_value["data"].append(json_value);
