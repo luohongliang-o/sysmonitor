@@ -65,8 +65,7 @@ void CLoadConfig::LoadConfig(CLoadConfig* this_ins)
 	{
 		config->process_num = GetIniKeyInt("process", "processnum", filebuf);
 		config->process_name = new string*[config->process_num];
-		for (int i = 0; i < config->process_num; i++)
-		{
+		for (int i = 0; i < config->process_num; i++){
 			char process_key[15] = "";
 			sprintf_s(process_key, sizeof(process_key), "%s%d", "processname", i + 1);
 			config->process_name[i] = new string(GetIniKeyString("process", process_key, filebuf));
@@ -78,27 +77,21 @@ void CLoadConfig::LoadConfig(CLoadConfig* this_ins)
 int CLoadConfig::get_port()
 {
 	if (m_monitor_config)
-	{
 		return m_monitor_config->listen_port;
-	}
 	return 0;
 }
 
 char* CLoadConfig::get_check_user_name()
 {
 	if (m_monitor_config)
-	{
 		return m_monitor_config->checkusername;
-	}
 	return NULL;
 }
 
 short* CLoadConfig::get_object_type()
 {
 	if (m_monitor_config)
-	{
 		return m_monitor_config->object_type;
-	}
 	return NULL;
 }
 

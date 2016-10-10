@@ -27,7 +27,6 @@ private:
 	
 	char m_os_name[100];
 	char m_os_version[100];
-	char m_os_type[100];
 };
 
 #endif

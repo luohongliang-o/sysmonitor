@@ -107,15 +107,20 @@ int CProtocolManage::write(int fd)
 			json_value["data"] = buf;
 			last_json_value["data"].append(json_value);
 		}
+		else
+		{
+			json_value["type"] = object_type[i];
+			json_value["data"] = "";
+			last_json_value["data"].append(json_value);
+		}
 	}
 	TDELARRAY(buf);
 	get_global_info();
 	if (is_init_global_info())
 	{
 		Value json_value;
-		json_value["os_name"] = m_os_name;
-		json_value["os_version"] = m_os_version;
-		json_value["os_type"] = m_os_type;
+		json_value[OS_NAME] = m_os_name;
+		json_value[OS_VERSION] = m_os_version;
 		last_json_value["global"].append(json_value);
 	}
 	
@@ -136,7 +141,7 @@ void CProtocolManage::get_global_info()
 		ppipe = _popen("systeminfo /FO CSV /NH ", "rt");
 		fgets(pbuffer, 1000, ppipe);
 		char* tembufer = pbuffer;
-		while (nread_line < 15)
+		while (nread_line < 3)
 		{
 			char* tempstr = strchr(tembufer, ',');
 			len = tempstr - tembufer;
@@ -147,8 +152,6 @@ void CProtocolManage::get_global_info()
 				strcpy_s(m_os_name, tempvalue);
 			else if (nread_line == 2)
 				strcpy_s(m_os_version, tempvalue);
-			else if (nread_line == 14)
-				strcpy_s(m_os_type, tempvalue);
 			TDELARRAY(tempvalue);
 			tembufer = tembufer + len + 1;
 			nread_line++;

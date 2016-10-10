@@ -121,7 +121,7 @@ public:
 	
 protected:
 	//virtual int ThreadKernalFunc(WPARAM wparam = 0, LPARAM lparam = 0);
-	double WritePerformaceVaule(char* str_counter_path_buffer);
+	double WritePerformaceVaule(int index,int counter_by_sec,char* str_counter_path_buffer);
 	//Value m_jsonvalue_performace;
 };
 
@@ -142,7 +142,6 @@ private:
 };
 #endif // WIN32
 
-
 // cross platform
 
 class CLinuxSysinfo :public CMonitorSystem
@@ -155,15 +154,18 @@ public:
 	virtual int write(int fd, char *buf);
 protected:
 	
-	void  get_loadavg(Value& json_value);
-	void  get_systemtime(Value& json_value);
-	void  get_kernel_version(Value& json_value);
-	void  get_os_release(Value& json_value);
-	void  get_os_type(Value& json_value);
-	void  get_diskinfo(Value& json_value);
-	void  get_disk_stat(Value& json_value);
-	void  get_cpu_rate(Value& json_value);
-	void  get_meminfo(Value& json_value);
+	void  get_loadavg(Value& json_value);         //cpu负载
+	void  get_systemtime(Value& json_value);      //系统运行状态
+	void  get_kernel_version(Value& json_value);  //系统版本
+	void  get_os_name(Value& json_value);         //系统名称
+	void  get_diskinfo(Value& json_value);        //磁盘信息
+	void  get_meminfo(Value& json_value);         //内存与虚拟内存信息
+	void  get_tcp_connections(Value& json_value);
+
+	void  get_monitor_data_sec(Value& json_value);
+	void  get_network_transfers(Int64& bytes);
+	void  get_disk_io(int& io_num);
+	void  get_cpu_time(int& all_time,int& idle_time);
 };
 
 class CMySqlMonitor :public CMonitorSystem

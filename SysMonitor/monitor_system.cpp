@@ -59,15 +59,17 @@ CSysInfo::write(int fd, char *buf)
 		memory_status.dwLength = sizeof(memory_status);
 		GlobalMemoryStatusEx(&memory_status);
 		_gcvt(memory_status.ullTotalPhys, 31, json_data);
-		AddJsonKeyValue("TotalPhys", json_data, json_value);
+		AddJsonKeyValue(MEMORY_TOTAL, json_data, json_value);
 		_gcvt(memory_status.ullTotalVirtual, 31, json_data);
-		AddJsonKeyValue("TotalVirtual", json_data, json_value);
+		AddJsonKeyValue(VIRTUAL_MEM_TATAL, json_data, json_value);
+/*
 		_gcvt(memory_status.dwMemoryLoad, 31, json_data);
 		AddJsonKeyValue("MemoryLoad", json_data, json_value);
+*/
 		_gcvt(memory_status.ullAvailPhys, 31, json_data);
-		AddJsonKeyValue("AvailPhys", json_data, json_value);
+		AddJsonKeyValue(MEMORY_FREE, json_data, json_value);
 		_gcvt(memory_status.ullAvailVirtual, 31, json_data);
-		AddJsonKeyValue("AvailVirtual", json_data, json_value);
+		AddJsonKeyValue(VIRTUAL_MEM_FREE, json_data, json_value);
 	}
 	//disk
 	{
@@ -98,10 +100,10 @@ CSysInfo::write(int fd, char *buf)
 					(PULARGE_INTEGER)&i64freebytes);
 				if (fResult){
 					_gcvt(i64totalbytes/1024, 31, json_data);
-					string drivername = "disk_" + strdriver.substr(0, 1) + "_totalKB";
+					string drivername = strdriver.substr(0, 1) + "_" + DISK_TOTAL;
 					AddJsonKeyValue((char*)drivername.c_str(), json_data, json_value);
 					_gcvt(i64freebytes/1024, 31, json_data);
-					drivername = "disk_" + strdriver.substr(0, 1) + "_freeKB";
+					drivername = strdriver.substr(0, 1) + "_" + DISK_FREE;
 					AddJsonKeyValue((char*)drivername.c_str(), json_data, json_value);
 				}
 			}
@@ -111,12 +113,20 @@ CSysInfo::write(int fd, char *buf)
 	{
 		int performace_num = m_loadconfig->get_performace_counter_num();
 		string** performace_name = m_loadconfig->get_performace_name();
-
+		char* key_name[9] = { NETWORK_CURRENT_BANDWIDTH,
+			CPU_QUEUE_LENGTH,
+			SYSTEM_PROCESS,
+			SYSTEM_THREADS,
+			SYSTEM_HANDLES,
+			SYSTEM_TCP_CONNECTIONS,
+			DISK_IO,
+			NETWORK_BYTES_TOTAL_SEC,
+			CPU_USAGE
+		};
 		for (int i = 0; i < performace_num; i++){
-			sprintf_s(performace_key, sizeof(performace_key), "%s%d", "performacename", i + 1);
-			double perfordata = WritePerformaceVaule((char*)(performace_name[i])->c_str());
+			double perfordata = WritePerformaceVaule(i,3,(char*)(performace_name[i])->c_str());
 			_gcvt(perfordata, 31, json_data);
-			AddJsonKeyValue(performace_key, json_data, json_value);
+			AddJsonKeyValue(key_name[i], json_data, json_value);
 		}
 	}
 	//json_value["performace"].append(m_jsonvalue_performace);
@@ -127,7 +137,7 @@ CSysInfo::write(int fd, char *buf)
 }
 
 double 
-CSysInfo::WritePerformaceVaule(char* str_counter_path_buffer)
+CSysInfo::WritePerformaceVaule(int index, int counter_by_sec,char* str_counter_path_buffer)
 {
 	PDH_STATUS Status;
 	HQUERY Query = NULL;
@@ -159,16 +169,18 @@ CSysInfo::WritePerformaceVaule(char* str_counter_path_buffer)
 		printf("\nfirst PdhCollectQueryData failed with 0x%x.\n", Status);
 		goto Cleanup;
 	}
+	
 	int performace_num = m_loadconfig->get_performace_counter_num();
-	int sleeptime = 1000 / performace_num;
-	Sleep(sleeptime);
-
-	Status = PdhCollectQueryData(Query);
-	if (Status != ERROR_SUCCESS)
-	{
-		WriteLog(LOGFILENAME, "secend PdhCollectQueryData failed with status 0x%x.\n", Status);
-		printf("\nsecend PdhCollectQueryData failed with status 0x%x.", Status);
+	if (index + counter_by_sec >= performace_num){
+		int sleeptime = 1000 / counter_by_sec;
+		Sleep(sleeptime);
+		Status = PdhCollectQueryData(Query);
+		if (Status != ERROR_SUCCESS){
+			WriteLog(LOGFILENAME, "secend PdhCollectQueryData failed with status 0x%x.\n", Status);
+			printf("\nsecend PdhCollectQueryData failed with status 0x%x.", Status);
+		}
 	}
+
 	Status = PdhGetFormattedCounterValue(Counter,
 		PDH_FMT_DOUBLE,
 		&CounterType,
@@ -247,7 +259,8 @@ CProcessMonitor::write(int fd, char* buf)
 		}
 		
 		sprintf_s(json_data,"%d",tcpnum);
-		AddJsonKeyValue((char*)process_name[i]->c_str(), json_data, json_value);
+		string key = *process_name[i]  + "_" + PROCESS_TCP_CONNECTION;
+		AddJsonKeyValue((char*)key.c_str(), json_data, json_value);
 	}	
 	jsonstr = json_write.write(json_value);
 	memcpy(buf, jsonstr.c_str(), jsonstr.length() + 1);
