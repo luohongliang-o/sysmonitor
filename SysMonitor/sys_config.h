@@ -132,25 +132,4 @@ typedef unsigned long long uint_fast64_t;
 #define CLOSEHANDLE(a)		if(a!=NULL) { CloseHandle(a); a=NULL; }
 #endif
 
-#define OS_VERSION                  "ov"
-#define OS_NAME                     "on"
-#define CPU_USAGE                   "cu"
-#define CPU_QUEUE_LENGTH            "cql"
-#define MEMORY_TOTAL                "mt"
-#define MEMORY_FREE                 "mf"
-#define VIRTUAL_MEM_TATAL           "vmt"
-#define VIRTUAL_MEM_FREE            "vmf"
-#define DISK_TOTAL                  "dt"
-#define DISK_FREE                   "df"
-#define DISK_IO                     "di"
-#define SYSTEM_PROCESS              "sp"
-#define SYSTEM_THREADS              "st"
-#define SYSTEM_HANDLES              "sh"
-#define SYSTEM_IDLE                 "si"
-#define SYSTEM_TCP_CONNECTIONS      "stc"
-#define NETWORK_BYTES_TOTAL_SEC     "nbts"
-#define NETWORK_CURRENT_BANDWIDTH   "ncb"
-#define PROCESS_TCP_CONNECTION      "ptc"
-
-
 #endif // SYS_CONFIG_H

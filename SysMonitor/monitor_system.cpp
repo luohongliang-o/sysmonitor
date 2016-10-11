@@ -51,24 +51,7 @@ CSysInfo::write(int fd, Value& json_value)
 	Value  temp_json_value;
 	char json_data[50] = "";
 	char performace_key[16] = "";
-	//memory
-	{
-		MEMORYSTATUSEX memory_status;
-		memory_status.dwLength = sizeof(memory_status);
-		GlobalMemoryStatusEx(&memory_status);
-		_gcvt(memory_status.ullTotalPhys, 31, json_data);
-		AddJsonKeyValue(MEMORY_TOTAL, json_data, temp_json_value);
-		_gcvt(memory_status.ullTotalVirtual, 31, json_data);
-		AddJsonKeyValue(VIRTUAL_MEM_TATAL, json_data, temp_json_value);
-/*
-		_gcvt(memory_status.dwMemoryLoad, 31, json_data);
-		AddJsonKeyValue("MemoryLoad", json_data, temp_json_value);
-*/
-		_gcvt(memory_status.ullAvailPhys, 31, json_data);
-		AddJsonKeyValue(MEMORY_FREE, json_data, temp_json_value);
-		_gcvt(memory_status.ullAvailVirtual, 31, json_data);
-		AddJsonKeyValue(VIRTUAL_MEM_FREE, json_data, temp_json_value);
-	}
+	
 	//disk
 	{
 		DWORD diskcount = 0;
@@ -87,6 +70,8 @@ CSysInfo::write(int fd, Value& json_value)
 		unsigned __int64 i64freebytestocaller = 0;
 		unsigned __int64 i64totalbytes = 0;
 		unsigned __int64 i64freebytes = 0;
+		Value disk_data;
+		int disk_num = 0;
 		for (int i = 0; i < dslength / 4; ++i)
 		{
 			string strdriver = DStr + i * 4;
@@ -97,38 +82,46 @@ CSysInfo::write(int fd, Value& json_value)
 					(PULARGE_INTEGER)&i64totalbytes,
 					(PULARGE_INTEGER)&i64freebytes);
 				if (fResult){
-					Value disk_data;
-					_gcvt(i64totalbytes/1024, 31, json_data);
-					AddJsonKeyValue("disk_name", (char*)strdriver.substr(0, 1).c_str(), disk_data);
-					AddJsonKeyValue(DISK_TOTAL, json_data, disk_data);
-					_gcvt(i64freebytes/1024, 31, json_data);
-					AddJsonKeyValue(DISK_FREE, json_data, disk_data);
-					temp_json_value["disk"].append(disk_data);
+					Value disk_item;
+					_gcvt(i64totalbytes / 1024, 31, json_data);
+					AddJsonKeyValue((char*)strdriver.substr(0, 1).c_str(), disk_item);//disk_name 
+					AddJsonKeyValue(json_data, disk_item);//DISK_TOTAL
+					_gcvt(i64freebytes / 1024, 31, json_data);
+					AddJsonKeyValue(json_data, disk_item); // DISK_FREE
+					disk_data["disk"].append(disk_item);
+					disk_num++;
 				}
 			}
 		}
+		disk_data["num"] = disk_num;
+		temp_json_value.append(disk_data);
 	}
+	//memory
+	{
+		MEMORYSTATUSEX memory_status;
+		memory_status.dwLength = sizeof(memory_status);
+		GlobalMemoryStatusEx(&memory_status);
+		_gcvt(memory_status.ullTotalPhys, 31, json_data);
+		AddJsonKeyValue(json_data, temp_json_value);//MEMORY_TOTAL
+		_gcvt(memory_status.ullAvailPhys, 31, json_data);
+		AddJsonKeyValue(json_data, temp_json_value);//MEMORY_FREE
+		_gcvt(memory_status.ullTotalVirtual, 31, json_data);
+		AddJsonKeyValue(json_data, temp_json_value);//VIRTUAL_MEM_TATAL
+		_gcvt(memory_status.ullAvailVirtual, 31, json_data);
+		AddJsonKeyValue(json_data, temp_json_value); // VIRTUAL_MEM_FREE
+	}
+	
 	//pdh performace counter
 	{
 		int performace_num = m_loadconfig->get_performace_counter_num();
 		string** performace_name = m_loadconfig->get_performace_name();
-		char* key_name[9] = { NETWORK_CURRENT_BANDWIDTH,
-			CPU_QUEUE_LENGTH,
-			SYSTEM_PROCESS,
-			SYSTEM_THREADS,
-			SYSTEM_HANDLES,
-			SYSTEM_TCP_CONNECTIONS,
-			DISK_IO,
-			NETWORK_BYTES_TOTAL_SEC,
-			CPU_USAGE
-		};
 		for (int i = 0; i < performace_num; i++){
 			double perfordata = WritePerformaceVaule(i,3,(char*)(performace_name[i])->c_str());
 			_gcvt(perfordata, 31, json_data);
-			AddJsonKeyValue(key_name[i], json_data, temp_json_value);
+			AddJsonKeyValue(json_data, temp_json_value);
 		}
 	}
-	json_value["system"].append(temp_json_value);
+	json_value["system"] =temp_json_value ;
 	
 	return 0;
 }
@@ -221,8 +214,6 @@ CProcessMonitor::write(int fd, Value& json_value)
 		printf(" Init process snapshot list failed.\n");
 		return 0;
 	}
-	FastWriter json_write;
-//	Value  json_value;
 	string jsonstr;
 	char json_data[51] = "";
 	int process_num = m_loadconfig->get_process_num();
@@ -252,8 +243,8 @@ CProcessMonitor::write(int fd, Value& json_value)
 				_pclose(ppipe);
 		}
 		Value process_data;
-		process_data["process_name"] = process_name[i]->c_str();
-		process_data[PROCESS_TCP_CONNECTION] = tcpnum;
+		process_data.append(process_name[i]->c_str());
+		process_data.append(tcpnum);
 		json_value["process"].append(process_data);
 	}	
 	return 0;

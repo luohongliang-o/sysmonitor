@@ -39,14 +39,13 @@ public:
 	};
 	virtual int write(int fd, Value& json_value) = 0;
 
-	void AddJsonKeyValue(char* str_key, char* str_data, Value& json_value)
+	void AddJsonKeyValue(char* str_data, Value& json_value)
 	{
 		string data = str_data;
-		string key = str_key;
 		if (data.rfind('.') == data.length() - 1){
 			data.replace(data.length() - 1, data.length(), "");
 		}
-		json_value[key.c_str()] = data.c_str();
+		json_value.append(data.c_str());
 	}
 
 	CLoadConfig* m_loadconfig;

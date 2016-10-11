@@ -14,13 +14,18 @@ int
 CLinuxSysinfo::write(int fd, Value& json_value)
 {
 	Value temp_json_value;
-	get_loadavg(temp_json_value);
-	get_systemtime(temp_json_value);
-	get_kernel_version(temp_json_value);
-	get_os_name(temp_json_value);
 	get_diskinfo(temp_json_value);
 	get_meminfo(temp_json_value);
+	temp_json_value.append(0);//带宽 linux 暂未实现
+	get_loadavg(temp_json_value);
+	temp_json_value.append(0);//系统进程数 linux 暂未实现
+	temp_json_value.append(0);//系统线程数 linux 暂未实现
+	temp_json_value.append(0);//系统句柄数 linux 暂未实现
+	get_tcp_connections(temp_json_value);
 	get_monitor_data_sec(temp_json_value);
+	get_kernel_version(temp_json_value);
+	get_os_name(temp_json_value);
+	get_systemtime(temp_json_value);
 	json_value["linux_system"].append(temp_json_value);
 	return 0;
 }
@@ -29,7 +34,7 @@ CLinuxSysinfo::write(int fd, Value& json_value)
 void CLinuxSysinfo::get_loadavg(Value& json_value){//cpu平均负载
 #ifndef WIN32
 	int f = 0;
-	char buffer[80] = "";                         /* 定义字符串并初始化为'\0' */
+	char buffer[80] = "";
 	char buf[5][10];
 	char *file = "/proc/loadavg";
 	f = open(file, O_RDONLY);
@@ -37,11 +42,10 @@ void CLinuxSysinfo::get_loadavg(Value& json_value){//cpu平均负载
 		printf("error to open: %s\n", file);
 		exit(EXIT_FAILURE);
 	}
-
 	read(f, (void *)buffer, 80);
-	sscanf(buffer, "%s %s %s %s %s",            /* sscanf()拆分成多个字符串 */
+	sscanf(buffer, "%s %s %s %s %s",
 		&buf[0], &buf[1], &buf[2], &buf[3], &buf[4]);
-	json_value[CPU_QUEUE_LENGTH] = buf[0];
+	json_value.append(buf[0]);
 	close(f);
 #endif
 }
@@ -62,7 +66,7 @@ void CLinuxSysinfo::get_systemtime(Value& json_value)
 	sscanf(buffer, "%f %f", &alltime, &idletime);
 	close(f);
 	sprintf_s(stridle,sizeof(stridle),"%.2f",idletime/alltime*100);
-	json_value[SYSTEM_IDLE] = stridle;
+	json_value.append(stridle);
 	close(f);
 #endif
 }
@@ -79,7 +83,7 @@ void CLinuxSysinfo::get_kernel_version(Value& json_value){
 	}
 	read(f, (void *)buffer, 80);
 	buffer[strlen(buffer) - 1] = 0;                 /* 简单实现tr()函数的功能 */
-	json_value[OS_VERSION] = buffer;
+	json_value.append(buffer);
 	close(f);
 #endif
 }
@@ -97,7 +101,7 @@ void CLinuxSysinfo::get_os_name(Value& json_value){
 	}
 	read(f, (void *)buffer, 80);
 	buffer[strlen(buffer) - 1] = 0;
-	json_value[OS_NAME] = buffer;
+	json_value.append( buffer);
 	close(f);
 #endif
 }
@@ -114,16 +118,20 @@ void CLinuxSysinfo::get_diskinfo(Value& json_value){
 		printf("error to open: %s\n", file);
 		exit(EXIT_FAILURE);
 	}
+	Value disk_data;
+	int disk_num = 0;
 	while ((nread = getline(&buffer, &len, fp)) != -1) {
 		sscanf(buffer, "%s %s %s %s",&buf[0],&buf[1],&buf[2],&buf[3]);
 		if (strstr(buf[3],"da")!=NULL){
-			Value disk_data;
-			disk_data["disk_name"] = buf[3];
-			disk_data[DISK_TOTAL] = buf[2];
-			disk_data[DISK_FREE] = 0;
-			json_value["disk"].append(disk_data);
+			Value disk_item;
+			disk_item.append( buf[3]);
+			disk_item.append(buf[2]) ;
+			disk_item.append(0);
+			disk_data["disk"].append(disk_item);
 		}
 	}
+	disk_data["num"] = disk_num;
+	json_value.append(disk_data);
 	if (buffer)
 		free(buffer);
 	fclose(fp);
@@ -203,13 +211,13 @@ void CLinuxSysinfo::get_meminfo(Value& json_value)
 			buffer[strlen(buffer) - 1] = 0;
 			sscanf(buffer, "%s%s", content, content);
 			int memtotal_kb = (int)(strtof(content, NULL));
-			json_value[MEMORY_TOTAL] = memtotal_kb;
+			json_value.append(memtotal_kb);
 		}
 		if ((buf = strstr(buffer, "MemFree")) != NULL){
 			buffer[strlen(buffer) - 1] = 0;
 			sscanf(buffer, "%s%s", content, content);
 			int memfree_kb = (int)(strtof(content, NULL));
-			json_value[MEMORY_FREE] = memfree_kb ;
+			json_value.append(memfree_kb );
 		}
 /*
 		if ((buf = strstr(buffer, "SwapTotal")) != NULL){
@@ -231,13 +239,13 @@ void CLinuxSysinfo::get_meminfo(Value& json_value)
 			buffer[strlen(buffer) - 1] = 0;
 			sscanf(buffer, "%s%s", content, content);
 			vmalloctotal_kb = (Int64)(strtof(content, NULL));
-			json_value[VIRTUAL_MEM_TATAL] = vmalloctotal_kb ;
+			json_value.append(vmalloctotal_kb );
 		}
 		if ((buf = strstr(buffer, "VmallocUsed")) != NULL){
 			buffer[strlen(buffer) - 1] = 0;
 			sscanf(buffer, "%s%s", content, content);
 			Int64 vmallocused_kb = (Int64)(strtof(content, NULL));
-			json_value[VIRTUAL_MEM_FREE] = vmalloctotal_kb- vmallocused_kb;
+			json_value.append(vmalloctotal_kb- vmallocused_kb);
 		}
 	}
 	if (buffer)
@@ -270,12 +278,13 @@ CLinuxSysinfo::get_monitor_data_sec(Value& json_value)
 	get_cpu_time(cpu_all_time2,cpu_idle2);
 	get_network_transfers((long&)network_transfers2);
 
-	json_value[DISK_IO] = disk_io2 - disk_io1;
+	json_value.append(disk_io2 - disk_io1);
+	json_value.append( network_transfers2 - network_transfers1);
 	sprintf_s(cpu_usage, sizeof(cpu_usage), "%.2f",\
 		(float)(cpu_all_time2 - cpu_all_time1 - (cpu_idle2- cpu_idle1)) \
 		/ (cpu_all_time2- cpu_all_time1) * 100);
-	json_value[CPU_USAGE] = cpu_usage;
-	json_value[NETWORK_BYTES_TOTAL_SEC] = network_transfers2 - network_transfers1;
+	json_value.append(cpu_usage);
+	
 #endif
 }
 
@@ -330,7 +339,7 @@ void CLinuxSysinfo::get_tcp_connections(Value& json_value)
 			break;
 		}
 	}
-	json_value[PROCESS_TCP_CONNECTION] = tcp_connectios;
+	json_value.append(tcp_connectios);
 	if (buffer)
 		free(buffer);
 	fclose(fp);

@@ -102,16 +102,7 @@ int CProtocolManage::write(int fd)
 		CMonitorSystem* monitorsys = build_monitor.get_monitor_obj();
 		if (monitorsys){
 			monitorsys->write(fd, json_value);
-			//兼容处理linux 系统版本信息
 			json_value["type"] = object_type[i];
-			if (object_type[i] == build_monitor.MONITORTYPE_LINUX_SYSINFO){
-				Value temp_json_value;
-				temp_json_value[OS_NAME] = json_value[OS_NAME];
-				temp_json_value[OS_VERSION] = json_value[OS_VERSION];
-				last_json_value["global"].append(temp_json_value);
-				json_value.removeMember(OS_NAME);
-				json_value.removeMember(OS_VERSION);
-			}
 			last_json_value["data"].append(json_value);
 		}else{
 			json_value["type"] = object_type[i];
@@ -122,9 +113,9 @@ int CProtocolManage::write(int fd)
 	get_global_info();
 	if (is_init_global_info()){
 		Value json_value;
-		json_value[OS_NAME] = m_os_name;
-		json_value[OS_VERSION] = m_os_version;
-		last_json_value["global"].append(json_value);
+		json_value.append(m_os_name);//OS_NAME
+		json_value.append(m_os_version);//OS_VERSION
+		last_json_value["global"] = json_value;
 	}
 	
 	strJsonData = temp_inswrite.write(last_json_value);
