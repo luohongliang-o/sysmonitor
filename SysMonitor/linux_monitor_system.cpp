@@ -26,7 +26,7 @@ CLinuxSysinfo::write(int fd, Value& json_value)
 	get_kernel_version(temp_json_value);
 	get_os_name(temp_json_value);
 	get_systemtime(temp_json_value);
-	json_value["linux_system"].append(temp_json_value);
+	json_value["linux_system"]=temp_json_value;
 	return 0;
 }
 
@@ -128,6 +128,7 @@ void CLinuxSysinfo::get_diskinfo(Value& json_value){
 			disk_item.append(buf[2]) ;
 			disk_item.append(0);
 			disk_data["disk"].append(disk_item);
+			disk_num++;
 		}
 	}
 	disk_data["num"] = disk_num;
