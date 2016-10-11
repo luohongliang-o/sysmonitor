@@ -90,10 +90,10 @@ int CProtocolManage::write(int fd)
 	rset_list_buf(10);
 	string strJsonData;
 	FastWriter temp_inswrite;
+	int valid_object = 0;
 	int object_num = m_load_config->get_object_num();
 	short* object_type = m_load_config->get_object_type();
 	Value last_json_value;
-	last_json_value["typenum"] = object_num;
 	char* buf = new char[1024 * 4];
 	for (int i = 0; i < object_num; i++){
 		Value json_value;
@@ -104,6 +104,7 @@ int CProtocolManage::write(int fd)
 			monitorsys->write(fd, json_value);
 			json_value["type"] = object_type[i];
 			last_json_value["data"].append(json_value);
+			valid_object++;
 		}
 	}
 	TDELARRAY(buf);
@@ -114,7 +115,7 @@ int CProtocolManage::write(int fd)
 		json_value.append(m_os_version);//OS_VERSION
 		last_json_value["global"] = json_value;
 	}
-	
+	last_json_value["typenum"] = valid_object;
 	strJsonData = temp_inswrite.write(last_json_value);
 	m_list_buf.push_back(strJsonData);
 	return strJsonData.length() + 1;

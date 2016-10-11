@@ -9,39 +9,6 @@
 #define LOGFILENAME "performace"
 
 //////////////////////////////////////////////////////////////////////////
-/* Thread */
-//////////////////////////////////////////////////////////////////////////
-
-Thread::Thread(CLoadConfig* loadconfig)
-{
-	int performace_num = loadconfig->get_performace_counter_num();
-	m_performace_name = loadconfig->get_performace_name();
-	for (int i = 0; i < performace_num;i++)
-	{
-		m_ncur_performace_index = i;
-		m_vthreadid.push_back((HANDLE)_beginthreadex(NULL, 0, ThreadProc, this, 0, NULL));
-	}
-}
-
-UINT WINAPI Thread::ThreadProc(LPVOID pParam)
-{
-
-	Thread* thisthread = (Thread*)pParam;
-	CAutoLock autolock(&thisthread->m_lock);
-	thisthread->ThreadKernalFunc((WPARAM)thisthread->m_ncur_performace_index);
-	return 0;
-}
-
-Thread::~Thread()
-{
-	for (int i = 0; i < m_vthreadid.size();i++)
-	{
-		while (WaitForSingleObject(m_vthreadid[i], 50) == WAIT_TIMEOUT);
-		CLOSEHANDLE(m_vthreadid[i]);
-	}
-	
-}
-//////////////////////////////////////////////////////////////////////////
 /*CSysInfo*/
 //////////////////////////////////////////////////////////////////////////
 
@@ -219,31 +186,40 @@ CProcessMonitor::write(int fd, Value& json_value)
 	string** process_name = m_loadconfig->get_process_name();
 	for ( int i= 0; i < process_num; i++){
 		int tcpnum = 0;
-		vector<int> v_pidlist = m_map_process_name_pid[process_name[i]->c_str()];
-		printf("\ncurrent process name is %s", process_name[i]->c_str());
-		for (int j = 0; j < v_pidlist.size();j++){
-			char pbuffer[1000];
-			FILE *ppipe = NULL;
-			int nread_line = 0;
-			char tcp[10], local_address[50], remote_address[50], state[100];
-			int pid = 0;
-			ppipe = _popen("netstat -npoa TCP ", "rt");
-			while (fgets(pbuffer, 1000, ppipe)){
-				if (nread_line>3){
-					sscanf(pbuffer, "%s %s %s %s %d\n", tcp, local_address, remote_address, state, &pid);
-					if (pid == v_pidlist[j] && !strcmp(state ,"ESTABLISHED")){
-						tcpnum++;
+		int process_status = 0;
+		map< string, vector< int > >::iterator map_itorator_process_name = \
+			m_map_process_name_pid.find(*process_name[i]);
+		if (map_itorator_process_name != m_map_process_name_pid.end()) 
+			process_status = 1;                     // 查看进程状态
+		if (process_status){
+			vector<int> v_pidlist = m_map_process_name_pid[process_name[i]->c_str()];
+			printf("\ncurrent process name is %s", process_name[i]->c_str());
+			for (int j = 0; j < v_pidlist.size(); j++){
+				char pbuffer[1000];
+				FILE *ppipe = NULL;
+				int nread_line = 0;
+				char tcp[10], local_address[50], remote_address[50], state[100];
+				int pid = 0;
+				ppipe = _popen("netstat -npoa TCP ", "rt");
+				while (fgets(pbuffer, 1000, ppipe)){
+					if (nread_line>3){
+						sscanf(pbuffer, "%s %s %s %s %d\n", 
+							tcp, local_address, remote_address, state, &pid);
+						if (pid == v_pidlist[j] && !strcmp(state, "ESTABLISHED")){
+							tcpnum++;
+						}
 					}
+					nread_line++;
 				}
-				nread_line++;
+				printf("\ncurrent process id is %d", v_pidlist[j]);
+				if (feof(ppipe))
+					_pclose(ppipe);
 			}
-			printf("\ncurrent process id is %d", v_pidlist[j]);
-			if (feof(ppipe))
-				_pclose(ppipe);
 		}
 		Value process_data;
 		process_data.append(process_name[i]->c_str());
 		process_data.append(tcpnum);
+		process_data.append(process_status);
 		json_value["process"].append(process_data);
 	}	
 	return 0;

@@ -3,29 +3,6 @@
 
 #include "load_config.h"
 
-#ifdef WIN32
-class CLock
-{
-public:
-	CLock()	{ InitializeCriticalSection(&m_cs); }
-	~CLock() { DeleteCriticalSection(&m_cs); };
-	void Lock() { EnterCriticalSection(&m_cs); };
-	void Unlock() { LeaveCriticalSection(&m_cs); };
-private:
-	CRITICAL_SECTION m_cs;
-};
-
-//////////////////////////////////////////////////////////////////////////
-// ×Ô¶¯Ëø
-class CAutoLock
-{
-public:
-	CAutoLock(CLock* pLock){ m_pLock = pLock; pLock->Lock(); }
-	~CAutoLock() { m_pLock->Unlock(); }
-protected:
-	CLock* m_pLock;
-};
-#endif
 class CMonitorSystem
 {
 public:
@@ -87,25 +64,6 @@ private:
 };
 
 #ifdef WIN32
-
-class Thread
-{
-public:
-	
-	static UINT WINAPI ThreadProc(LPVOID pParam);
-	~Thread();
-protected:
-	Thread();
-	Thread(CLoadConfig* loadconfig);
-	virtual int ThreadKernalFunc(WPARAM wparam = 0, LPARAM lparam = 0) { return 0; };
-	CLock m_lock;
-private:
-	vector<HANDLE> m_vthreadid;
-	string** m_performace_name;
-	int      m_ncur_performace_index;
-	
-};
-
 
 class CSysInfo :public CMonitorSystem//,public Thread
 {
