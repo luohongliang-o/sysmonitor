@@ -122,7 +122,6 @@ CSysInfo::write(int fd, Value& json_value)
 		}
 	}
 	json_value["system"] =temp_json_value ;
-	
 	return 0;
 }
 

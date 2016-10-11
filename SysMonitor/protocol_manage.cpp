@@ -104,9 +104,6 @@ int CProtocolManage::write(int fd)
 			monitorsys->write(fd, json_value);
 			json_value["type"] = object_type[i];
 			last_json_value["data"].append(json_value);
-		}else{
-			json_value["type"] = object_type[i];
-			last_json_value["data"].append(json_value);
 		}
 	}
 	TDELARRAY(buf);
