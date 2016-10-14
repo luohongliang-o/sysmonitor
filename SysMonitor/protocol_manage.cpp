@@ -8,9 +8,6 @@ CProtocolManage::CProtocolManage(CLoadConfig* loadconfg)
 	m_load_config = loadconfg;
 	int object_num = m_load_config->get_object_num();
 	short* object_type = m_load_config->get_object_type();
-	m_bget_systeminfo = false;
-	
-	get_global_info();
 }
 
 CProtocolManage::~CProtocolManage()
@@ -108,52 +105,8 @@ int CProtocolManage::write(int fd)
 		}
 	}
 	TDELARRAY(buf);
-	get_global_info();
-	if (is_init_global_info()){
-		Value json_value;
-		json_value.append(m_os_name);//OS_NAME
-		json_value.append(m_os_version);//OS_VERSION
-		last_json_value["global"] = json_value;
-	}
 	last_json_value["typenum"] = valid_object;
 	strJsonData = temp_inswrite.write(last_json_value);
 	m_list_buf.push_back(strJsonData);
 	return strJsonData.length() + 1;
-}
-
-void CProtocolManage::get_global_info()
-{
-#ifdef WIN32
-	if (!m_bget_systeminfo){
-		FILE *ppipe = NULL;
-		char* pbuffer = new char[1000];
-		int nread_line = 0;
-		int len = 0;
-		ppipe = _popen("systeminfo /FO CSV /NH ", "rt");
-		fgets(pbuffer, 1000, ppipe);
-		char* tembufer = pbuffer;
-		while (nread_line < 3){
-			char* tempstr = strchr(tembufer, ',');
-			len = tempstr - tembufer;
-			char* tempvalue = new char[len + 1];
-			strncpy(tempvalue, tembufer, len);
-			tempvalue[len] = '\0';
-			if (nread_line == 1)
-				strcpy_s(m_os_name, tempvalue);
-			else if (nread_line == 2)
-				strcpy_s(m_os_version, tempvalue);
-			TDELARRAY(tempvalue);
-			tembufer = tembufer + len + 1;
-			nread_line++;
-		}
-		TDELARRAY(pbuffer);
-		if (feof(ppipe))
-			_pclose(ppipe);
-		m_bget_systeminfo = true;
-	}
-#endif // WIN32
-}
-bool CProtocolManage::is_init_global_info()
-{
-	return m_bget_systeminfo;
 }

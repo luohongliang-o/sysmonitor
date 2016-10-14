@@ -11,114 +11,114 @@ using std::string;
 #include <list>
 using namespace std;
 
-#include "func.h"
+//#include "func.h"
 
-#ifndef WIN32
-#define  SSIZE_T unsigned int
+#if !defined(HAS_PLATFORM)
+# define HAS_PLATFORM
+# if defined(_MSC_VER)
+#   define PLATFORM_API_WINDOWS         1
+#   define PLATFORM_API_POSIX           0
+# else  // _MSC_VER
+#   error "PLATFORM is unknown"
+# endif // !_MSC_VER
+#endif // HAS_PLATFORM
+
+// 
+#if defined(_MSC_VER)
+#define COMPILER_MSVC
+#endif // MSC_VER
+
+#ifdef COMPILER_MSVC
+#define GG_LONGLONG(x) x##I64
+#define GG_ULONGLONG(x) x##UI64
 #else
-#define NULL        0
-#include <fstream>
+#define GG_LONGLONG(x) x##LL
+#define GG_ULONGLONG(x) x##ULL
 #endif
-#ifdef WIN32
-typedef signed char        int8_t;
-typedef short              int16_t;
-typedef int                int32_t;
-typedef long long          int64_t;
-typedef unsigned char      uint8_t;
-typedef unsigned short     uint16_t;
-typedef unsigned int       uint32_t;
-typedef unsigned long long uint64_t;
 
-typedef signed char        int_least8_t;
-typedef short              int_least16_t;
-typedef int                int_least32_t;
-typedef long long          int_least64_t;
-typedef unsigned char      uint_least8_t;
-typedef unsigned short     uint_least16_t;
-typedef unsigned int       uint_least32_t;
-typedef unsigned long long uint_least64_t;
 
-typedef signed char        int_fast8_t;
-typedef int                int_fast16_t;
-typedef int                int_fast32_t;
-typedef long long          int_fast64_t;
-typedef unsigned char      uint_fast8_t;
-typedef unsigned int       uint_fast16_t;
-typedef unsigned int       uint_fast32_t;
-typedef unsigned long long uint_fast64_t;
+typedef char                            int8_t;
+typedef short                           int16_t;
+typedef int                             int32_t;
 
-/* These macros must exactly match those in the Windows SDK's intsafe.h */
-#define INT8_MIN         (-127i8 - 1)
-#define INT16_MIN        (-32767i16 - 1)
-#define INT32_MIN        (-2147483647i32 - 1)
-#define INT64_MIN        (-9223372036854775807i64 - 1)
-#define INT8_MAX         127i8
-#define INT16_MAX        32767i16
-#define INT32_MAX        2147483647i32
-#define INT64_MAX        9223372036854775807i64
-#define UINT8_MAX        0xffui8
-#define UINT16_MAX       0xffffui16
-#define UINT32_MAX       0xffffffffui32
-#define UINT64_MAX       0xffffffffffffffffui64
+typedef unsigned char                   uint8_t;
+typedef unsigned short                  uint16_t;
+typedef unsigned int                    uint32_t;
 
-#define INT_LEAST8_MIN   INT8_MIN
-#define INT_LEAST16_MIN  INT16_MIN
-#define INT_LEAST32_MIN  INT32_MIN
-#define INT_LEAST64_MIN  INT64_MIN
-#define INT_LEAST8_MAX   INT8_MAX
-#define INT_LEAST16_MAX  INT16_MAX
-#define INT_LEAST32_MAX  INT32_MAX
-#define INT_LEAST64_MAX  INT64_MAX
-#define UINT_LEAST8_MAX  UINT8_MAX
-#define UINT_LEAST16_MAX UINT16_MAX
-#define UINT_LEAST32_MAX UINT32_MAX
-#define UINT_LEAST64_MAX UINT64_MAX
+#if defined(COMPILER_MSVC)
+typedef __int64                         int64_t;
+typedef unsigned __int64                uint64_t;
+#else
+typedef long long                       int64_t;
+typedef unsigned long long              uint64_t;
+#endif // COMPILER_MSVC
 
-#define INT_FAST8_MIN    INT8_MIN
-#define INT_FAST16_MIN   INT32_MIN
-#define INT_FAST32_MIN   INT32_MIN
-#define INT_FAST64_MIN   INT64_MIN
-#define INT_FAST8_MAX    INT8_MAX
-#define INT_FAST16_MAX   INT32_MAX
-#define INT_FAST32_MAX   INT32_MAX
-#define INT_FAST64_MAX   INT64_MAX
-#define UINT_FAST8_MAX   UINT8_MAX
-#define UINT_FAST16_MAX  UINT32_MAX
-#define UINT_FAST32_MAX  UINT32_MAX
-#define UINT_FAST64_MAX  UINT64_MAX
+typedef float                           float_t;
+typedef double                          double_t;
 
-#define INTMAX_MIN       INT64_MIN
-#define INTMAX_MAX       INT64_MAX
-#define UINTMAX_MAX      UINT64_MAX
+typedef uint32_t                        bool_t;
 
-#define PTRDIFF_MIN      INTPTR_MIN
-#define PTRDIFF_MAX      INTPTR_MAX
-#ifndef SIZE_MAX
-#define SIZE_MAX        UINTPTR_MAX
-#endif /* SIZE_MAX */
 
-#define SIG_ATOMIC_MIN   INT32_MIN
-#define SIG_ATOMIC_MAX   INT32_MAX
+const uint8_t  kuint8max = ((uint8_t)0xFF);
+const uint16_t kuint16max = ((uint16_t)0xFFFF);
+const uint32_t kuint32max = ((uint32_t)0xFFFFFFFF);
+const uint64_t kuint64max = ((uint64_t)GG_LONGLONG(0xFFFFFFFFFFFFFFFF));
+const  int8_t  kint8min = ((int8_t)(-128)/*0x80*/);
+const  int8_t  kint8max = ((int8_t)0x7F);
+const  int16_t kint16min = ((int16_t)(-32768)/*0x8000*/);
+const  int16_t kint16max = ((int16_t)0x7FFF);
+const  int32_t kint32min = ((int32_t)0x80000000);
+const  int32_t kint32max = ((int32_t)0x7FFFFFFF);
+const  int64_t kint64min = ((int64_t)GG_LONGLONG(0x8000000000000000));
+const  int64_t kint64max = ((int64_t)GG_LONGLONG(0x7FFFFFFFFFFFFFFF));
 
-#define WCHAR_MIN        0x0000
-#define WCHAR_MAX        0xffff
 
-#define WINT_MIN         0x0000
-#define WINT_MAX         0xffff
+//////////////////////////////////////////////////////////////////////////
+//
+#ifndef NULL
+# ifdef __cplusplus
+#   define NULL                         0
+# else
+#   define NULL                         ((void *)0)
+# endif
+#endif
 
-#define INT8_C(x)    (x)
-#define INT16_C(x)   (x)
-#define INT32_C(x)   (x)
-#define INT64_C(x)   (x ## LL)
+#ifndef FALSE
+# define FALSE                          0
+#endif
 
-#define UINT8_C(x)   (x)
-#define UINT16_C(x)  (x)
-#define UINT32_C(x)  (x ## U)
-#define UINT64_C(x)  (x ## ULL)
+#ifndef TRUE
+# define TRUE                           1
+#endif
 
-#define INTMAX_C(x)  INT64_C(x)
-#define UINTMAX_C(x) UINT64_C(x)
-#endif // WIN32
+#ifndef IN
+# define IN
+#endif
+
+#ifndef OUT
+# define OUT
+#endif
+
+
+//#ifndef __cplusplus
+#ifndef max
+# define max(a,b)    (((a) > (b)) ? (a) : (b))
+#endif // max
+
+#ifndef min
+# define min(a,b)    (((a) < (b)) ? (a) : (b))
+#endif // min
+// #endif
+
+//////////////////////////////////////////////////////////////////////////
+// unused
+#if !defined(UNUSED_PARAM)
+#define UNUSED_PARAM(p)	                ((void)(p))	/* to avoid warnings */
+#endif
+
+#if !defined(UNUSED_LOCAL_VARIABLE)
+#define UNUSED_LOCAL_VARIABLE(lv)	      UNUSED_PARAM(lv)
+#endif
 
 #ifndef TDEL
 #define TDEL(a)				if(a!=NULL) { delete a; a=NULL; }

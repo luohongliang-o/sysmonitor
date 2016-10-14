@@ -16,6 +16,9 @@
     <Filter Include="json">
       <UniqueIdentifier>{8d051732-0ba4-4972-b3ce-ce9efc70c121}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ado">
+      <UniqueIdentifier>{33e6f5f1-9983-49eb-a3a4-4e6bb3cbd3a8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -72,6 +75,12 @@
     <ClInclude Include="load_config.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\database\ado\ado2.h">
+      <Filter>ado</Filter>
+    </ClInclude>
+    <ClInclude Include="link_manager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="json_reader.cpp">
@@ -99,6 +108,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="load_config.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\database\ado\ado2.cpp">
+      <Filter>ado</Filter>
+    </ClCompile>
+    <ClCompile Include="link_manager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

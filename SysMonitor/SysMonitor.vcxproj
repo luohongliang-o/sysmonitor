@@ -51,9 +51,9 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;NO_WARN_MBCS_MFC_DEPRECATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../libevent/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\SysMonitor;../database/ado;../libevent/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -92,6 +92,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\database\ado\ado2.h" />
     <ClInclude Include="assertions.h" />
     <ClInclude Include="autolink.h" />
     <ClInclude Include="config.h" />
@@ -101,6 +102,7 @@
     <ClInclude Include="json.h" />
     <ClInclude Include="json_batchallocator.h" />
     <ClInclude Include="json_tool.h" />
+    <ClInclude Include="link_manager.h" />
     <ClInclude Include="load_config.h" />
     <ClInclude Include="monitor_system.h" />
     <ClInclude Include="protocol_manage.h" />
@@ -111,10 +113,12 @@
     <ClInclude Include="writer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\database\ado\ado2.cpp" />
     <ClCompile Include="func.cpp" />
     <ClCompile Include="json_reader.cpp" />
     <ClCompile Include="json_value.cpp" />
     <ClCompile Include="json_writer.cpp" />
+    <ClCompile Include="link_manager.cpp" />
     <ClCompile Include="linux_monitor_system.cpp" />
     <ClCompile Include="load_config.cpp" />
     <ClCompile Include="monitor_system.cpp" />

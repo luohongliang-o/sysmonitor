@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <sys/types.h>
-
+#include "load_config.h"
 #ifndef _WIN32
 #include <netinet/in.h>
 # ifdef _XOPEN_SOURCE_EXTENDED
@@ -35,7 +35,7 @@
 /* Easy sensible linked lists. */
 #include "queue.h"
 
-#include "load_config.h"
+
 
 /* Length of each buffer in the buffer queue.  Also becomes the amount
 * of data we try to read per call to read(2). */
@@ -290,6 +290,9 @@ on_accept(evutil_socket_t fd, short ev, void *arg)
 {
 	CLoadConfig *load_config_ins = new CLoadConfig;
 	CLoadConfig::LoadConfig(load_config_ins);
+#ifdef WIN32
+	load_config_ins->get_sys_os_info();
+#endif // WIN32
 	struct event_base* eventbase = (event_base*)arg;
 	evutil_socket_t client_fd;
 	struct sockaddr_in client_addr;
@@ -337,7 +340,7 @@ on_accept(evutil_socket_t fd, short ev, void *arg)
 	* something to write. */
 	event_set(&ins_client->ev_write, client_fd, EV_WRITE, on_write, ins_client);
 
-	/*add timer to stat system performace data. */
+	/*add timer to stat system performance data. */
 	
 	ins_client->ev_timer = event_new(eventbase, fd, 0, on_timer, ins_client);
 	time_val.tv_sec = 1;

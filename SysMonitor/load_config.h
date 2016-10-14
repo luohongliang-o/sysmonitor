@@ -1,12 +1,50 @@
 #ifndef LOAD_CONFIG_H
 #define LOAD_CONFIG_H
+#ifdef WIN32
+#include "ado2.h"
+#endif // WIN32
 #include "sys_config.h"
+#ifdef WIN32
+
+#define MAX_LINK_NUM 30
+#define MAX_DBCOUNT  5
+typedef struct tagOPLINK
+{
+	BOOL	bBusy;						// 是否使用中
+	short	nSel;						// 选择哪个数据库
+	BOOL	bConnected;					// 是否连接
+	long	nBusyTime;					// 开始忙时间点
+	CADODatabase* pAdodb;
+} OPLINK, *LPOPLINK;
+
+#endif
+// 数据库配置
+typedef struct tagDBCONFIG
+{
+	CHAR	data_source[32];
+	CHAR	data_base[32];
+	CHAR	user_name[32];
+	CHAR	password[32];
+}DBCONFIG, *LPDBCONFIG;
+
+class CLinkManager;
 class CLoadConfig
 {
 public:
 	CLoadConfig();
 	~CLoadConfig();
 
+	enum 
+	{
+		CONFIG_SYSTEM = 1,
+		CONFIG_MYSQL,
+		CONFIG_MSSQL,
+		CONFIG_ORACAL,
+		CONFIG_WEB,
+		CONFIG_PROCESS,
+		CONFIG_LINUX_SYSINFO,
+		CONFIG_LINUX_PROCESS
+	};
 	struct MonitorConfig
 	{
 		//service
@@ -16,10 +54,17 @@ public:
 		int        object_num;
 		short*     object_type;
 		//system
-#ifdef WIN32
-		int        performace_counter_num;
-		string**   performace_name;
-#endif
+		int        performance_counter_num;
+		string**   performance_name;
+		int        performance_by_sec;
+		//web
+		int        web_performance_counter_num;
+		string**   web_performance_name;
+		int        web_performance_by_sec;
+		//mssql
+		short      db_count;
+		short      db_default_sel;
+		DBCONFIG   db_config[MAX_DBCOUNT];
 		//process
 		int        process_num;
 		string**   process_name;
@@ -28,19 +73,36 @@ public:
 
 	static void LoadConfig(CLoadConfig* this_ins);
 
-	int get_port();
-	int get_object_num();
-	short* get_object_type();
-	char*  get_check_user_name();
-#ifdef WIN32
-	int get_performace_counter_num();
-	string** get_performace_name();
-#endif
-	int get_process_num();
+	int      get_port();
+	int      get_object_num();
+	short*   get_object_type();
+	char*    get_check_user_name();
+	int      get_performance_by_sec();
+	int      get_performance_counter_num();
+	string** get_performance_name();
+	
+	int      get_web_performance_by_sec();
+	int      get_web_performance_counter_num();
+	string** get_web_performance_name();
+
+	void     get_sys_os_info();
+
+	char*    get_os_name();
+	char*    get_os_version();
+
+	int      get_process_num();
 	string** get_process_name();
+
+	short    get_db_count();
+	short    get_db_default_sel();
+	LPDBCONFIG get_db_config();
+	CLinkManager* get_link();
 private:
 	MonitorConfig*   m_monitor_config;
+	char m_os_name[100];
+	char m_os_version[100];
 
+	CLinkManager*   m_plink_manage;
 };
 
 #endif

@@ -46,13 +46,13 @@ public:
 	enum
 	{
 		MONITORTYPE_SYSTEM_INFO = 1,
-		MONITORTYPE_TCP,
 		MONITORTYPE_MYSQL,
 		MONITORTYPE_MSSQL,
 		MONITORTYPE_ORACAL,
 		MONITORTYPE_WEB,
 		MONITORTYPE_PROCESS,
 		MONITORTYPE_LINUX_SYSINFO,
+		MONITORTYPE_LINUX_PROCESS,
 	};
 
 	void ConcreteMonotor(int type, CLoadConfig* loadconfig);
@@ -65,7 +65,7 @@ private:
 
 #ifdef WIN32
 
-class CSysInfo :public CMonitorSystem//,public Thread
+class CSysInfo :public CMonitorSystem
 {
 public:
 	CSysInfo(){ ; };
@@ -77,9 +77,8 @@ public:
 	virtual int write(int fd, Value& json_value);
 	
 protected:
-	//virtual int ThreadKernalFunc(WPARAM wparam = 0, LPARAM lparam = 0);
-	double WritePerformaceVaule(int index,int counter_by_sec,char* str_counter_path_buffer);
-	//Value m_jsonvalue_performace;
+	
+	double WriteperformanceVaule(int index,int counter_by_sec,char* str_counter_path_buffer);
 };
 
 #include <tlhelp32.h>
@@ -94,8 +93,33 @@ public:
 protected:
 	BOOL GetProcessList();
 	void printError(TCHAR* msg);
-private:
+
 	map< string, vector< int > > m_map_process_name_pid;
+};
+
+class CWebMonitor : public CSysInfo
+{
+public:
+	CWebMonitor(){ ; }
+	CWebMonitor(CLoadConfig* loadconfig) : CSysInfo(loadconfig){ ; }
+	~CWebMonitor(){ ; }
+
+	virtual int write(int fd, Value& json_value);
+protected:
+	BOOL IsW3wpRun();
+
+};
+#include "link_manager.h"
+class CMsSqlMonitor :public CMonitorSystem
+{
+public:
+	CMsSqlMonitor(){ ; };
+	CMsSqlMonitor(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){ ; };
+	~CMsSqlMonitor(){ ; };
+
+	virtual int write(int fd, Value& json_value);
+	
+	
 };
 #endif // WIN32
 
@@ -135,6 +159,6 @@ public:
 	virtual int write(int fd, Value& json_value);
 	
 private:
-
+	
 };
 #endif

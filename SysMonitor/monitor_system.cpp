@@ -1,13 +1,12 @@
 #include "sys_config.h"
 #include "monitor_system.h"
-
+#include "func.h"
 #ifdef WIN32
 #include <pdh.h>
 #include <pdhmsg.h>
 #include <process.h>
 #pragma comment(lib, "pdh.lib")
-#define LOGFILENAME "performace"
-
+#define LOGFILENAME "performance"
 //////////////////////////////////////////////////////////////////////////
 /*CSysInfo*/
 //////////////////////////////////////////////////////////////////////////
@@ -17,7 +16,7 @@ CSysInfo::write(int fd, Value& json_value)
 {
 	Value  temp_json_value;
 	char json_data[50] = "";
-	char performace_key[16] = "";
+	char performance_key[16] = "";
 	
 	//disk
 	{
@@ -78,22 +77,25 @@ CSysInfo::write(int fd, Value& json_value)
 		AddJsonKeyValue(json_data, temp_json_value); // VIRTUAL_MEM_FREE
 	}
 	
-	//pdh performace counter
+	//pdh performance counter
 	{
-		int performace_num = m_loadconfig->get_performace_counter_num();
-		string** performace_name = m_loadconfig->get_performace_name();
-		for (int i = 0; i < performace_num; i++){
-			double perfordata = WritePerformaceVaule(i,3,(char*)(performace_name[i])->c_str());
+		int performance_num = m_loadconfig->get_performance_counter_num();
+		int performance_by_sec = m_loadconfig->get_performance_by_sec();
+		string** performance_name = m_loadconfig->get_performance_name();
+		for (int i = 0; i < performance_num; i++){
+			double perfordata = WriteperformanceVaule(i, performance_by_sec, (char*)(performance_name[i])->c_str());
 			_gcvt(perfordata, 31, json_data);
 			AddJsonKeyValue(json_data, temp_json_value);
 		}
 	}
+	temp_json_value.append(m_loadconfig->get_os_version());
+	temp_json_value.append(m_loadconfig->get_os_name());
 	json_value["system"] =temp_json_value ;
 	return 0;
 }
 
 double 
-CSysInfo::WritePerformaceVaule(int index, int counter_by_sec,char* str_counter_path_buffer)
+CSysInfo::WriteperformanceVaule(int index, int counter_by_sec,char* str_counter_path_buffer)
 {
 	PDH_STATUS Status;
 	HQUERY Query = NULL;
@@ -126,8 +128,8 @@ CSysInfo::WritePerformaceVaule(int index, int counter_by_sec,char* str_counter_p
 		goto Cleanup;
 	}
 	
-	int performace_num = m_loadconfig->get_performace_counter_num();
-	if (index + counter_by_sec >= performace_num){
+	int performance_num = m_loadconfig->get_performance_counter_num();
+	if (counter_by_sec > 0 && (index + counter_by_sec >= performance_num)){
 		int sleeptime = 1000 / counter_by_sec;
 		Sleep(sleeptime);
 		Status = PdhCollectQueryData(Query);
@@ -155,18 +157,6 @@ Cleanup:
 	return 0;
 }
 
-// int CSysInfo::ThreadKernalFunc(WPARAM wparam /* = 0 */, LPARAM lparam /* = 0 */)
-// {
-// 	char json_data[50] = "";
-// 	int performace_index = (int)wparam;
-// 	string* cur_performace_counter = m_loadconfig->get_performace_name()[performace_index];
-// 	char performace_key[20] = "";
-// 	sprintf_s(performace_key, "performacename%d", performace_index + 1);
-// 	double perfordata = WritePerformaceVaule((char*)(cur_performace_counter->c_str()));
-// 	_gcvt(perfordata, 31, json_data);
-// 	AddJsonKeyValue(performace_key, json_data, m_jsonvalue_performace);
-// 	return 0;
-// }
 //////////////////////////////////////////////////////////////////////////
 /*CProcessMonitor*/
 //////////////////////////////////////////////////////////////////////////
@@ -296,6 +286,86 @@ CProcessMonitor::printError(TCHAR* msg)
 	printf(TEXT("\n  WARNING: %s failed with error %d (%s)"), msg, eNum, sysMsg);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+/*CWebMonitor*/
+//////////////////////////////////////////////////////////////////////////
+
+int CWebMonitor::write(int fd, Value& json_value)
+{	
+	Value temp_json_value;
+	if (IsW3wpRun()){
+		temp_json_value.append(1);
+		
+		int performance_num = m_loadconfig->get_web_performance_counter_num();
+		int performance_by_sec = m_loadconfig->get_web_performance_by_sec();
+		string** performance_name = m_loadconfig->get_web_performance_name();
+		char json_data[50] = "";
+		for (int i = 0; i < performance_num; i++){
+			double perfordata = WriteperformanceVaule(i, performance_by_sec, (char*)(performance_name[i])->c_str());
+			_gcvt(perfordata, 31, json_data);
+			AddJsonKeyValue(json_data, temp_json_value);
+		}
+		
+	}
+	else{
+		temp_json_value.append(0);//应用程序池未开启
+	}
+	json_value["web"].append(temp_json_value);
+	
+	return 0;
+}
+
+
+BOOL CWebMonitor::IsW3wpRun()
+{
+	BOOL bret = FALSE;
+	HANDLE hProcessSnap;
+	HANDLE hProcess;
+	PROCESSENTRY32 pe32;
+
+	// Take a snapshot of all processes in the system.
+	hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (hProcessSnap == INVALID_HANDLE_VALUE)
+		return(FALSE);
+
+	// Set the size of the structure before using it.
+	pe32.dwSize = sizeof(PROCESSENTRY32);
+
+	// Retrieve information about the first process,
+	// and exit if unsuccessful
+	if (!Process32First(hProcessSnap, &pe32))
+	{
+		CloseHandle(hProcessSnap);          // clean the snapshot object
+		return(FALSE);
+	}
+	do
+	{
+		hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
+		if (hProcess == NULL)
+			;//return FALSE;
+		else if (!strcmp(pe32.szExeFile, "w3wp.exe")){
+			bret = TRUE;
+			break;
+		}
+	} while (Process32Next(hProcessSnap, &pe32));
+
+	CloseHandle(hProcessSnap);
+	return bret;
+}
+//////////////////////////////////////////////////////////////////////////
+/*
+CMsSqlMonitor
+*/
+//////////////////////////////////////////////////////////////////////////
+
+int CMsSqlMonitor::write(int fd, Value& json_value)
+{
+	char dberror[256];
+	CLinkManager* plink_manage = m_loadconfig->get_link();
+	LPOPLINK plink = plink_manage->GetLink(dberror, 256, 0, TRUE);
+	return 0;
+}
 #endif // WIN32
 
 
@@ -325,6 +395,8 @@ void CBuildMonitor::ConcreteMonotor(int type, CLoadConfig* loadconfig)
 		m_system_monitor = new CMySqlMonitor(loadconfig);
 	if (MONITORTYPE_LINUX_SYSINFO == type)
 		m_system_monitor = new CLinuxSysinfo(loadconfig);
+	if (MONITORTYPE_WEB == type)
+		m_system_monitor = new CWebMonitor(loadconfig);
 }
 
 CBuildMonitor::~CBuildMonitor()
