@@ -363,7 +363,12 @@ int CMsSqlMonitor::write(int fd, Value& json_value)
 {
 	char dberror[256];
 	CLinkManager* plink_manage = m_loadconfig->get_link();
-	LPOPLINK plink = plink_manage->GetLink(dberror, 256, 0, TRUE);
+	int datanum = m_loadconfig->get_db_count();
+	for (int i = 0; i < datanum;i++){
+		LPOPLINK plink = plink_manage->GetLink(dberror, 256, i);
+	}
+	
+
 	return 0;
 }
 #endif // WIN32

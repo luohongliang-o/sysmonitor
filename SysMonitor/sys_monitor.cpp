@@ -119,14 +119,17 @@ void
 on_timer(evutil_socket_t fd, short event, void *arg)
 {
 	client *ins_client = (client*)arg;
-	if (!ins_client->proto_manage)
-		ins_client->proto_manage = new CProtocolManage(ins_client->load_config);
-	ins_client->proto_manage->write(fd);
+	if (ins_client){
+		if (!ins_client->proto_manage)
+			ins_client->proto_manage = new CProtocolManage(ins_client->load_config);
+		ins_client->proto_manage->write(fd);
+
+		time_val.tv_sec = 1;
+		time_val.tv_usec = 0;
+		evtimer_del(ins_client->ev_timer);
+		evtimer_add(ins_client->ev_timer, &time_val);
+	}
 	
-	time_val.tv_sec = 1;
-	time_val.tv_usec = 0;
-	evtimer_del(ins_client->ev_timer);
-	evtimer_add(ins_client->ev_timer, &time_val);
 }
 
 /**
@@ -331,7 +334,7 @@ on_accept(evutil_socket_t fd, short ev, void *arg)
 	* read. */
 	event_set(&ins_client->ev_read, client_fd, EV_READ | EV_PERSIST, on_read,
 		ins_client);
-
+	
 	/* Setting up the event does not activate, add the event so it
 	* becomes active. */
 	event_add(&ins_client->ev_read, NULL);
