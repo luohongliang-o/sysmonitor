@@ -10,11 +10,11 @@
 #define MAX_DBCOUNT  5
 typedef struct tagOPLINK
 {
-	BOOL	bBusy;						// 是否使用中
-	short	nSel;						// 选择哪个数据库
-	BOOL	bConnected;					// 是否连接
-	long	nBusyTime;					// 开始忙时间点
-	CADODatabase* pAdodb;
+	BOOL	is_busy;						// 是否使用中
+	short	cur_sel;						// 选择哪个数据库
+	BOOL	is_connected;					// 是否连接
+	long	busy_time;					// 开始忙时间点
+	CADODatabase* ado_db;
 } OPLINK, *LPOPLINK;
 
 #endif
@@ -32,6 +32,7 @@ class CLoadConfig
 {
 public:
 	CLoadConfig();
+	CLoadConfig(const CLoadConfig& other);
 	~CLoadConfig();
 
 	enum 
@@ -52,14 +53,14 @@ public:
 		char       checkusername[32];
 		//monitortype
 		int        object_num;
-		short*     object_type;
+		vector< short >     object_type;
 		//system
 		int        performance_counter_num;
-		string**   performance_name;
+		vector< string >   performance_name;
 		int        performance_by_sec;
 		//web
 		int        web_performance_counter_num;
-		string**   web_performance_name;
+		vector< string >   web_performance_name;
 		int        web_performance_by_sec;
 		//mssql
 		short      db_count;
@@ -67,23 +68,22 @@ public:
 		DBCONFIG   db_config[MAX_DBCOUNT];
 		//process
 		int        process_num;
-		string**   process_name;
-
+		vector< string >   process_name;
 	};
 
 	static void LoadConfig(CLoadConfig* this_ins);
 
 	int      get_port();
 	int      get_object_num();
-	short*   get_object_type();
+	vector< short >   get_object_type();
 	char*    get_check_user_name();
 	int      get_performance_by_sec();
 	int      get_performance_counter_num();
-	string** get_performance_name();
+	vector< string > get_performance_name();
 	
 	int      get_web_performance_by_sec();
 	int      get_web_performance_counter_num();
-	string** get_web_performance_name();
+	vector< string > get_web_performance_name();
 
 	void     get_sys_os_info();
 
@@ -91,18 +91,17 @@ public:
 	char*    get_os_version();
 
 	int      get_process_num();
-	string** get_process_name();
+	vector< string > get_process_name();
 
 	short    get_db_count();
 	short    get_db_default_sel();
 	LPDBCONFIG get_db_config();
-	CLinkManager* get_link();
+
+	CLoadConfig* clone() const { return new CLoadConfig(*this); };
 private:
 	MonitorConfig*   m_monitor_config;
 	char m_os_name[100];
 	char m_os_version[100];
-
-	CLinkManager*   m_plink_manage;
 };
 
 #endif

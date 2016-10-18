@@ -81,9 +81,9 @@ CSysInfo::write(int fd, Value& json_value)
 	{
 		int performance_num = m_loadconfig->get_performance_counter_num();
 		int performance_by_sec = m_loadconfig->get_performance_by_sec();
-		string** performance_name = m_loadconfig->get_performance_name();
+		vector< string > performance_name = m_loadconfig->get_performance_name();
 		for (int i = 0; i < performance_num; i++){
-			double perfordata = WriteperformanceVaule(i, performance_by_sec, (char*)(performance_name[i])->c_str());
+			double perfordata = WriteperformanceVaule(i, performance_by_sec, (char*)performance_name[i].c_str());
 			_gcvt(perfordata, 31, json_data);
 			AddJsonKeyValue(json_data, temp_json_value);
 		}
@@ -173,17 +173,17 @@ CProcessMonitor::write(int fd, Value& json_value)
 	string jsonstr;
 	char json_data[51] = "";
 	int process_num = m_loadconfig->get_process_num();
-	string** process_name = m_loadconfig->get_process_name();
+	vector< string > process_name = m_loadconfig->get_process_name();
 	for ( int i= 0; i < process_num; i++){
 		int tcpnum = 0;
 		int process_status = 0;
 		map< string, vector< int > >::iterator map_itorator_process_name = \
-			m_map_process_name_pid.find(*process_name[i]);
+			m_map_process_name_pid.find(process_name[i]);
 		if (map_itorator_process_name != m_map_process_name_pid.end()) 
 			process_status = 1;                     // 查看进程状态
 		if (process_status){
-			vector<int> v_pidlist = m_map_process_name_pid[process_name[i]->c_str()];
-			printf("\ncurrent process name is %s", process_name[i]->c_str());
+			vector<int> v_pidlist = m_map_process_name_pid[process_name[i].c_str()];
+			printf("\ncurrent process name is %s", process_name[i].c_str());
 			for (int j = 0; j < v_pidlist.size(); j++){
 				char pbuffer[1000];
 				FILE *ppipe = NULL;
@@ -207,7 +207,7 @@ CProcessMonitor::write(int fd, Value& json_value)
 			}
 		}
 		Value process_data;
-		process_data.append(process_name[i]->c_str());
+		process_data.append(process_name[i].c_str());
 		process_data.append(tcpnum);
 		process_data.append(process_status);
 		json_value["process"].append(process_data);
@@ -241,17 +241,15 @@ CProcessMonitor::GetProcessList()
 		CloseHandle(hProcessSnap);          // clean the snapshot object
 		return(FALSE);
 	}
-	do
-	{
+	do{
 		hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
 		if (hProcess == NULL)
 			printError(TEXT("OpenProcess"));
 		else{
-			string** process_name = m_loadconfig->get_process_name();
+			vector< string > process_name = m_loadconfig->get_process_name();
 			int procee_num = m_loadconfig->get_process_num();
-			for (int i = 0; i < procee_num;i++)
-			{
-				if (!process_name[i]->compare(pe32.szExeFile))
+			for (int i = 0; i < procee_num;i++){
+				if (!process_name[i].compare(pe32.szExeFile))
 					m_map_process_name_pid[pe32.szExeFile].push_back(pe32.th32ProcessID);
 			}
 			
@@ -299,14 +297,13 @@ int CWebMonitor::write(int fd, Value& json_value)
 		
 		int performance_num = m_loadconfig->get_web_performance_counter_num();
 		int performance_by_sec = m_loadconfig->get_web_performance_by_sec();
-		string** performance_name = m_loadconfig->get_web_performance_name();
+		vector< string > performance_name = m_loadconfig->get_web_performance_name();
 		char json_data[50] = "";
 		for (int i = 0; i < performance_num; i++){
-			double perfordata = WriteperformanceVaule(i, performance_by_sec, (char*)(performance_name[i])->c_str());
+			double perfordata = WriteperformanceVaule(i, performance_by_sec, (char*)performance_name[i].c_str());
 			_gcvt(perfordata, 31, json_data);
 			AddJsonKeyValue(json_data, temp_json_value);
 		}
-		
 	}
 	else{
 		temp_json_value.append(0);//应用程序池未开启
@@ -362,10 +359,13 @@ CMsSqlMonitor
 int CMsSqlMonitor::write(int fd, Value& json_value)
 {
 	char dberror[256];
-	CLinkManager* plink_manage = m_loadconfig->get_link();
+	CLinkManager* plink_manage = new CLinkManager(m_loadconfig);
+	plink_manage->Init();
 	int datanum = m_loadconfig->get_db_count();
 	for (int i = 0; i < datanum;i++){
 		LPOPLINK plink = plink_manage->GetLink(dberror, 256, i);
+		get_counter_value(plink, "lock", "_Total");
+		plink_manage->FreeLink(plink);
 	}
 	
 
@@ -373,7 +373,44 @@ int CMsSqlMonitor::write(int fd, Value& json_value)
 }
 #endif // WIN32
 
+char* CMsSqlMonitor::get_counter_value(LPOPLINK plink, const char* object_name, const char* instance_name, const char* counter_name )
+{
+	char select_str[256] = "";
+	char option_sql[100] = "";
+	sprintf_s(select_str, 256, "select * from sys.sysperfinfo \
+			where object_name like '%%%s%%'",
+			object_name);
+	if (strlen(counter_name) != 0){
+		sprintf_s(option_sql, 100, " and counter_name = '%s' ", counter_name);
+		strcat_s(select_str, 256, option_sql);
+	}
+	if (strlen(instance_name) != 0){
+		sprintf_s(option_sql, 100, " and instance_name = '%s' ",instance_name);
+		strcat_s(select_str, 256, option_sql);
+	}
+	
+	CADODatabase* p_ado_db = plink->ado_db;
+	CADORecordset ado_recordset(p_ado_db);
+	CADOCommand ado_cmd(p_ado_db, select_str, adCmdText);
+	try{
+		do {
+			if (!ado_recordset.Execute(&ado_cmd)) break;
+			if (!ado_recordset.IsOpen()) break;
+			long record_count = ado_recordset.GetRecordCount();
+			for (long i = 0; i < record_count; i++, ado_recordset.MoveNext()){
+				long field_count = ado_recordset.GetFieldCount();
+				for (int j = 0; j < field_count;j++){
 
+				}
+			}
+		} while (FALSE);
+
+
+	}
+	catch (...){
+	}
+	return "";
+}
 
 //////////////////////////////////////////////////////////////////////////
 /*CMySqlMonitor */
@@ -395,6 +432,8 @@ void CBuildMonitor::ConcreteMonotor(int type, CLoadConfig* loadconfig)
 		m_system_monitor = new CSysInfo(loadconfig);
 	if (MONITORTYPE_PROCESS == type)
 		m_system_monitor = new CProcessMonitor(loadconfig);
+	if (MONITORTYPE_MSSQL == type)
+		m_system_monitor = new CMsSqlMonitor(loadconfig);
 #endif // WEIN32
 	if (MONITORTYPE_MYSQL == type)
 		m_system_monitor = new CMySqlMonitor(loadconfig);
@@ -402,6 +441,7 @@ void CBuildMonitor::ConcreteMonotor(int type, CLoadConfig* loadconfig)
 		m_system_monitor = new CLinuxSysinfo(loadconfig);
 	if (MONITORTYPE_WEB == type)
 		m_system_monitor = new CWebMonitor(loadconfig);
+	
 }
 
 CBuildMonitor::~CBuildMonitor()

@@ -19,12 +19,12 @@ BOOL CLinkManager::_Init(LPOPLINK pLinkInfo)
 {
 	if (!pLinkInfo)
 		return FALSE;
-	pLinkInfo->nSel = m_nDefaultSel;
-	TDEL(pLinkInfo->pAdodb);
-	pLinkInfo->bConnected = FALSE;
-	pLinkInfo->bBusy = FALSE;
-	pLinkInfo->pAdodb = new CADODatabase();
-	if (!pLinkInfo->pAdodb)
+	pLinkInfo->cur_sel = m_nDefaultSel;
+	TDEL(pLinkInfo->ado_db);
+	pLinkInfo->is_connected = FALSE;
+	pLinkInfo->is_busy = FALSE;
+	pLinkInfo->ado_db= new CADODatabase();
+	if (!pLinkInfo->ado_db)
 		return FALSE;
 	return TRUE;
 }
@@ -49,7 +49,7 @@ BOOL CLinkManager::Exit()
 {
 	for (DWORD dwLinkIndex = 0; dwLinkIndex < MAX_LINK_NUM; dwLinkIndex++)
 	{
-		TDEL(m_aLinkInfo[dwLinkIndex].pAdodb);
+		TDEL(m_aLinkInfo[dwLinkIndex].ado_db);
 	}
 	return TRUE;
 }
@@ -66,10 +66,10 @@ LPOPLINK CLinkManager::GetLink(char *lpszErrMsg, int nSize, int dbsel,BOOL bPrim
 	LPOPLINK pLinkInfo = NULL;
 	m_csLink.Lock();
 	for (dwLinkIndex = 0; dwLinkIndex < MAX_LINK_NUM; dwLinkIndex++){
-		if (!m_aLinkInfo[dwLinkIndex].bBusy){
+		if (!m_aLinkInfo[dwLinkIndex].is_busy){
 			if (dwFirstFreeIndex >= MAX_LINK_NUM) dwFirstFreeIndex = dwLinkIndex;
 			if (!bPrimary)	break;
-			if (m_aLinkInfo[dwLinkIndex].nSel == m_nDefaultSel) break;
+			if (m_aLinkInfo[dwLinkIndex].cur_sel == m_nDefaultSel) break;
 		}
 	}
 	if (dwLinkIndex >= MAX_LINK_NUM){
@@ -84,18 +84,18 @@ LPOPLINK CLinkManager::GetLink(char *lpszErrMsg, int nSize, int dbsel,BOOL bPrim
 	}
 	else
 		pLinkInfo = &m_aLinkInfo[dwLinkIndex];
-	pLinkInfo->bBusy = TRUE;
+	pLinkInfo->is_busy = TRUE;
 	m_csLink.Unlock();
 	//连接默认数据库
 	if (bPrimary){
-		if (pLinkInfo->nSel != m_nDefaultSel){
-			pLinkInfo->pAdodb->Close();
-			pLinkInfo->bConnected = FALSE;
+		if (pLinkInfo->cur_sel != m_nDefaultSel){
+			pLinkInfo->ado_db->Close();
+			pLinkInfo->is_connected = FALSE;
 		}
-		if (!pLinkInfo->bConnected){
-			if (ConnectDataBase(&m_dbConfig[m_nDefaultSel], pLinkInfo->pAdodb)){
-				pLinkInfo->bConnected = TRUE;
-				pLinkInfo->nSel = m_nDefaultSel;
+		if (!pLinkInfo->is_connected){
+			if (ConnectDataBase(&m_dbConfig[m_nDefaultSel], pLinkInfo->ado_db)){
+				pLinkInfo->is_connected = TRUE;
+				pLinkInfo->cur_sel = m_nDefaultSel;
 				if (m_nFailCount > 0){
 					char szError[256] = { 0 };
 					sprintf_s(szError, 256, "连接[%s]-%s 数据库成功", m_dbConfig[m_nDefaultSel].data_source, m_dbConfig[m_nDefaultSel].data_base);
@@ -104,8 +104,8 @@ LPOPLINK CLinkManager::GetLink(char *lpszErrMsg, int nSize, int dbsel,BOOL bPrim
 			}
 		}
 	}
-	if (pLinkInfo->bConnected){
-		pLinkInfo->nBusyTime = (long)time(NULL);
+	if (pLinkInfo->is_connected){
+		pLinkInfo->busy_time = (long)time(NULL);
 		return pLinkInfo;
 	}
 
@@ -117,14 +117,14 @@ LPOPLINK CLinkManager::GetLink(char *lpszErrMsg, int nSize, int dbsel,BOOL bPrim
 		InterlockedIncrement(&m_nFailCount);
 		// 连接未成功
 		m_csLink.Lock();
-		pLinkInfo->bBusy = FALSE;
+		pLinkInfo->is_busy = FALSE;
 		m_csLink.Unlock();
 		return NULL;
 	}
 
 	if (_Connect2(pLinkInfo, dbsel)){
 		if (m_nFailCount > 0){
-			long nSel = pLinkInfo->nSel;
+			long nSel = pLinkInfo->cur_sel;
 			char szError[256] = { 0 };
 			sprintf_s(szError, 256, "连接[%s]-%s 数据库成功", m_dbConfig[nSel].data_source, m_dbConfig[nSel].data_base);
 			InterlockedExchange(&m_nFailCount, 0);
@@ -136,7 +136,7 @@ LPOPLINK CLinkManager::GetLink(char *lpszErrMsg, int nSize, int dbsel,BOOL bPrim
 
 	// 连接都未成功
 	m_csLink.Lock();
-	pLinkInfo->bBusy = FALSE;
+	pLinkInfo->is_busy = FALSE;
 	m_csLink.Unlock();
 
 	if (lpszErrMsg)
@@ -152,8 +152,8 @@ void CLinkManager::FreeLink(LPOPLINK pLink)
 	if (!pLink) return;
 
 	m_csLink.Lock();
-	pLink->nBusyTime = 0;
-	pLink->bBusy = FALSE;
+	pLink->busy_time = 0;
+	pLink->is_busy = FALSE;
 	m_csLink.Unlock();
 }
 
@@ -161,12 +161,12 @@ void CLinkManager::FreeLink(LPOPLINK pLink)
 void CLinkManager::DisConnect(LPOPLINK pLink)
 {
 	if (!pLink) return;
-	pLink->pAdodb->Close();
-	pLink->bConnected = FALSE;
+	pLink->ado_db->Close();
+	pLink->is_connected = FALSE;
 
 	m_csLink.Lock();
-	pLink->nBusyTime = 0;
-	pLink->bBusy = FALSE;
+	pLink->busy_time = 0;
+	pLink->is_busy = FALSE;
 	m_csLink.Unlock();
 }
 
@@ -174,23 +174,23 @@ void CLinkManager::CheckConnect(LPOPLINK pLink)
 {
 	if (!pLink)
 		return;
-	if (!pLink->pAdodb){
-		pLink->bConnected = FALSE;
+	if (!pLink->ado_db){
+		pLink->is_connected = FALSE;
 		return;
 	}
-	pLink->pAdodb->Close();
-	pLink->bConnected = FALSE;
+	pLink->ado_db->Close();
+	pLink->is_connected = FALSE;
 }
 
 BOOL CLinkManager::_Connect2(LPOPLINK pLink, int dbsel,BOOL bFailLog)
 {
 	if (!pLink)
 		return FALSE;
-	pLink->pAdodb->Close();
-	if (ConnectDataBase(&m_dbConfig[dbsel], pLink->pAdodb)){
-		pLink->bConnected = TRUE;
-		pLink->nSel = dbsel;
-		pLink->nBusyTime = (long)time(NULL);
+	pLink->ado_db->Close();
+	if (ConnectDataBase(&m_dbConfig[dbsel], pLink->ado_db)){
+		pLink->is_connected = TRUE;
+		pLink->cur_sel = dbsel;
+		pLink->busy_time = (long)time(NULL);
 		return TRUE;
 	}else{
 		if (bFailLog){

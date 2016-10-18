@@ -118,7 +118,8 @@ public:
 	~CMsSqlMonitor(){ ; };
 
 	virtual int write(int fd, Value& json_value);
-	
+protected:
+	char* get_counter_value(LPOPLINK plink, const char* object_name, const char* instance_name = "", const char* counter_name = "");
 	
 };
 #endif // WIN32

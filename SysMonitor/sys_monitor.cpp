@@ -39,60 +39,20 @@ extern "C" {
 }
 #endif
 
-/* Easy sensible linked lists. */
-#include "queue.h"
-
-
-
-/* Length of each buffer in the buffer queue.  Also becomes the amount
-* of data we try to read per call to read(2). */
 #define BUFLEN 1024*4
 
-/**
-* In event based programming we need to queue up data to be written
-* until we are told by libevent that we can write.  This is a simple
-* queue of buffers to be written implemented by a TAILQ from queue.h.
-*/
-struct bufferq {
-	/* The buffer. */
-	char *buf;
-	/* The length of bufferq. */
-	int len;
-
-	/* The offset into buf to start writing from. */
-	int offset;
-
-	/* For the linked list structure. */
-	TAILQ_ENTRY(bufferq) entries;
-};
-
-/**
-* A struct for client specific data, also includes pointer to create
-* a list of clients.
-*
-* In event based programming it is usually necessary to keep some
-* sort of object per client for state information.
-*/
 struct client {
-	/* Events. We need 2 event structures, one for read event
-	* notification and the other for writing. */
-// 	struct event ev_read;
-// 	struct event ev_write;
  	struct event* ev_timer;
 	struct bufferevent *buf_ev;
 	int fd;
 	CLoadConfig*     load_config;
 	CProtocolManage* proto_manage;
-	/* This is the queue of data to be written to this client. As
-	* we can't call write(2) until libevent tells us the socket
-	* is ready for writing. */
-	//TAILQ_HEAD(, bufferq) writeq;
 };
-
-/**
-* Set a socket to non-blocking mode.
-*/
-
+struct monitor_global 
+{
+	struct event_base *ev_base;
+	CLoadConfig*     load_config;
+};
 struct timeval time_val;
 
 #ifdef WIN32
@@ -188,7 +148,7 @@ buffered_on_error(struct bufferevent *bev, short what, void *arg)
 		WARN("\nClient socket error, disconnecting.\n");
 	}
 	bufferevent_free(client->buf_ev);
-	TDEL(client->load_config);
+//	TDEL(client->load_config);
 	TDEL(client->proto_manage);
 	evtimer_del(client->ev_timer);
 #ifdef WIN32
@@ -202,12 +162,7 @@ buffered_on_error(struct bufferevent *bev, short what, void *arg)
 void
 on_accept(int fd, short ev, void *arg)
 {
-	CLoadConfig *load_config_ins = new CLoadConfig;
-	CLoadConfig::LoadConfig(load_config_ins);
-#ifdef WIN32
-	load_config_ins->get_sys_os_info();
-#endif // WIN32
-	struct event_base* eventbase = (event_base*)arg;
+	monitor_global *g_monitor = (monitor_global*)arg;
 	int client_fd;
 	struct sockaddr_in client_addr;
 	socklen_t client_len = sizeof(client_addr);
@@ -224,16 +179,15 @@ on_accept(int fd, short ev, void *arg)
 	ins_client = (client*)calloc(1, sizeof(*ins_client));
 	if (ins_client == NULL)
 		err_plantform(1, "malloc failed");
+	ins_client->load_config = g_monitor->load_config;
 
-	ins_client->load_config = load_config_ins;
 	ins_client->fd = client_fd;
-	/*ins_client->buf_ev->ev_base = eventbase;*/
 	ins_client->buf_ev = bufferevent_new(client_fd, buffered_on_read,
 		buffered_on_write, buffered_on_error, ins_client);
 	
 	bufferevent_enable(ins_client->buf_ev, EV_READ);
 
- 	ins_client->ev_timer = event_new(eventbase, fd, 0, on_timer, ins_client);
+	ins_client->ev_timer = event_new(g_monitor->ev_base, fd, 0, on_timer, ins_client);
  	time_val.tv_sec = 1;
  	time_val.tv_usec = 0;
  	evtimer_add(ins_client->ev_timer, &time_val);
@@ -264,16 +218,16 @@ main(int argc, char **argv)
 	listen_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (listen_fd < 0)
 		err_plantform(1, "listen failed");
-
-	CLoadConfig *load_config_ins = new CLoadConfig;
-	CLoadConfig::LoadConfig(load_config_ins);
+	monitor_global* g_monitor = new monitor_global;
+	g_monitor->load_config = new CLoadConfig;
+	g_monitor->ev_base = eventbase;
+	CLoadConfig::LoadConfig(g_monitor->load_config);
 
 	memset(&listen_addr, 0, sizeof(listen_addr));
 	listen_addr.sin_family = AF_INET;
 	listen_addr.sin_addr.s_addr = INADDR_ANY;
-	port = load_config_ins->get_port();
+	port = g_monitor->load_config->get_port();
 	listen_addr.sin_port = htons(port);
-	TDEL(load_config_ins);
 
 	if (bind(listen_fd, (struct sockaddr *)&listen_addr,
 		sizeof(listen_addr)) < 0)
@@ -287,10 +241,16 @@ main(int argc, char **argv)
 	if (setnonblock(listen_fd) < 0)
 		err_plantform(1, "failed to set server socket to non-blocking");
 
-	event_set(&ev_accept, listen_fd, EV_READ | EV_PERSIST, on_accept, eventbase);
+#ifdef WIN32
+	g_monitor->load_config->get_sys_os_info();
+#endif // WIN32
+
+	event_set(&ev_accept, listen_fd, EV_READ | EV_PERSIST, on_accept, g_monitor);
 	event_add(&ev_accept, NULL);
 
 	event_dispatch();
-
+	TDEL(g_monitor->load_config);
+	event_base_free(g_monitor->ev_base);
+	TDEL(g_monitor);
 	return 0;
 }

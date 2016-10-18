@@ -6,8 +6,6 @@ CProtocolManage::CProtocolManage(CLoadConfig* loadconfg)
 {
 	m_bCheck = false;
 	m_load_config = loadconfg;
-	int object_num = m_load_config->get_object_num();
-	short* object_type = m_load_config->get_object_type();
 }
 
 CProtocolManage::~CProtocolManage()
@@ -89,7 +87,7 @@ int CProtocolManage::write(int fd)
 	FastWriter temp_inswrite;
 	int valid_object = 0;
 	int object_num = m_load_config->get_object_num();
-	short* object_type = m_load_config->get_object_type();
+	vector< short > object_type = m_load_config->get_object_type();
 	Value last_json_value;
 	char* buf = new char[1024 * 4];
 	for (int i = 0; i < object_num; i++){
