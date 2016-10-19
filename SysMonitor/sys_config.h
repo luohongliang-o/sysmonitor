@@ -1,6 +1,7 @@
 #ifndef SYS_CONFIG_H
 #define SYS_CONFIG_H
 
+#define LOGFILENAME "sysmonitor"
 #include "json.h"
 using namespace Json;
 #include <string>

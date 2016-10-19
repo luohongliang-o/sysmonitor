@@ -1,7 +1,10 @@
 #pragma once
 //#include "sys_config.h"
+#ifdef WIN32
 #include "ado2.h"
 #include <afxmt.h>
+#endif // WIN32
+
 #include "load_config.h"
 
 class CLoadConfig;

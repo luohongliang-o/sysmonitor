@@ -1,16 +1,18 @@
 #include "sys_config.h"
 #include "load_config.h"
 #include "func.h"
-
+#include "link_manager.h"
 CLoadConfig::CLoadConfig()
 {
 	m_monitor_config = new MonitorConfig;
 	memset(m_monitor_config, 0, sizeof(MonitorConfig));
+	m_plink_manage = NULL;
 }
 
 CLoadConfig::~CLoadConfig()
 {
 	TDEL(m_monitor_config);
+	TDEL(m_plink_manage);
 }
 
 void CLoadConfig::LoadConfig(CLoadConfig* this_ins)
@@ -34,23 +36,23 @@ void CLoadConfig::LoadConfig(CLoadConfig* this_ins)
 	{
 		for (int i = 0; i < config->object_num;i++){
 			if (config->object_type[i] == CONFIG_SYSTEM){
-				config->performance_counter_num = GetIniKeyInt("system", "performance_counter_num", filebuf);
-				config->performance_by_sec = GetIniKeyInt("system", "performance_by_sec", filebuf);
-				config->performance_name.resize(config->performance_counter_num);
-				for (int i = 0; i < config->performance_counter_num; i++){
-					char performance_key[20] = "";
-					sprintf_s(performance_key, sizeof(performance_key), "%s%d", "performance_name", i + 1);
-					config->performance_name[i] = GetIniKeyString("system", performance_key, filebuf);
+				config->counter_num = GetIniKeyInt("system", "counter_num", filebuf);
+				config->counter_by_sec = GetIniKeyInt("system", "counter_by_sec", filebuf);
+				config->counter_name.resize(config->counter_num);
+				for (int i = 0; i < config->counter_num; i++){
+					char counter_key[20] = "";
+					sprintf_s(counter_key, sizeof(counter_key), "%s%d", "counter_name", i + 1);
+					config->counter_name[i] = GetIniKeyString("system", counter_key, filebuf);
 				}
 			}
 			else if (config->object_type[i] == CONFIG_WEB){
-				config->web_performance_counter_num = GetIniKeyInt("web", "performance_counter_num", filebuf);
-				config->web_performance_by_sec = GetIniKeyInt("web", "performance_by_sec", filebuf);
-				config->web_performance_name.resize(config->web_performance_counter_num);
-				for (int i = 0; i < config->web_performance_counter_num; i++){
-					char performance_key[20] = "";
-					sprintf_s(performance_key, sizeof(performance_key), "%s%d", "performance_name", i + 1);
-					config->web_performance_name[i] = GetIniKeyString("web", performance_key, filebuf);
+				config->web_counter_num = GetIniKeyInt("web", "counter_num", filebuf);
+				config->web_counter_by_sec = GetIniKeyInt("web", "counter_by_sec", filebuf);
+				config->web_counter_name.resize(config->web_counter_num);
+				for (int i = 0; i < config->web_counter_num; i++){
+					char counter_key[20] = "";
+					sprintf_s(counter_key, sizeof(counter_key), "%s%d", "counter_name", i + 1);
+					config->web_counter_name[i] = GetIniKeyString("web", counter_key, filebuf);
 				}
 			}
 			else if (config->object_type[i] == CONFIG_PROCESS){
@@ -79,6 +81,8 @@ void CLoadConfig::LoadConfig(CLoadConfig* this_ins)
 					strcpy(config->db_config[i].user_name, GetIniKeyString("mssql", db_user_key, filebuf));
 					strcpy(config->db_config[i].password, GetIniKeyString("mssql", db_password_key, filebuf));
 				}
+				this_ins->m_plink_manage = new CLinkManager(this_ins);
+				this_ins->m_plink_manage->Init();
 			}
 		}
 	}
@@ -113,43 +117,43 @@ int CLoadConfig::get_object_num()
 	return 0;
 }
 
-int CLoadConfig::get_performance_counter_num()
+int CLoadConfig::get_counter_num()
 {
 	if (m_monitor_config)
-		return m_monitor_config->performance_counter_num;
+		return m_monitor_config->counter_num;
 	return 0;
 }
-int CLoadConfig::get_performance_by_sec()
+int CLoadConfig::get_counter_by_sec()
 {
 	if (m_monitor_config)
-		return m_monitor_config->performance_by_sec;
+		return m_monitor_config->counter_by_sec;
 	return 0;
 }
 
-vector< string > CLoadConfig::get_performance_name()
+vector< string > CLoadConfig::get_counter_name()
 {
 	if (m_monitor_config)
-		return m_monitor_config->performance_name;
+		return m_monitor_config->counter_name;
 	return vector< string >(NULL);
 }
 
-int CLoadConfig::get_web_performance_counter_num()
+int CLoadConfig::get_web_counter_num()
 {
 	if (m_monitor_config)
-		return m_monitor_config->web_performance_counter_num;
+		return m_monitor_config->web_counter_num;
 	return 0;
 }
-int CLoadConfig::get_web_performance_by_sec()
+int CLoadConfig::get_web_counter_by_sec()
 {
 	if (m_monitor_config)
-		return m_monitor_config->web_performance_by_sec;
+		return m_monitor_config->web_counter_by_sec;
 	return 0;
 }
 
-vector< string > CLoadConfig::get_web_performance_name()
+vector< string > CLoadConfig::get_web_counter_name()
 {
 	if (m_monitor_config)
-		return m_monitor_config->web_performance_name;
+		return m_monitor_config->web_counter_name;
 	return vector< string >(NULL);
 }
 
@@ -221,4 +225,8 @@ LPDBCONFIG CLoadConfig::get_db_config()
 	if (m_monitor_config)
 		return m_monitor_config->db_config;
 	return NULL;
+}
+CLinkManager* CLoadConfig::get_link()
+{
+	return m_plink_manage;
 }

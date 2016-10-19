@@ -55,17 +55,18 @@ public:
 		int        object_num;
 		vector< short >     object_type;
 		//system
-		int        performance_counter_num;
-		vector< string >   performance_name;
-		int        performance_by_sec;
+		int        counter_num;
+		vector< string >   counter_name;
+		int        counter_by_sec;
 		//web
-		int        web_performance_counter_num;
-		vector< string >   web_performance_name;
-		int        web_performance_by_sec;
+		int        web_counter_num;
+		vector< string >   web_counter_name;
+		int        web_counter_by_sec;
 		//mssql
 		short      db_count;
 		short      db_default_sel;
 		DBCONFIG   db_config[MAX_DBCOUNT];
+
 		//process
 		int        process_num;
 		vector< string >   process_name;
@@ -77,13 +78,13 @@ public:
 	int      get_object_num();
 	vector< short >   get_object_type();
 	char*    get_check_user_name();
-	int      get_performance_by_sec();
-	int      get_performance_counter_num();
-	vector< string > get_performance_name();
+	int      get_counter_by_sec();
+	int      get_counter_num();
+	vector< string > get_counter_name();
 	
-	int      get_web_performance_by_sec();
-	int      get_web_performance_counter_num();
-	vector< string > get_web_performance_name();
+	int      get_web_counter_by_sec();
+	int      get_web_counter_num();
+	vector< string > get_web_counter_name();
 
 	void     get_sys_os_info();
 
@@ -96,12 +97,12 @@ public:
 	short    get_db_count();
 	short    get_db_default_sel();
 	LPDBCONFIG get_db_config();
-
-	CLoadConfig* clone() const { return new CLoadConfig(*this); };
+	CLinkManager* get_link();
 private:
 	MonitorConfig*   m_monitor_config;
 	char m_os_name[100];
 	char m_os_version[100];
+	CLinkManager *m_plink_manage;
 };
 
 #endif

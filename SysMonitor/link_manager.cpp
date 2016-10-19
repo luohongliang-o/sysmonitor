@@ -35,8 +35,7 @@ BOOL CLinkManager::Init()
 	m_nDbCount = m_pload_config->get_db_count();
 	m_nDefaultSel = m_pload_config->get_db_default_sel();
 	if (m_nDefaultSel < 0 || m_nDefaultSel >= m_nDbCount) m_nDefaultSel = 0;
-
-	memcpy(m_dbConfig, m_pload_config->get_db_config(), sizeof(DBCONFIG)*MAX_DBCOUNT);
+	memcpy(m_dbConfig, m_pload_config->get_db_config(),sizeof(DBCONFIG)*m_nDbCount);
 
 	for (DWORD dwLinkIndex = 0; dwLinkIndex < MAX_LINK_NUM; dwLinkIndex++){
 		_Init(&m_aLinkInfo[dwLinkIndex]);

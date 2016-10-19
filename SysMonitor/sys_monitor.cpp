@@ -38,7 +38,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
+#include "func.h"
 #define BUFLEN 1024*4
 
 struct client {
@@ -103,7 +103,6 @@ on_timer(int fd, short event, void *arg)
 		evtimer_del(ins_client->ev_timer);
 		evtimer_add(ins_client->ev_timer, &time_val);
 	}
-	
 }
 
 void
@@ -113,7 +112,7 @@ buffered_on_read(struct bufferevent *bev, void *arg)
 	size_t buffer_len = evbuffer_get_length(bev->input);
 	if (buffer_len > 0)
 	{
-		char *buf;
+		char *buf = NULL;
 		buf = (char*)malloc(BUFLEN);
 		if (buf == NULL)
 			err_plantform(1, " malloc failed");
@@ -123,8 +122,11 @@ buffered_on_read(struct bufferevent *bev, void *arg)
 			client->proto_manage = new CProtocolManage(client->load_config);
 		client->proto_manage->read(client->fd, buf);
 		bufferevent_write(bev, buf, strlen(buf)+1);
-		if (buf)
+		if (buf){
 			free(buf);
+			buf = NULL;
+		}
+			
 	}
 	
 }
@@ -142,9 +144,11 @@ buffered_on_error(struct bufferevent *bev, short what, void *arg)
 	if (what & EVBUFFER_EOF) {
 		/* Client disconnected, remove the read event and the
 		* free the client structure. */
-		printf("\nClient disconnected.\n");
+		WriteLog(LOGFILENAME, "\nClient disconnected.\n");
+		//printf("\nClient disconnected.\n");
 	}
 	else {
+		WriteLog(LOGFILENAME, "\nClient socket error, disconnecting.\n");
 		WARN("\nClient socket error, disconnecting.\n");
 	}
 	bufferevent_free(client->buf_ev);
@@ -193,6 +197,8 @@ on_accept(int fd, short ev, void *arg)
  	evtimer_add(ins_client->ev_timer, &time_val);
 	printf("Accepted connection from addr:%s port:%d\n",
 		inet_ntoa(client_addr.sin_addr), htons(client_addr.sin_port));
+	WriteLog(LOGFILENAME, "Accepted connection from addr:%s port:%d\n",
+		inet_ntoa(client_addr.sin_addr), htons(client_addr.sin_port));
 }
 
 int
@@ -231,9 +237,9 @@ main(int argc, char **argv)
 
 	if (bind(listen_fd, (struct sockaddr *)&listen_addr,
 		sizeof(listen_addr)) < 0)
-		err_plantform(1, "bind failed");
+		err_plantform(1, "\nbind failed");
 	if (listen(listen_fd, 5) < 0)
-		err_plantform(1, "listen failed");
+		err_plantform(1, "\nlisten failed");
 	reuseaddr_on = 1;
 	setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, (char*)&reuseaddr_on,
 		sizeof(reuseaddr_on));

@@ -44,7 +44,6 @@ CProtocolManage::read(int fd, char *buf)
 		goto checkerr;
 	}
 	if (m_bCheck){//chcek success and read data to client
-
 		return get_last_buf(buf);
 	}
 	return 0;

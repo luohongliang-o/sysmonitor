@@ -6,7 +6,7 @@
 #include <pdhmsg.h>
 #include <process.h>
 #pragma comment(lib, "pdh.lib")
-#define LOGFILENAME "performance"
+
 //////////////////////////////////////////////////////////////////////////
 /*CSysInfo*/
 //////////////////////////////////////////////////////////////////////////
@@ -16,7 +16,7 @@ CSysInfo::write(int fd, Value& json_value)
 {
 	Value  temp_json_value;
 	char json_data[50] = "";
-	char performance_key[16] = "";
+	char counter_key[16] = "";
 	
 	//disk
 	{
@@ -59,6 +59,7 @@ CSysInfo::write(int fd, Value& json_value)
 				}
 			}
 		}
+		TDELARRAY(DStr);
 		disk_data["num"] = disk_num;
 		temp_json_value.append(disk_data);
 	}
@@ -79,11 +80,11 @@ CSysInfo::write(int fd, Value& json_value)
 	
 	//pdh performance counter
 	{
-		int performance_num = m_loadconfig->get_performance_counter_num();
-		int performance_by_sec = m_loadconfig->get_performance_by_sec();
-		vector< string > performance_name = m_loadconfig->get_performance_name();
-		for (int i = 0; i < performance_num; i++){
-			double perfordata = WriteperformanceVaule(i, performance_by_sec, (char*)performance_name[i].c_str());
+		int counter_num = m_loadconfig->get_counter_num();
+		int counter_by_sec = m_loadconfig->get_counter_by_sec();
+		vector< string > counter_name = m_loadconfig->get_counter_name();
+		for (int i = 0; i < counter_num; i++){
+			double perfordata = WriteCounterVaule(i, counter_by_sec, (char*)counter_name[i].c_str());
 			_gcvt(perfordata, 31, json_data);
 			AddJsonKeyValue(json_data, temp_json_value);
 		}
@@ -95,7 +96,7 @@ CSysInfo::write(int fd, Value& json_value)
 }
 
 double 
-CSysInfo::WriteperformanceVaule(int index, int counter_by_sec,char* str_counter_path_buffer)
+CSysInfo::WriteCounterVaule(int index, int counter_by_sec, char* str_counter_path_buffer)
 {
 	PDH_STATUS Status;
 	HQUERY Query = NULL;
@@ -106,36 +107,36 @@ CSysInfo::WriteperformanceVaule(int index, int counter_by_sec,char* str_counter_
 	ZeroMemory(&CounterPathBuffer, sizeof(CounterPathBuffer));
 	strcpy_s(CounterPathBuffer, str_counter_path_buffer);
 	WriteLog(LOGFILENAME, "Counter selected: %s", CounterPathBuffer);
-	printf_s("\n\nCounter selected: %s", CounterPathBuffer);
+	//printf_s("\n\nCounter selected: %s", CounterPathBuffer);
 	
 	Status = PdhOpenQuery(NULL, NULL, &Query);
 	if (Status != ERROR_SUCCESS)
 	{
 		WriteLog(LOGFILENAME, "PdhOpenQuery failed with status 0x%x.\n", Status);
-		printf("\nPdhOpenQuery failed with status 0x%x.", Status);
+		//printf("\nPdhOpenQuery failed with status 0x%x.", Status);
 		goto Cleanup;
 	}
 	Status = PdhAddCounter(Query, CounterPathBuffer, 0, &Counter);
 	if (Status != ERROR_SUCCESS){
 		WriteLog(LOGFILENAME, "PdhAddCounter failed with status 0x%x.\n", Status);
-		printf_s("\nPdhAddCounter failed with status 0x%x.", Status);
+		//printf("\nPdhAddCounter failed with status 0x%x.", Status);
 		goto Cleanup;
 	}
 	Status = PdhCollectQueryData(Query);
 	if (Status != ERROR_SUCCESS){
 		WriteLog(LOGFILENAME, "first PdhCollectQueryData failed with 0x%x.\n", Status);
-		printf("\nfirst PdhCollectQueryData failed with 0x%x.\n", Status);
+		//printf("\nfirst PdhCollectQueryData failed with 0x%x.\n", Status);
 		goto Cleanup;
 	}
 	
-	int performance_num = m_loadconfig->get_performance_counter_num();
-	if (counter_by_sec > 0 && (index + counter_by_sec >= performance_num)){
+	int counter_num = m_loadconfig->get_counter_num();
+	if (counter_by_sec > 0 && (index + counter_by_sec >= counter_num)){
 		int sleeptime = 1000 / counter_by_sec;
 		Sleep(sleeptime);
 		Status = PdhCollectQueryData(Query);
 		if (Status != ERROR_SUCCESS){
 			WriteLog(LOGFILENAME, "secend PdhCollectQueryData failed with status 0x%x.\n", Status);
-			printf("\nsecend PdhCollectQueryData failed with status 0x%x.", Status);
+			//printf("\nsecend PdhCollectQueryData failed with status 0x%x.", Status);
 		}
 	}
 
@@ -145,7 +146,7 @@ CSysInfo::WriteperformanceVaule(int index, int counter_by_sec,char* str_counter_
 		&DisplayValue);
 	if (Status != ERROR_SUCCESS){
 		WriteLog(LOGFILENAME, "PdhGetFormattedCounterValue failed with status 0x%x.\n", Status);
-		printf("\nPdhGetFormattedCounterValue failed with status 0x%x.", Status);
+		//printf("\nPdhGetFormattedCounterValue failed with status 0x%x.", Status);
 		goto Cleanup;
 	}
 	if (Query)
@@ -167,7 +168,8 @@ int
 CProcessMonitor::write(int fd, Value& json_value)
 {
 	if (!GetProcessList()){
-		printf(" Init process snapshot list failed.\n");
+		WriteLog(LOGFILENAME, " Init process snapshot list failed.\n");
+		//printf(" Init process snapshot list failed.\n");
 		return 0;
 	}
 	string jsonstr;
@@ -183,7 +185,7 @@ CProcessMonitor::write(int fd, Value& json_value)
 			process_status = 1;                     // 查看进程状态
 		if (process_status){
 			vector<int> v_pidlist = m_map_process_name_pid[process_name[i].c_str()];
-			printf("\ncurrent process name is %s", process_name[i].c_str());
+			//printf("\ncurrent process name is %s", process_name[i].c_str());
 			for (int j = 0; j < v_pidlist.size(); j++){
 				char pbuffer[1000];
 				FILE *ppipe = NULL;
@@ -201,7 +203,7 @@ CProcessMonitor::write(int fd, Value& json_value)
 					}
 					nread_line++;
 				}
-				printf("\ncurrent process id is %d", v_pidlist[j]);
+				//printf("\ncurrent process id is %d", v_pidlist[j]);
 				if (feof(ppipe))
 					_pclose(ppipe);
 			}
@@ -252,7 +254,7 @@ CProcessMonitor::GetProcessList()
 				if (!process_name[i].compare(pe32.szExeFile))
 					m_map_process_name_pid[pe32.szExeFile].push_back(pe32.th32ProcessID);
 			}
-			
+			CloseHandle(hProcess);
 		}
 	} while (Process32Next(hProcessSnap, &pe32));
 
@@ -281,7 +283,7 @@ CProcessMonitor::printError(TCHAR* msg)
 		((*p == '.') || (*p < 33)));
 
 	// Display the message
-	printf(TEXT("\n  WARNING: %s failed with error %d (%s)"), msg, eNum, sysMsg);
+	//printf(TEXT("\n  WARNING: %s failed with error %d (%s)"), msg, eNum, sysMsg);
 }
 
 
@@ -295,18 +297,19 @@ int CWebMonitor::write(int fd, Value& json_value)
 	if (IsW3wpRun()){
 		temp_json_value.append(1);
 		
-		int performance_num = m_loadconfig->get_web_performance_counter_num();
-		int performance_by_sec = m_loadconfig->get_web_performance_by_sec();
-		vector< string > performance_name = m_loadconfig->get_web_performance_name();
+		int counter_num = m_loadconfig->get_web_counter_num();
+		int counter_by_sec = m_loadconfig->get_web_counter_by_sec();
+		vector< string > counter_name = m_loadconfig->get_web_counter_name();
 		char json_data[50] = "";
-		for (int i = 0; i < performance_num; i++){
-			double perfordata = WriteperformanceVaule(i, performance_by_sec, (char*)performance_name[i].c_str());
+		for (int i = 0; i < counter_num; i++){
+			double perfordata = WriteCounterVaule(i, counter_by_sec, (char*)counter_name[i].c_str());
 			_gcvt(perfordata, 31, json_data);
 			AddJsonKeyValue(json_data, temp_json_value);
 		}
 	}
 	else{
 		temp_json_value.append(0);//应用程序池未开启
+		temp_json_value.append(0);//0个连接
 	}
 	json_value["web"].append(temp_json_value);
 	
@@ -331,20 +334,19 @@ BOOL CWebMonitor::IsW3wpRun()
 
 	// Retrieve information about the first process,
 	// and exit if unsuccessful
-	if (!Process32First(hProcessSnap, &pe32))
-	{
+	if (!Process32First(hProcessSnap, &pe32)){
 		CloseHandle(hProcessSnap);          // clean the snapshot object
 		return(FALSE);
 	}
-	do
-	{
+	do{
 		hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
 		if (hProcess == NULL)
 			;//return FALSE;
-		else if (!strcmp(pe32.szExeFile, "w3wp.exe")){
+		else if (!strcmp(pe32.szExeFile, "w3wp.exe"))
 			bret = TRUE;
+		CloseHandle(hProcess);
+		if (bret) 
 			break;
-		}
 	} while (Process32Next(hProcessSnap, &pe32));
 
 	CloseHandle(hProcessSnap);
@@ -359,59 +361,69 @@ CMsSqlMonitor
 int CMsSqlMonitor::write(int fd, Value& json_value)
 {
 	char dberror[256];
-	CLinkManager* plink_manage = new CLinkManager(m_loadconfig);
-	plink_manage->Init();
+	CLinkManager* plink_manage = m_loadconfig->get_link();
 	int datanum = m_loadconfig->get_db_count();
+	Value temp_json_value;
 	for (int i = 0; i < datanum;i++){
 		LPOPLINK plink = plink_manage->GetLink(dberror, 256, i);
-		get_counter_value(plink, "lock", "_Total");
+		vector< int > vt_data1, vt_data2;
+		//locks by sec
+		int record_count = 0;
+		get_counter_value(plink, i,vt_data1);
+		Sleep(1000);
+		record_count = get_counter_value(plink, i,vt_data2);
 		plink_manage->FreeLink(plink);
+		for (int j = 0; j < record_count;j++){
+			if (j >= 2 && j <= 5)
+				vt_data2[j] = vt_data2[j] - vt_data1[j];
+			else if (j == 9) vt_data2[j] = vt_data2[j] - vt_data1[j];
+			temp_json_value.append(vt_data2[j]);
+		}
+		json_value["mssql"].append(temp_json_value);
 	}
 	
-
 	return 0;
 }
-#endif // WIN32
 
-char* CMsSqlMonitor::get_counter_value(LPOPLINK plink, const char* object_name, const char* instance_name, const char* counter_name )
+const char select_str_format[1024 * 2] =
+"select counter_name,cntr_value from sys.sysperfinfo where counter_name in ('User Connections',\
+'Processes blocked','Temp Tables For Destruction') union \
+select counter_name,cntr_value from sys.sysperfinfo where object_name like '%%Buffer Manager%%' \
+and counter_name in ('Buffer cache hit ratio','Database pages','Page life expectancy',\
+'Lazy writes/sec') union \
+select counter_name,cntr_value from sys.sysperfinfo where instance_name = '_Total' and counter_name in (\
+'Lock Requests/sec','Lock Timeouts/sec','Number of Deadlocks/sec') union \
+select counter_name,cntr_value from sys.sysperfinfo where instance_name = '%s' and counter_name = 'Transactions/sec' \
+order by counter_name";
+
+int CMsSqlMonitor::get_counter_value(LPOPLINK plink, int data_sel,vector< int >& vt_data)
 {
-	char select_str[256] = "";
-	char option_sql[100] = "";
-	sprintf_s(select_str, 256, "select * from sys.sysperfinfo \
-			where object_name like '%%%s%%'",
-			object_name);
-	if (strlen(counter_name) != 0){
-		sprintf_s(option_sql, 100, " and counter_name = '%s' ", counter_name);
-		strcat_s(select_str, 256, option_sql);
-	}
-	if (strlen(instance_name) != 0){
-		sprintf_s(option_sql, 100, " and instance_name = '%s' ",instance_name);
-		strcat_s(select_str, 256, option_sql);
-	}
-	
+	long record_count = 0;
 	CADODatabase* p_ado_db = plink->ado_db;
 	CADORecordset ado_recordset(p_ado_db);
+	char select_str[1024 * 2];
+	sprintf_s(select_str, sizeof(select_str), select_str_format, (m_loadconfig->get_db_config())[data_sel].data_base);
 	CADOCommand ado_cmd(p_ado_db, select_str, adCmdText);
 	try{
 		do {
 			if (!ado_recordset.Execute(&ado_cmd)) break;
 			if (!ado_recordset.IsOpen()) break;
-			long record_count = ado_recordset.GetRecordCount();
+			record_count = ado_recordset.GetRecordCount();
+			vt_data.resize(record_count);
 			for (long i = 0; i < record_count; i++, ado_recordset.MoveNext()){
 				long field_count = ado_recordset.GetFieldCount();
-				for (int j = 0; j < field_count;j++){
-
-				}
+				int cntr_value = 0;
+				ado_recordset.GetFieldValue(1, cntr_value);
+				vt_data[i] = cntr_value;
 			}
 		} while (FALSE);
-
 
 	}
 	catch (...){
 	}
-	return "";
+	return record_count;
 }
-
+#endif // WIN32
 //////////////////////////////////////////////////////////////////////////
 /*CMySqlMonitor */
 //////////////////////////////////////////////////////////////////////////

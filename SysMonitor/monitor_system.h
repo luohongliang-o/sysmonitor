@@ -78,7 +78,7 @@ public:
 	
 protected:
 	
-	double WriteperformanceVaule(int index,int counter_by_sec,char* str_counter_path_buffer);
+	double WriteCounterVaule(int index, int counter_by_sec, char* str_counter_path_buffer);
 };
 
 #include <tlhelp32.h>
@@ -110,6 +110,7 @@ protected:
 
 };
 #include "link_manager.h"
+
 class CMsSqlMonitor :public CMonitorSystem
 {
 public:
@@ -119,7 +120,7 @@ public:
 
 	virtual int write(int fd, Value& json_value);
 protected:
-	char* get_counter_value(LPOPLINK plink, const char* object_name, const char* instance_name = "", const char* counter_name = "");
+	int get_counter_value(LPOPLINK plink,int data_sel,vector< int >& vt_data);
 	
 };
 #endif // WIN32
