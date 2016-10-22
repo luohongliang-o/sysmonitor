@@ -88,7 +88,6 @@ int CProtocolManage::write(int fd)
 	int object_num = m_load_config->get_object_num();
 	vector< short > object_type = m_load_config->get_object_type();
 	Value last_json_value;
-	char* buf = new char[1024 * 4];
 	for (int i = 0; i < object_num; i++){
 		Value json_value;
 		CBuildMonitor build_monitor;
@@ -101,7 +100,6 @@ int CProtocolManage::write(int fd)
 			valid_object++;
 		}
 	}
-	TDELARRAY(buf);
 	last_json_value["typenum"] = valid_object;
 	strJsonData = temp_inswrite.write(last_json_value);
 	m_list_buf.push_back(strJsonData);

@@ -12,7 +12,7 @@ using std::string;
 #include <list>
 using namespace std;
 
-//#include "func.h"
+#include "port.h"
 
 #if !defined(HAS_PLATFORM)
 # define HAS_PLATFORM
@@ -24,6 +24,17 @@ using namespace std;
 # endif // !_MSC_VER
 #endif // HAS_PLATFORM
 
+// extern
+#if !defined(HAS_EXTERN_C) && !defined(EXTERN_C)
+# define HAS_EXTERN_C                   1
+# if defined(__cplusplus)
+#   define EXTERN_C                     extern "C"
+# else
+#   define EXTERN_C
+# endif // __cplusplus
+#else
+# define HAS_EXTERN_C                   0
+#endif // HAS_EXTERN_C
 // 
 #if defined(_MSC_VER)
 #define COMPILER_MSVC
@@ -37,6 +48,22 @@ using namespace std;
 #define GG_ULONGLONG(x) x##ULL
 #endif
 
+#if !defined(ASSERT)
+#include <assert.h>
+# define ASSERT                         assert
+#endif // ASSERT
+
+#if !defined(TRACE) && !defined(HAS_TRACE)
+# define HAS_TRACE                      1
+# if !defined(DEBUG_ON)
+#   define TRACE
+#   define detect_memory_leaks(x)
+# else
+#   define TRACE                        PRINTF("\n");PRINTF
+# endif // DEBUG_ON
+#else
+# define HAS_TRACE                      0
+#endif // 
 
 typedef char                            int8_t;
 typedef short                           int16_t;
@@ -132,5 +159,48 @@ const  int64_t kint64max = ((int64_t)GG_LONGLONG(0x7FFFFFFFFFFFFFFF));
 #ifndef CLOSEHANDLE
 #define CLOSEHANDLE(a)		if(a!=NULL) { CloseHandle(a); a=NULL; }
 #endif
+
+#if !defined(HAS_STRING)
+# define HAS_STRING                     1
+# if !defined(UNICODE)
+typedef char                            char_t;
+typedef unsigned char                   uchar_t;
+#   define _STR(x)                      (x)
+#   define _CHAR(x)                     (x)
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#   define VSNPRINTF                    vsnprintf_s
+#   define SNPRINTF                     _snprintf_s
+#   define STRCPY                       strcpy_s
+#   define STRNCPY                      strncpy_s_
+#   define STRLEN                       strlen
+#   define STRNLEN                      strnlen
+#   define STRCHR                       strchr_s
+#   define STRSTR                       strstr_s
+//#   define STRSTR(s,l,f)                strstr(s, f)
+#   define STRCAT                       strcat_s
+#   define STRNCAT                      strncat_s
+#   define STRCMP                       strcmp
+#   define STRNCMP                      strncmp
+#   define STRICMP                      stricmp
+#   define STRNICMP                     strnicmp
+#   define PRINTF                       printf_s
+//#   define SSCANF                       sscanf_s
+#   define SSCANF                       _snscanf_s
+// 
+#   define ATOI                         atoi
+#   define ATOI64                       _atoi64
+#   define ITOA                         _itoa_s
+#   define I64TOA                       _ui64toa_s
+# else
+# define HAS_STRING                     0
+#   error "UNICODE string is not implemented!"
+# endif // UNICODE
+#endif // HAS_STRING
+
+#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
+	TypeName(const TypeName&);               \
+	void operator=(const TypeName&)
 
 #endif // SYS_CONFIG_H

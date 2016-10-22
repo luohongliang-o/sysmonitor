@@ -125,10 +125,8 @@ buffered_on_read(struct bufferevent *bev, void *arg)
 		if (buf){
 			free(buf);
 			buf = NULL;
-		}
-			
+		}	
 	}
-	
 }
 
 void
@@ -145,7 +143,7 @@ buffered_on_error(struct bufferevent *bev, short what, void *arg)
 		/* Client disconnected, remove the read event and the
 		* free the client structure. */
 		WriteLog(LOGFILENAME, "\nClient disconnected.\n");
-		//printf("\nClient disconnected.\n");
+		printf("\nClient disconnected.\n");
 	}
 	else {
 		WriteLog(LOGFILENAME, "\nClient socket error, disconnecting.\n");
