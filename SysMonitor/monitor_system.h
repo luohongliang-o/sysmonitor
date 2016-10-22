@@ -120,7 +120,7 @@ public:
 
 	virtual int write(int fd, Value& json_value);
 protected:
-	int get_counter_value(LPOPLINK plink,int data_sel,vector< int >& vt_data);
+	int get_counter_value(int data_sel,vector< int >& vt_data);
 	
 };
 #endif // WIN32
@@ -151,16 +151,20 @@ protected:
 	void  get_cpu_time(int& all_time,int& idle_time);
 };
 
+#include "simple_mysql.h"
 class CMySqlMonitor :public CMonitorSystem
 {
 public:
-	CMySqlMonitor(){ ; };
-	CMySqlMonitor(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){ ; };
-	~CMySqlMonitor(){ ; };
+	CMySqlMonitor(){ };
+	CMySqlMonitor(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){ m_mysql_connection = new CMysqlConnection; };
+	~CMySqlMonitor(){ 
+		TDEL(m_mysql_connection);
+	};
 
 	virtual int write(int fd, Value& json_value);
 	
 private:
-	
+	CMysqlConnection*  m_mysql_connection;
+
 };
 #endif

@@ -58,6 +58,8 @@ public:
 		int        counter_num;
 		vector< string >   counter_name;
 		int        counter_by_sec;
+		//mysql
+		char       mysql_connstr[256];
 		//web
 		int        web_counter_num;
 		vector< string >   web_counter_name;
@@ -94,6 +96,7 @@ public:
 	int      get_process_num();
 	vector< string > get_process_name();
 
+	const char* get_mysql_connection_string();
 	short    get_db_count();
 	short    get_db_default_sel();
 	LPDBCONFIG get_db_config();

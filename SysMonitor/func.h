@@ -1,5 +1,6 @@
 #ifndef FUNC_H
 #define FUNC_H
+#include "sys_config.h"
 #include <stdio.h>
 #include <stdarg.h>
 #ifdef WIN32

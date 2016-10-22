@@ -45,6 +45,9 @@ void CLoadConfig::LoadConfig(CLoadConfig* this_ins)
 					config->counter_name[i] = GetIniKeyString("system", counter_key, filebuf);
 				}
 			}
+			else if (config->object_type[i] == CONFIG_MYSQL){
+				strcpy(config->mysql_connstr, GetIniKeyString("mysql", "connectonstr", filebuf));
+			}
 			else if (config->object_type[i] == CONFIG_WEB){
 				config->web_counter_num = GetIniKeyInt("web", "counter_num", filebuf);
 				config->web_counter_by_sec = GetIniKeyInt("web", "counter_by_sec", filebuf);
@@ -229,4 +232,11 @@ LPDBCONFIG CLoadConfig::get_db_config()
 CLinkManager* CLoadConfig::get_link()
 {
 	return m_plink_manage;
+}
+
+const char* CLoadConfig::get_mysql_connection_string()
+{
+	if (m_monitor_config)
+		return m_monitor_config->mysql_connstr;
+	return NULL;
 }

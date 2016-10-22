@@ -19,6 +19,9 @@
     <Filter Include="ado">
       <UniqueIdentifier>{33e6f5f1-9983-49eb-a3a4-4e6bb3cbd3a8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="mysql">
+      <UniqueIdentifier>{bdb6766f-ec41-4075-b6fd-69698b3213ad}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -81,6 +84,18 @@
     <ClInclude Include="link_manager.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\database\mysql\simple_mysql.h">
+      <Filter>mysql</Filter>
+    </ClInclude>
+    <ClInclude Include="port.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\database\mysql\error.h">
+      <Filter>mysql</Filter>
+    </ClInclude>
+    <ClInclude Include="..\database\mysql\db_utility.h">
+      <Filter>mysql</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="json_reader.cpp">
@@ -115,6 +130,15 @@
     </ClCompile>
     <ClCompile Include="link_manager.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\database\mysql\simple_mysql.cpp">
+      <Filter>mysql</Filter>
+    </ClCompile>
+    <ClCompile Include="port.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\database\mysql\db_utility.cpp">
+      <Filter>mysql</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

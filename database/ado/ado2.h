@@ -469,7 +469,7 @@ public:
 		
 	virtual ~CADOCommand()
 	{
-		::SysFreeString(m_pCommand->CommandText);
+		SysFreeString(m_pCommand->CommandText);
 		m_pCommand.Release();
 		m_pCommand = NULL;
 		m_strCommandText = _T("");
