@@ -7,6 +7,32 @@
 #include <process.h>
 #pragma comment(lib, "pdh.lib")
 
+CMonitorSystem* CMonitorSystem::_instance = NULL;
+CMonitorSystem* CMonitorSystem::CreateInstance(int type)
+{
+#ifdef WIN32
+	if (MONITORTYPE_SYSTEM_INFO == type)
+		_instance = new CSysInfo();
+	else if (MONITORTYPE_PROCESS == type)
+		_instance = new CProcessMonitor();
+	else if (MONITORTYPE_MSSQL == type)
+		_instance = new CMsSqlMonitor();
+#endif // WEIN32
+	else if (MONITORTYPE_MYSQL == type)
+		_instance = new CMySqlMonitor();
+	else if (MONITORTYPE_LINUX_SYSINFO == type)
+		_instance = new CLinuxSysinfo();
+	else if (MONITORTYPE_WEB == type)
+		_instance = new CWebMonitor();
+	else if (MONITORTYPE_ORACAL == type)
+		_instance = new COracleMonitor();
+	else
+		_instance = new CMonitorSystem();
+	
+	return _instance;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 /*CSysInfo*/
 //////////////////////////////////////////////////////////////////////////
@@ -449,35 +475,68 @@ CMySqlMonitor::write(int fd, Value& json_value)
 	}
 	return 0;
 }
+//////////////////////////////////////////////////////////////////////////
+/*
+COracleMonitor
+*/
+//////////////////////////////////////////////////////////////////////////
+#include "ocilib.hpp"
+using namespace ocilib;
+int COracleMonitor::write(int fd, Value& json_value)
+{
+	int ncount = 0;
+	try
+	{
+		Environment::Initialize();
+		ocilib::Connection con("xe", "lhl", "123456");
+		Statement st(con);
+		st.Execute("select * from person_info");
+		Resultset rs = st.GetResultset();
+		while (rs.Next())
+		{
 
+		}
+		ncount = rs.GetCount();
+
+	}
+	catch (std::exception &ex)
+	{
+		const char *erro = ex.what() ;
+		int a = 0;
+	}
+	Environment::Cleanup();
+	return 0;
+}
 //////////////////////////////////////////////////////////////////////////
 /* CBuilderMonitor */
 //////////////////////////////////////////////////////////////////////////
-void CBuildMonitor::ConcreteMonotor(int type, CLoadConfig* loadconfig)
+void CBuildMonitor::ConcreteMonitor(CLoadConfig* loadconfig)
 {
-#ifdef WIN32
-	if (MONITORTYPE_SYSTEM_INFO == type)
-		m_system_monitor = new CSysInfo(loadconfig);
-	if (MONITORTYPE_PROCESS == type)
-		m_system_monitor = new CProcessMonitor(loadconfig);
-	if (MONITORTYPE_MSSQL == type)
-		m_system_monitor = new CMsSqlMonitor(loadconfig);
-#endif // WEIN32
-	if (MONITORTYPE_MYSQL == type)
-		m_system_monitor = new CMySqlMonitor(loadconfig);
-	if (MONITORTYPE_LINUX_SYSINFO == type)
-		m_system_monitor = new CLinuxSysinfo(loadconfig);
-	if (MONITORTYPE_WEB == type)
-		m_system_monitor = new CWebMonitor(loadconfig);
-	
+	if (m_vector_monitor.size() == 0){
+		int object_num = loadconfig->get_object_num();
+		vector< short > object_type = loadconfig->get_object_type();
+		for (int i = 0; i < object_num; i++){
+			CMonitorSystem* object_monitor = CMonitorSystem::CreateInstance(object_type[i]);
+			object_monitor->set_loadconfig(loadconfig);
+			m_vector_monitor.push_back(object_monitor);
+		}
+	}
 }
 
 CBuildMonitor::~CBuildMonitor()
 {
-	TDEL(m_system_monitor);
+	for (int i = 0;i < m_vector_monitor.size(); i++){
+		TDEL(m_vector_monitor[i]);
+	}
 }
 
-CMonitorSystem* CBuildMonitor::get_monitor_obj()
+int CBuildMonitor::write_all(int fd, Value& json_value)
 {
-	return m_system_monitor;
+	for (int i = 0; i < m_vector_monitor.size(); i++){
+		Value temp_json_value;
+		m_vector_monitor[i]->write(fd, temp_json_value);
+		temp_json_value["type"] = m_vector_monitor[i]->get_object_type();
+		json_value["data"].append(temp_json_value);
+	}
+	return m_vector_monitor.size();
 }

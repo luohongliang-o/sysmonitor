@@ -6,10 +6,12 @@ CProtocolManage::CProtocolManage(CLoadConfig* loadconfg)
 {
 	m_bCheck = false;
 	m_load_config = loadconfg;
+	m_build_monitor = new CBuildMonitor;
 }
 
 CProtocolManage::~CProtocolManage()
 {
+	TDEL(m_build_monitor);
 }
 
 int 
@@ -84,22 +86,21 @@ int CProtocolManage::write(int fd)
 	rset_list_buf(10);
 	string strJsonData;
 	FastWriter temp_inswrite;
-	int valid_object = 0;
 	int object_num = m_load_config->get_object_num();
 	vector< short > object_type = m_load_config->get_object_type();
 	Value last_json_value;
-	for (int i = 0; i < object_num; i++){
-		Value json_value;
-		CBuildMonitor build_monitor;
-		build_monitor.ConcreteMonotor(object_type[i], m_load_config);
-		CMonitorSystem* monitorsys = build_monitor.get_monitor_obj();
-		if (monitorsys){
-			monitorsys->write(fd, json_value);
-			json_value["type"] = object_type[i];
-			last_json_value["data"].append(json_value);
-			valid_object++;
-		}
-	}
+	m_build_monitor->ConcreteMonitor(m_load_config);
+	int valid_object = m_build_monitor->write_all(fd, last_json_value);
+// 	for (int i = 0; i < object_num; i++){
+// 		Value json_value;
+// 		CMonitorSystem* monitorsys = m_build_monitor->get_monitor_obj(object_type[i]);
+// 		if (monitorsys){
+// 			monitorsys->write(fd, json_value);
+// 			json_value["type"] = object_type[i];
+// 			last_json_value["data"].append(json_value);
+// 			valid_object++;
+// 		}
+// 	}
 	last_json_value["typenum"] = valid_object;
 	strJsonData = temp_inswrite.write(last_json_value);
 	m_list_buf.push_back(strJsonData);

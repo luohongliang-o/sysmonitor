@@ -53,14 +53,14 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;NO_WARN_MBCS_MFC_DEPRECATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Program Files (x86)\MySQL\MySQL Server 5.5\include;../SysMonitor;../database/mysql;../database/ado;../libevent/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files (x86)\MySQL\MySQL Server 5.5\include;../SysMonitor;../database/mysql;../database/oracle/include;../database/ado;../libevent/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Program Files (x86)\MySQL\MySQL Server 5.5\lib;../libevent/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ws2_32.lib;wsock32.lib;event.lib;event_core.lib;event_extra.lib;libmysql.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files (x86)\MySQL\MySQL Server 5.5\lib;../database/oracle/lib;../libevent/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;wsock32.lib;event.lib;event_core.lib;event_extra.lib;libmysql.lib;ocilib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
     </Link>
@@ -97,6 +97,10 @@
     <ClInclude Include="..\database\mysql\db_utility.h" />
     <ClInclude Include="..\database\mysql\error.h" />
     <ClInclude Include="..\database\mysql\simple_mysql.h" />
+    <ClInclude Include="..\database\oracle\include\ocilib.h" />
+    <ClInclude Include="..\database\oracle\include\ocilib.hpp" />
+    <ClInclude Include="..\database\oracle\include\ocilib_core.hpp" />
+    <ClInclude Include="..\database\oracle\include\ocilib_impl.hpp" />
     <ClInclude Include="assertions.h" />
     <ClInclude Include="autolink.h" />
     <ClInclude Include="config.h" />
