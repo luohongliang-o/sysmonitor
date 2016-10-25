@@ -3,20 +3,46 @@
 
 #include "load_config.h"
 
-#ifdef WIN32
-class CSysInfo;
-class CMsSqlMonitor;
-class CProcessMonitor;
-
-#endif // WIN32
-class CMySqlMonitor;
-class CLinuxSysinfo;
-class CWebMonitor;
-class COracleMonitor;
-
 class CMonitorSystem
 {
 public:
+	CMonitorSystem(){ ; };
+	CMonitorSystem(CLoadConfig * loadconfig)
+	{ 
+		m_loadconfig = loadconfig; 
+	};
+	virtual ~CMonitorSystem()
+	{
+	};
+	virtual int write(int fd, Value& json_value) = 0;
+
+	void AddJsonKeyValue(char* str_data, Value& json_value)
+	{
+		string data = str_data;
+		if (data.rfind('.') == data.length() - 1){
+			data.replace(data.length() - 1, data.length(), "");
+		}
+		json_value.append(data.c_str());
+	}
+
+	CLoadConfig* m_loadconfig;
+};
+
+
+#ifdef WIN32
+
+class CSysInfo;
+class CMySqlMonitor;
+
+#endif // WIN32
+
+class CBuildMonitor
+{
+public:
+	CBuildMonitor()
+	{
+		m_system_monitor = NULL;
+	};
 	enum
 	{
 		MONITORTYPE_SYSTEM_INFO = 1,
@@ -29,30 +55,12 @@ public:
 		MONITORTYPE_LINUX_PROCESS,
 	};
 
-	static CMonitorSystem* CreateInstance(int type);
-	void set_loadconfig(CLoadConfig * loadconfig)
-	{
-		m_loadconfig = loadconfig;
-	};
-	
-	virtual ~CMonitorSystem(){ ; };
-	virtual int write(int fd, Value& json_value){ return 0; };
-	virtual int get_object_type(){ return 0; };
-
-	void AddJsonKeyValue(char* str_data, Value& json_value)
-	{
-		string data = str_data;
-		if (data.rfind('.') == data.length() - 1){
-			data.replace(data.length() - 1, data.length(), "");
-		}
-		json_value.append(data.c_str());
-	}
-
-	CLoadConfig* m_loadconfig;
-//protected:
-	CMonitorSystem(){ ; };
+	void ConcreteMonitor(int type, CLoadConfig* loadconfig);
+	~CBuildMonitor();
+	CMonitorSystem* get_monitor_obj();
 private:
-	static CMonitorSystem* _instance;
+	CMonitorSystem* m_system_monitor;
+	
 };
 
 #ifdef WIN32
@@ -61,55 +69,59 @@ class CSysInfo :public CMonitorSystem
 {
 public:
 	CSysInfo(){ ; };
+	CSysInfo(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig)//,Thread(loadconfig)
+	{ ; };
+
 	~CSysInfo(){ ; };
+
 	virtual int write(int fd, Value& json_value);
-	virtual int get_object_type(){ return MONITORTYPE_SYSTEM_INFO; };
-protected:
-	double WriteCounterVaule(int index, int counter_by_sec, char* str_counter_path_buffer);
 	
+protected:
+	
+	double WriteCounterVaule(int index, int counter_by_sec, char* str_counter_path_buffer);
 };
 
 #include <tlhelp32.h>
 class CProcessMonitor : public CMonitorSystem
 {
 public:
-	CProcessMonitor(){ ; };
-	~CProcessMonitor(){ ; };
-
+	CProcessMonitor(){ ; }
+	CProcessMonitor(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){ ; }
+	
+	~CProcessMonitor(){ ; }
 	virtual int write(int fd, Value& json_value);
-	virtual int get_object_type(){ return MONITORTYPE_PROCESS; };
-
 protected:
 	BOOL GetProcessList();
 	void printError(TCHAR* msg);
-	map< string, vector< int > > m_map_process_name_pid;
 
+	map< string, vector< int > > m_map_process_name_pid;
 };
 
 class CWebMonitor : public CSysInfo
 {
 public:
-	CWebMonitor(){ ; };
+	CWebMonitor(){ ; }
+	CWebMonitor(CLoadConfig* loadconfig) : CSysInfo(loadconfig){ ; }
 	~CWebMonitor(){ ; }
 
 	virtual int write(int fd, Value& json_value);
-	virtual int get_object_type(){ return MONITORTYPE_WEB; };
 protected:
 	BOOL IsW3wpRun();
-};
 
+};
 #include "link_manager.h"
 
 class CMsSqlMonitor :public CMonitorSystem
 {
 public:
 	CMsSqlMonitor(){ ; };
+	CMsSqlMonitor(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){ ; };
 	~CMsSqlMonitor(){ ; };
 
 	virtual int write(int fd, Value& json_value);
-	virtual int get_object_type(){ return MONITORTYPE_MSSQL; };
 protected:
 	int get_counter_value(int data_sel,vector< int >& vt_data);
+	
 };
 #endif // WIN32
 
@@ -119,11 +131,12 @@ class CLinuxSysinfo :public CMonitorSystem
 {
 public:
 	CLinuxSysinfo(){ ; };
+	CLinuxSysinfo(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){ ; };
 	~CLinuxSysinfo(){ ; };
-	virtual int write(int fd, Value& json_value);
-	virtual int get_object_type(){ return MONITORTYPE_LINUX_SYSINFO; };
 
+	virtual int write(int fd, Value& json_value);
 protected:
+	
 	void  get_loadavg(Value& json_value);         //cpu负载
 	void  get_systemtime(Value& json_value);      //系统运行状态
 	void  get_kernel_version(Value& json_value);  //系统版本
@@ -142,44 +155,32 @@ protected:
 class CMySqlMonitor :public CMonitorSystem
 {
 public:
-	CMySqlMonitor(){ m_mysql_connection = new CMysqlConnection; };
-	~CMySqlMonitor()
-	{ 
+	CMySqlMonitor(){ };
+	CMySqlMonitor(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){ m_mysql_connection = new CMysqlConnection; };
+	~CMySqlMonitor(){ 
 		TDEL(m_mysql_connection);
 	};
-	
+
 	virtual int write(int fd, Value& json_value);
-	virtual int get_object_type(){ return MONITORTYPE_MYSQL; };
+	
 private:
 	CMysqlConnection*  m_mysql_connection;
 
 };
 
 
+
 class COracleMonitor :public CMonitorSystem
 {
 public:
 	COracleMonitor(){ };
+	COracleMonitor(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){  };
 	~COracleMonitor(){};
 
 	virtual int write(int fd, Value& json_value);
-	virtual int get_object_type(){ return MONITORTYPE_ORACAL; };
-};
 
-class CBuildMonitor
-{
-public:
-	CBuildMonitor()
-	{
-		m_vector_monitor = vector< CMonitorSystem* >(NULL);
-	};
-	void ConcreteMonitor(CLoadConfig* loadconfig);
-	~CBuildMonitor();
-
-	int write_all(int fd,Value& json_value);
 private:
-	vector< CMonitorSystem* > m_vector_monitor;
+	
+
 };
-
 #endif
-

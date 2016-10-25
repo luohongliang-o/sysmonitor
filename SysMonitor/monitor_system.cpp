@@ -7,32 +7,6 @@
 #include <process.h>
 #pragma comment(lib, "pdh.lib")
 
-CMonitorSystem* CMonitorSystem::_instance = NULL;
-CMonitorSystem* CMonitorSystem::CreateInstance(int type)
-{
-#ifdef WIN32
-	if (MONITORTYPE_SYSTEM_INFO == type)
-		_instance = new CSysInfo();
-	else if (MONITORTYPE_PROCESS == type)
-		_instance = new CProcessMonitor();
-	else if (MONITORTYPE_MSSQL == type)
-		_instance = new CMsSqlMonitor();
-#endif // WEIN32
-	else if (MONITORTYPE_MYSQL == type)
-		_instance = new CMySqlMonitor();
-	else if (MONITORTYPE_LINUX_SYSINFO == type)
-		_instance = new CLinuxSysinfo();
-	else if (MONITORTYPE_WEB == type)
-		_instance = new CWebMonitor();
-	else if (MONITORTYPE_ORACAL == type)
-		_instance = new COracleMonitor();
-	else
-		_instance = new CMonitorSystem();
-	
-	return _instance;
-}
-
-
 //////////////////////////////////////////////////////////////////////////
 /*CSysInfo*/
 //////////////////////////////////////////////////////////////////////////
@@ -510,33 +484,33 @@ int COracleMonitor::write(int fd, Value& json_value)
 //////////////////////////////////////////////////////////////////////////
 /* CBuilderMonitor */
 //////////////////////////////////////////////////////////////////////////
-void CBuildMonitor::ConcreteMonitor(CLoadConfig* loadconfig)
+void CBuildMonitor::ConcreteMonitor(int type, CLoadConfig* loadconfig)
 {
-	if (m_vector_monitor.size() == 0){
-		int object_num = loadconfig->get_object_num();
-		vector< short > object_type = loadconfig->get_object_type();
-		for (int i = 0; i < object_num; i++){
-			CMonitorSystem* object_monitor = CMonitorSystem::CreateInstance(object_type[i]);
-			object_monitor->set_loadconfig(loadconfig);
-			m_vector_monitor.push_back(object_monitor);
-		}
-	}
+	
+#ifdef WIN32
+	if (MONITORTYPE_SYSTEM_INFO == type)
+		m_system_monitor = new CSysInfo(loadconfig);
+	if (MONITORTYPE_PROCESS == type)
+		m_system_monitor = new CProcessMonitor(loadconfig);
+	if (MONITORTYPE_MSSQL == type)
+		m_system_monitor = new CMsSqlMonitor(loadconfig);
+#endif // WEIN32
+	if (MONITORTYPE_MYSQL == type)
+		m_system_monitor = new CMySqlMonitor(loadconfig);
+	if (MONITORTYPE_LINUX_SYSINFO == type)
+		m_system_monitor = new CLinuxSysinfo(loadconfig);
+	if (MONITORTYPE_WEB == type)
+		m_system_monitor = new CWebMonitor(loadconfig);
+	if (MONITORTYPE_ORACAL == type)
+		m_system_monitor = new COracleMonitor(loadconfig);
 }
 
 CBuildMonitor::~CBuildMonitor()
 {
-	for (int i = 0;i < m_vector_monitor.size(); i++){
-		TDEL(m_vector_monitor[i]);
-	}
+	TDEL(m_system_monitor);
 }
 
-int CBuildMonitor::write_all(int fd, Value& json_value)
+CMonitorSystem* CBuildMonitor::get_monitor_obj()
 {
-	for (int i = 0; i < m_vector_monitor.size(); i++){
-		Value temp_json_value;
-		m_vector_monitor[i]->write(fd, temp_json_value);
-		temp_json_value["type"] = m_vector_monitor[i]->get_object_type();
-		json_value["data"].append(temp_json_value);
-	}
-	return m_vector_monitor.size();
+	return m_system_monitor;
 }
