@@ -370,10 +370,15 @@ int CMsSqlMonitor::write(int fd, Value& json_value)
 		Sleep(1000);
 		record_count = get_counter_value(i,vt_data2);
 		for (int j = 0; j < record_count;j++){
-			if (j >= 2 && j <= 5)
+			if (j == 0 || (j >= 4 && j <= 6) || j >= 13)
 				vt_data2[j] = vt_data2[j] - vt_data1[j];
-			else if (j == 9) vt_data2[j] = vt_data2[j] - vt_data1[j];
-			temp_json_value.append(vt_data2[j]);
+			if (j == 2 || j == 8){
+				char temp_data[10] = "";
+				sprintf_s(temp_data, sizeof(temp_data), "%.2f", vt_data2[j - 1] * 100.0 / vt_data2[j]);
+				temp_json_value.append(temp_data);
+			}
+			else if (j == 0 || (j >= 3 && j <= 6)|| j > 8)
+				temp_json_value.append(vt_data2[j]);
 		}
 		json_value["mssql"].append(temp_json_value);
 	}
@@ -384,15 +389,13 @@ int CMsSqlMonitor::write(int fd, Value& json_value)
 int CMsSqlMonitor::get_counter_value(int data_sel,vector< int >& vt_data)
 {
 	const char select_str_format[1024] =
-"select counter_name,cntr_value from sys.sysperfinfo where counter_name in ('User Connections',\
-'Processes blocked','Temp Tables For Destruction') union \
-select counter_name,cntr_value from sys.sysperfinfo where object_name like '%%Buffer Manager%%' \
-and counter_name in ('Buffer cache hit ratio','Database pages','Page life expectancy',\
-'Lazy writes/sec') union \
-select counter_name,cntr_value from sys.sysperfinfo where instance_name = '_Total' and counter_name in (\
-'Lock Requests/sec','Lock Timeouts/sec','Number of Deadlocks/sec') union \
-select counter_name,cntr_value from sys.sysperfinfo where instance_name = '%s' and counter_name = 'Transactions/sec' \
-order by counter_name";
+"select cntr_value from sys.sysperfinfo \
+where counter_name in ('Full Scans/sec', 'Average Latch Wait Time (ms)', 'User Connections', 'Processes blocked') or \
+(counter_name in ('buffer cache hit ratio', 'buffer cache hit ratio base',\
+'Lazy Writes/sec', 'Page reads/sec', 'Page writes/sec', 'Database pages') and object_name like '%%buffer manager%%') or \
+(counter_name in ('Cache Hit Ratio', 'Cache Hit Ratio base') and instance_name = '%s') or \
+(counter_name in ('Number of Deadlocks/sec', 'Average Wait Time (ms)', 'Lock Requests/sec') and instance_name = '_Total') \
+order by object_name, counter_name";
 
 	char dberror[256];
 	CLinkManager* plink_manage = m_loadconfig->get_link();
@@ -411,7 +414,7 @@ order by counter_name";
 			for (long i = 0; i < record_count; i++, ado_recordset.MoveNext()){
 				long field_count = ado_recordset.GetFieldCount();
 				long cntr_value = 0;
-				ado_recordset.GetFieldValue(1, cntr_value);
+				ado_recordset.GetFieldValue(0, cntr_value);
 				vt_data[i] = cntr_value;
 			}
 		} while (FALSE);

@@ -43,8 +43,8 @@ extern "C" {
 
 struct client {
  	struct event* ev_timer;
-	struct bufferevent *buf_ev;
 	int fd;
+	struct bufferevent *buf_ev;
 	CLoadConfig*     load_config;
 	CProtocolManage* proto_manage;
 };
@@ -98,7 +98,7 @@ on_timer(int fd, short event, void *arg)
 			ins_client->proto_manage = new CProtocolManage(ins_client->load_config);
 		ins_client->proto_manage->write(fd);
 
-		time_val.tv_sec = 1;
+		time_val.tv_sec = 3;
 		time_val.tv_usec = 0;
 		evtimer_del(ins_client->ev_timer);
 		evtimer_add(ins_client->ev_timer, &time_val);
@@ -184,10 +184,17 @@ on_accept(int fd, short ev, void *arg)
 	ins_client->load_config = g_monitor->load_config;
 
 	ins_client->fd = client_fd;
+	evutil_make_socket_nonblocking(client_fd);
+/*
 	ins_client->buf_ev = bufferevent_new(client_fd, buffered_on_read,
 		buffered_on_write, buffered_on_error, ins_client);
+*/
 	
-	bufferevent_enable(ins_client->buf_ev, EV_READ);
+	ins_client->buf_ev = bufferevent_socket_new(g_monitor->ev_base, client_fd, BEV_OPT_CLOSE_ON_FREE);
+	bufferevent_setcb(ins_client->buf_ev, buffered_on_read,
+		buffered_on_write, buffered_on_error, ins_client);
+
+	bufferevent_enable(ins_client->buf_ev, EV_READ | EV_WRITE);
 
 	ins_client->ev_timer = event_new(g_monitor->ev_base, fd, 0, on_timer, ins_client);
  	time_val.tv_sec = 1;
@@ -222,6 +229,8 @@ main(int argc, char **argv)
 	listen_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (listen_fd < 0)
 		err_plantform(1, "listen failed");
+	else evutil_make_socket_nonblocking(listen_fd);
+
 	monitor_global* g_monitor = new monitor_global;
 	g_monitor->load_config = new CLoadConfig;
 	g_monitor->ev_base = eventbase;
@@ -242,8 +251,10 @@ main(int argc, char **argv)
 	setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, (char*)&reuseaddr_on,
 		sizeof(reuseaddr_on));
 
+/*
 	if (setnonblock(listen_fd) < 0)
 		err_plantform(1, "failed to set server socket to non-blocking");
+*/
 
 #ifdef WIN32
 	g_monitor->load_config->get_sys_os_info();
