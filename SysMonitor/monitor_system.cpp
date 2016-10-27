@@ -398,8 +398,7 @@ where counter_name in ('Full Scans/sec', 'Average Latch Wait Time (ms)', 'User C
 order by object_name, counter_name";
 
 	char dberror[256];
-	CLinkManager* plink_manage = m_loadconfig->get_link();
-	LPOPLINK plink = plink_manage->GetLink(dberror, 256, data_sel);
+	LPOPLINK plink = m_plink_manage->GetLink(dberror, 256, data_sel);
 	long record_count = 0;
 	CADODatabase* p_ado_db = plink->ado_db;
 	CADORecordset ado_recordset(p_ado_db);
@@ -422,7 +421,7 @@ order by object_name, counter_name";
 	}
 	catch (...){
 	}
-	plink_manage->FreeLink(plink);
+	m_plink_manage->FreeLink(plink);
 	return record_count;
 }
 #endif // WIN32
