@@ -83,3 +83,16 @@ int GetIniKeyInt(char *title, char *key, char *filename)
 {
 	return atoi(GetIniKeyString(title, key, filename));
 }
+
+
+char* GetFormatSystemTime()
+{
+	char current_time[128] = "";
+#ifdef WIN32
+	SYSTEMTIME sys;
+	GetLocalTime(&sys);
+#endif
+	sprintf_s(current_time, sizeof(current_time), "%d%d%d %d:%d:%d.%d",
+		sys.wYear, sys.wMonth, sys.wDay, sys.wHour, sys.wMinute, sys.wSecond, sys.wMilliseconds);
+	return current_time;
+}
