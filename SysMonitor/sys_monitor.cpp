@@ -41,8 +41,10 @@ extern "C" {
 #include "func.h"
 #define BUFLEN 1024*4
 
+HANDLE g_time_handle = NULL;
+volatile BOOL g_thread_on_of = TRUE;
 struct client {
- 	struct event* ev_timer;
+// 	struct event* ev_timer;
 	int fd;
 	struct bufferevent *buf_ev;
 	CLoadConfig*     load_config;
@@ -89,6 +91,24 @@ setnonblock(int fd)
 }
 
 
+static unsigned __stdcall
+on_timer(void *arg)
+{
+	client *ins_client = (client*)arg;
+	if (ins_client){
+		while (g_thread_on_of){
+			if (!ins_client->proto_manage)
+				ins_client->proto_manage = new CProtocolManage(ins_client->load_config);
+			int write_len = ins_client->proto_manage->write(ins_client->fd);
+			char current_time[128] = "";
+			strcpy(current_time, GetFormatSystemTime());
+			printf("\nwrite time:%s data len:%d bytes\n", current_time, write_len);
+			Sleep(2000);
+		}
+	}
+	return 0;
+}
+/*
 void
 on_timer(int fd, short event, void *arg)
 {
@@ -96,14 +116,17 @@ on_timer(int fd, short event, void *arg)
 	if (ins_client){
 		if (!ins_client->proto_manage)
 			ins_client->proto_manage = new CProtocolManage(ins_client->load_config);
-		ins_client->proto_manage->write(fd);
-
-		time_val.tv_sec = 3;
+		int write_len = ins_client->proto_manage->write(fd);
+		char current_time[128] = "";
+		strcpy(current_time, GetFormatSystemTime());
+		printf("\nwrite time:%s data len:%d bytes\n", current_time, write_len);
+		time_val.tv_sec = 4;
 		time_val.tv_usec = 0;
 		evtimer_del(ins_client->ev_timer);
 		evtimer_add(ins_client->ev_timer, &time_val);
 	}
 }
+*/
 
 void
 buffered_on_read(struct bufferevent *bev, void *arg)
@@ -120,7 +143,10 @@ buffered_on_read(struct bufferevent *bev, void *arg)
 
 		if (!client->proto_manage)
 			client->proto_manage = new CProtocolManage(client->load_config);
-		client->proto_manage->read(client->fd, buf);
+		int read_buf_len = client->proto_manage->read(client->fd, buf);
+		char current_time[128] = "";
+		strcpy(current_time, GetFormatSystemTime());
+		printf("\nread time:%s data len:%d bytes\n", current_time, read_buf_len);
 		bufferevent_write(bev, buf, strlen(buf)+1);
 		if (buf){
 			free(buf);
@@ -150,9 +176,14 @@ buffered_on_error(struct bufferevent *bev, short what, void *arg)
 		WARN("\nClient socket error, disconnecting.\n");
 	}
 	bufferevent_free(client->buf_ev);
-//	TDEL(client->load_config);
+#ifdef WIN32
+	if (WaitForSingleObject(g_time_handle, 500) == WAIT_TIMEOUT);
+		TerminateThread(g_time_handle,0);
+	CLOSEHANDLE(g_time_handle);
+#endif
+
 	TDEL(client->proto_manage);
-	evtimer_del(client->ev_timer);
+	//evtimer_del(client->ev_timer);
 #ifdef WIN32
 	closesocket(client->fd);
 #else
@@ -175,8 +206,9 @@ on_accept(int fd, short ev, void *arg)
 		WARN("accept failed");
 		return;
 	}
-	if (setnonblock(client_fd) < 0)
-		WARN("failed to set client socket non-blocking");
+	
+// 	if (setnonblock(client_fd) < 0)
+// 		WARN("failed to set client socket non-blocking");
 
 	ins_client = (client*)calloc(1, sizeof(*ins_client));
 	if (ins_client == NULL)
@@ -196,12 +228,17 @@ on_accept(int fd, short ev, void *arg)
 
 	bufferevent_enable(ins_client->buf_ev, EV_READ | EV_WRITE);
 
+/*
 	ins_client->ev_timer = event_new(g_monitor->ev_base, fd, 0, on_timer, ins_client);
  	time_val.tv_sec = 1;
  	time_val.tv_usec = 0;
  	evtimer_add(ins_client->ev_timer, &time_val);
+*/
+	unsigned threadid;
+	g_time_handle = (HANDLE)_beginthreadex(NULL, 0, on_timer, ins_client, 0, &threadid);
 	printf("Accepted connection from addr:%s port:%d\n",
 		inet_ntoa(client_addr.sin_addr), htons(client_addr.sin_port));
+
 	WriteLog(LOGFILENAME, "Accepted connection from addr:%s port:%d\n",
 		inet_ntoa(client_addr.sin_addr), htons(client_addr.sin_port));
 }
@@ -210,6 +247,7 @@ int
 main(int argc, char **argv)
 {
 #ifdef _WIN32
+
 	WORD w_version_requested;
 	WSADATA wsa_data;
 	w_version_requested = MAKEWORD(2, 2);
@@ -267,5 +305,6 @@ main(int argc, char **argv)
 	TDEL(g_monitor->load_config);
 	event_base_free(g_monitor->ev_base);
 	TDEL(g_monitor);
+
 	return 0;
 }
