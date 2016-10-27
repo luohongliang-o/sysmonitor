@@ -84,8 +84,10 @@ void CLoadConfig::LoadConfig(CLoadConfig* this_ins)
 					strcpy(config->db_config[i].user_name, GetIniKeyString("mssql", db_user_key, filebuf));
 					strcpy(config->db_config[i].password, GetIniKeyString("mssql", db_password_key, filebuf));
 				}
+/*
 				this_ins->m_plink_manage = new CLinkManager(this_ins);
 				this_ins->m_plink_manage->Init();
+*/
 			}
 		}
 	}
