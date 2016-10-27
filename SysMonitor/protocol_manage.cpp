@@ -57,7 +57,7 @@ checkerr:
 
 int CProtocolManage::get_last_buf(char* buf)
 {
-	rset_list_buf(5);
+	//rset_list_buf(5);
 	list< string >::iterator ifirst_buf = m_list_buf.begin();
 	if (ifirst_buf == m_list_buf.end()){
 		buf = "";
@@ -69,11 +69,13 @@ int CProtocolManage::get_last_buf(char* buf)
 	return first_buf.length() + 1;
 }
 
-void CProtocolManage::rset_list_buf(int listsize)
+void CProtocolManage::rset_list_buf(int limit_size)
 {
-	int pop_len = m_list_buf.size();
-	if (pop_len >= listsize){
-		for (int i = 0; i < pop_len - 2; i++){
+	int list_size = m_list_buf.size();
+	int remainder_size = 5;
+	int pop_len = list_size - remainder_size;
+	if (list_size >= limit_size && list_size > remainder_size){
+		for (int i = 0; i < pop_len; i++){
 			m_list_buf.pop_front();
 		}
 	}
