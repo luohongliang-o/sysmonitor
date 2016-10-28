@@ -90,5 +90,6 @@ int CProtocolManage::write(int fd)
 	//strJsonData.replace(strJsonData.find("\r"), strJsonData.rfind("\r"), "");
 	strJsonData.replace(strJsonData.rfind("\n"), strJsonData.rfind("\n"), "");
 	m_list_buf.push_back(strJsonData);
+	WriteLog(LOGFILENAME,"write data---%s", strJsonData.c_str());
 	return strJsonData.length()+1;
 }

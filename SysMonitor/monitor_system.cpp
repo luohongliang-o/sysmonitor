@@ -1,4 +1,3 @@
-#include "sys_config.h"
 #include "monitor_system.h"
 #include "func.h"
 #ifdef WIN32
@@ -6,7 +5,7 @@
 #include <pdhmsg.h>
 #include <process.h>
 #pragma comment(lib, "pdh.lib")
-
+#include "sys_config.h"
 //////////////////////////////////////////////////////////////////////////
 /*CSysInfo*/
 //////////////////////////////////////////////////////////////////////////
@@ -101,49 +100,26 @@ CSysInfo::WriteCounterVaule(int index, int counter_by_sec, char* str_counter_pat
 	CHAR CounterPathBuffer[PDH_MAX_COUNTER_PATH];
 	ZeroMemory(&CounterPathBuffer, sizeof(CounterPathBuffer));
 	strcpy_s(CounterPathBuffer, str_counter_path_buffer);
-	WriteLog(LOGFILENAME, "Counter selected: %s", CounterPathBuffer);
-	//printf_s("\n\nCounter selected: %s", CounterPathBuffer);
 	
 	Status = PdhOpenQuery(NULL, NULL, &Query);
-	if (Status != ERROR_SUCCESS)
-	{
-		WriteLog(LOGFILENAME, "PdhOpenQuery failed with status 0x%x.\n", Status);
-		//printf("\nPdhOpenQuery failed with status 0x%x.", Status);
-		goto Cleanup;
-	}
+	if (Status != ERROR_SUCCESS) goto Cleanup;
 	Status = PdhAddCounter(Query, CounterPathBuffer, 0, &Counter);
-	if (Status != ERROR_SUCCESS){
-		WriteLog(LOGFILENAME, "PdhAddCounter failed with status 0x%x.\n", Status);
-		//printf("\nPdhAddCounter failed with status 0x%x.", Status);
-		goto Cleanup;
-	}
+	if (Status != ERROR_SUCCESS) goto Cleanup;
 	Status = PdhCollectQueryData(Query);
-	if (Status != ERROR_SUCCESS){
-		WriteLog(LOGFILENAME, "first PdhCollectQueryData failed with 0x%x.\n", Status);
-		//printf("\nfirst PdhCollectQueryData failed with 0x%x.\n", Status);
-		goto Cleanup;
-	}
-	
+	if (Status != ERROR_SUCCESS) goto Cleanup;
 	int counter_num = m_loadconfig->get_counter_num();
 	if (counter_by_sec > 0 && (index + counter_by_sec >= counter_num)){
 		int sleeptime = 1000 / counter_by_sec;
 		Sleep(sleeptime);
 		Status = PdhCollectQueryData(Query);
-		if (Status != ERROR_SUCCESS){
-			WriteLog(LOGFILENAME, "secend PdhCollectQueryData failed with status 0x%x.\n", Status);
-			//printf("\nsecend PdhCollectQueryData failed with status 0x%x.", Status);
-		}
+		if (Status != ERROR_SUCCESS) goto Cleanup;
 	}
 
 	Status = PdhGetFormattedCounterValue(Counter,
 		PDH_FMT_DOUBLE,
 		&CounterType,
 		&DisplayValue);
-	if (Status != ERROR_SUCCESS){
-		WriteLog(LOGFILENAME, "PdhGetFormattedCounterValue failed with status 0x%x.\n", Status);
-		//printf("\nPdhGetFormattedCounterValue failed with status 0x%x.", Status);
-		goto Cleanup;
-	}
+	if (Status != ERROR_SUCCESS) goto Cleanup;
 	if (Query)
 		PdhCloseQuery(Query);
 	return DisplayValue.doubleValue;
@@ -162,11 +138,7 @@ Cleanup:
 int
 CProcessMonitor::write(int fd, Value& json_value)
 {
-	if (!GetProcessList()){
-		WriteLog(LOGFILENAME, " Init process snapshot list failed.\n");
-		//printf(" Init process snapshot list failed.\n");
-		return 0;
-	}
+	if (!GetProcessList()) return 0;
 	string jsonstr;
 	char json_data[51] = "";
 	int process_num = m_loadconfig->get_process_num();
@@ -180,7 +152,6 @@ CProcessMonitor::write(int fd, Value& json_value)
 			process_status = 1;                     // 查看进程状态
 		if (process_status){
 			vector<int> v_pidlist = m_map_process_name_pid[process_name[i].c_str()];
-			//printf("\ncurrent process name is %s", process_name[i].c_str());
 			for (int j = 0; j < v_pidlist.size(); j++){
 				char pbuffer[1000];
 				FILE *ppipe = NULL;
@@ -198,7 +169,6 @@ CProcessMonitor::write(int fd, Value& json_value)
 					}
 					nread_line++;
 				}
-				//printf("\ncurrent process id is %d", v_pidlist[j]);
 				if (feof(ppipe))
 					_pclose(ppipe);
 			}
@@ -221,8 +191,7 @@ CProcessMonitor::GetProcessList()
 
 	// Take a snapshot of all processes in the system.
 	hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	if (hProcessSnap == INVALID_HANDLE_VALUE)
-	{
+	if (hProcessSnap == INVALID_HANDLE_VALUE){
 		printError(TEXT("CreateToolhelp32Snapshot (of processes)"));
 		return(FALSE);
 	}
@@ -230,10 +199,7 @@ CProcessMonitor::GetProcessList()
 	// Set the size of the structure before using it.
 	pe32.dwSize = sizeof(PROCESSENTRY32);
 
-	// Retrieve information about the first process,
-	// and exit if unsuccessful
-	if (!Process32First(hProcessSnap, &pe32))
-	{
+	if (!Process32First(hProcessSnap, &pe32)){
 		printError(TEXT("Process32First")); // show cause of failure
 		CloseHandle(hProcessSnap);          // clean the snapshot object
 		return(FALSE);
@@ -276,11 +242,7 @@ CProcessMonitor::printError(TCHAR* msg)
 		++p;
 	do { *p-- = 0; } while ((p >= sysMsg) &&
 		((*p == '.') || (*p < 33)));
-
-	// Display the message
-	//printf(TEXT("\n  WARNING: %s failed with error %d (%s)"), msg, eNum, sysMsg);
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 /*CWebMonitor*/
@@ -290,8 +252,7 @@ int CWebMonitor::write(int fd, Value& json_value)
 {	
 	Value temp_json_value;
 	if (IsW3wpRun()){
-		temp_json_value.append(1);
-		
+		temp_json_value.append(1);		
 		int counter_num = m_loadconfig->get_web_counter_num();
 		int counter_by_sec = m_loadconfig->get_web_counter_by_sec();
 		vector< string > counter_name = m_loadconfig->get_web_counter_name();
@@ -307,7 +268,6 @@ int CWebMonitor::write(int fd, Value& json_value)
 		temp_json_value.append(0);//0个连接
 	}
 	json_value.append(temp_json_value);
-	
 	return 0;
 }
 

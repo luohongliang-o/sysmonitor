@@ -129,11 +129,11 @@ buffered_on_error(struct bufferevent *bev, short what, void *arg)
 	if (what & EVBUFFER_EOF) {
 		/* Client disconnected, remove the read event and the
 		* free the client structure. */
-		WriteLog(LOGFILENAME, "\nClient disconnected.\n");
+		WriteLog(LOGFILENAME, "Client disconnected.");
 		printf("\nClient disconnected.\n");
 	}
 	else {
-		WriteLog(LOGFILENAME, "\nClient socket error, disconnecting.\n");
+		WriteLog(LOGFILENAME, "Client socket error, disconnecting.");
 		WARN("\nClient socket error, disconnecting.\n");
 	}
 	bufferevent_free(client->buf_ev);
@@ -183,7 +183,7 @@ on_accept(int fd, short ev, void *arg)
 	printf("Accepted connection from addr:%s port:%d\n",
 		inet_ntoa(client_addr.sin_addr), htons(client_addr.sin_port));
 
-	WriteLog(LOGFILENAME, "Accepted connection from addr:%s port:%d\n",
+	WriteLog(LOGFILENAME, "Accepted connection from addr:%s port:%d",
 		inet_ntoa(client_addr.sin_addr), htons(client_addr.sin_port));
 }
 
@@ -191,18 +191,17 @@ int
 main(int argc, char **argv)
 {
 #ifdef _WIN32
-
 	WORD w_version_requested;
 	WSADATA wsa_data;
 	w_version_requested = MAKEWORD(2, 2);
-
 	(void)WSAStartup(w_version_requested, &wsa_data);
 #endif
+
 	struct event_base* eventbase;
 	int listen_fd;
 	struct sockaddr_in listen_addr;
 	struct event ev_accept;
-	int reuseaddr_on;
+
 	int port = 0;
 	/* Initialize libevent. */
 	eventbase = event_init();
@@ -230,7 +229,7 @@ main(int argc, char **argv)
 		err_plantform(1, "\nbind failed");
 	if (listen(listen_fd, 5) < 0)
 		err_plantform(1, "\nlisten failed");
-	reuseaddr_on = 1;
+	
 	evutil_make_socket_nonblocking(listen_fd);
 	event_set(&ev_accept, listen_fd, EV_READ | EV_PERSIST, on_accept, g_monitor);
 	event_add(&ev_accept, NULL);
@@ -242,6 +241,7 @@ main(int argc, char **argv)
 #endif // WIN32
 	
 	event_dispatch();
+
 	TDEL(g_monitor->load_config);
 	TDEL(g_monitor->proto_manage);
 	event_base_free(g_monitor->ev_base);
