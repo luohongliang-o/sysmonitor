@@ -40,7 +40,9 @@ extern "C" {
 #endif
 #include "func.h"
 #define BUFLEN 1024*4
+
 HANDLE g_time_handle = NULL;
+int    g_log_flag = 0;
 volatile BOOL g_thread_on_of = TRUE;
 struct packet{
 	long packet_len;
@@ -129,11 +131,11 @@ buffered_on_error(struct bufferevent *bev, short what, void *arg)
 	if (what & EVBUFFER_EOF) {
 		/* Client disconnected, remove the read event and the
 		* free the client structure. */
-		WriteLog(LOGFILENAME, "Client disconnected.");
+		WriteLog(g_log_flag,LOGFILENAME, "Client disconnected.");
 		printf("\nClient disconnected.\n");
 	}
 	else {
-		WriteLog(LOGFILENAME, "Client socket error, disconnecting.");
+		WriteLog(g_log_flag,LOGFILENAME, "Client socket error, disconnecting.");
 		WARN("\nClient socket error, disconnecting.\n");
 	}
 	bufferevent_free(client->buf_ev);
@@ -183,7 +185,7 @@ on_accept(int fd, short ev, void *arg)
 	printf("Accepted connection from addr:%s port:%d\n",
 		inet_ntoa(client_addr.sin_addr), htons(client_addr.sin_port));
 
-	WriteLog(LOGFILENAME, "Accepted connection from addr:%s port:%d",
+	WriteLog(g_log_flag,LOGFILENAME, "Accepted connection from addr:%s port:%d",
 		inet_ntoa(client_addr.sin_addr), htons(client_addr.sin_port));
 }
 
@@ -216,6 +218,7 @@ main(int argc, char **argv)
 	g_monitor->load_config = new CLoadConfig;
 	g_monitor->ev_base = eventbase;
 	CLoadConfig::LoadConfig(g_monitor->load_config);
+	g_log_flag = g_monitor->load_config->get_log_flag();
 	g_monitor->proto_manage = new CProtocolManage(g_monitor->load_config);
 
 	memset(&listen_addr, 0, sizeof(listen_addr));

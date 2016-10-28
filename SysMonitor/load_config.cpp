@@ -6,13 +6,12 @@ CLoadConfig::CLoadConfig()
 {
 	m_monitor_config = new MonitorConfig;
 	memset(m_monitor_config, 0, sizeof(MonitorConfig));
-//	m_plink_manage = NULL;
 }
 
 CLoadConfig::~CLoadConfig()
 {
 	TDEL(m_monitor_config);
-//	TDEL(m_plink_manage);
+
 }
 
 void CLoadConfig::LoadConfig(CLoadConfig* this_ins)
@@ -22,7 +21,7 @@ void CLoadConfig::LoadConfig(CLoadConfig* this_ins)
 	MonitorConfig* config = this_ins->m_monitor_config;
 	//service
 	config->listen_port = GetIniKeyInt("service", "port", filebuf);
-	strcpy(config->checkusername, GetIniKeyString("service", "checkusername", filebuf));
+	config->log_flag = GetIniKeyInt("service", "logflag", filebuf);
 	//monitortype
 	{
 		config->object_num = GetIniKeyInt("monitortype", "num", filebuf);
@@ -101,11 +100,11 @@ int CLoadConfig::get_port()
 	return 0;
 }
 
-char* CLoadConfig::get_check_user_name()
+int CLoadConfig::get_log_flag()
 {
 	if (m_monitor_config)
-		return m_monitor_config->checkusername;
-	return NULL;
+		return m_monitor_config->log_flag;
+	return 0;
 }
 
 vector< short > CLoadConfig::get_object_type()

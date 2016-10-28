@@ -9,6 +9,7 @@ CProtocolManage::CProtocolManage(CLoadConfig* loadconfg)
 	m_bCheck = false;
 	m_load_config = loadconfg;
 	m_list_buf = list< string >(NULL);
+	m_log_flag = loadconfg->get_log_flag();
 }
 
 CProtocolManage::~CProtocolManage()
@@ -90,6 +91,6 @@ int CProtocolManage::write(int fd)
 	//strJsonData.replace(strJsonData.find("\r"), strJsonData.rfind("\r"), "");
 	strJsonData.replace(strJsonData.rfind("\n"), strJsonData.rfind("\n"), "");
 	m_list_buf.push_back(strJsonData);
-	WriteLog(LOGFILENAME,"write data---%s", strJsonData.c_str());
+	WriteLog(m_log_flag, LOGFILENAME, "write data---%s", strJsonData.c_str());
 	return strJsonData.length()+1;
 }

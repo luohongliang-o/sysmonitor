@@ -50,7 +50,7 @@ public:
 	{
 		//service
 		short      listen_port;
-		char       checkusername[32];
+		int        log_flag;
 		//monitortype
 		int        object_num;
 		vector< short >     object_type;
@@ -79,7 +79,7 @@ public:
 	int      get_port();
 	int      get_object_num();
 	vector< short >   get_object_type();
-	char*    get_check_user_name();
+	int      get_log_flag();
 	int      get_counter_by_sec();
 	int      get_counter_num();
 	vector< string > get_counter_name();

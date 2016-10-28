@@ -24,7 +24,7 @@ private:
 	
 	char m_os_name[100];
 	char m_os_version[100];
-
+	int  m_log_flag;
 	CBuildMonitor* m_build_monitor;
 };
 
