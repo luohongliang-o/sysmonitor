@@ -11,7 +11,7 @@ public:
 	~CProtocolManage();
 
 	int read(int fd, char *buf);	
-	int write(int fd);
+	int write(int fd = 0);
 protected:
 	int get_last_buf(char* buf);
 	void rset_list_buf(int listsize);
