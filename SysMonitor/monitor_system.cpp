@@ -14,7 +14,6 @@
 int
 CSysInfo::write(int fd, Value& json_value)
 {
-	Value  temp_json_value;
 	char json_data[50] = "";
 	char counter_key[16] = "";
 	
@@ -37,7 +36,6 @@ CSysInfo::write(int fd, Value& json_value)
 		unsigned __int64 i64totalbytes = 0;
 		unsigned __int64 i64freebytes = 0;
 		Value disk_data;
-		int disk_num = 0;
 		for (int i = 0; i < dslength / 4; ++i)
 		{
 			string strdriver = DStr + i * 4;
@@ -54,14 +52,12 @@ CSysInfo::write(int fd, Value& json_value)
 					AddJsonKeyValue(json_data, disk_item);//DISK_TOTAL
 					_gcvt(i64freebytes / 1024, 31, json_data);
 					AddJsonKeyValue(json_data, disk_item); // DISK_FREE
-					disk_data["disk"].append(disk_item);
-					disk_num++;
+					disk_data.append(disk_item);
 				}
 			}
 		}
 		TDELARRAY(DStr);
-		disk_data["num"] = disk_num;
-		temp_json_value.append(disk_data);
+		json_value.append(disk_data);
 	}
 	//memory
 	{
@@ -69,13 +65,13 @@ CSysInfo::write(int fd, Value& json_value)
 		memory_status.dwLength = sizeof(memory_status);
 		GlobalMemoryStatusEx(&memory_status);
 		_gcvt(memory_status.ullTotalPhys, 31, json_data);
-		AddJsonKeyValue(json_data, temp_json_value);//MEMORY_TOTAL
+		AddJsonKeyValue(json_data, json_value);//MEMORY_TOTAL
 		_gcvt(memory_status.ullAvailPhys, 31, json_data);
-		AddJsonKeyValue(json_data, temp_json_value);//MEMORY_FREE
+		AddJsonKeyValue(json_data, json_value);//MEMORY_FREE
 		_gcvt(memory_status.ullTotalVirtual, 31, json_data);
-		AddJsonKeyValue(json_data, temp_json_value);//VIRTUAL_MEM_TATAL
+		AddJsonKeyValue(json_data, json_value);//VIRTUAL_MEM_TATAL
 		_gcvt(memory_status.ullAvailVirtual, 31, json_data);
-		AddJsonKeyValue(json_data, temp_json_value); // VIRTUAL_MEM_FREE
+		AddJsonKeyValue(json_data, json_value); // VIRTUAL_MEM_FREE
 	}
 	
 	//pdh performance counter
@@ -86,12 +82,11 @@ CSysInfo::write(int fd, Value& json_value)
 		for (int i = 0; i < counter_num; i++){
 			double perfordata = WriteCounterVaule(i, counter_by_sec, (char*)counter_name[i].c_str());
 			_gcvt(perfordata, 31, json_data);
-			AddJsonKeyValue(json_data, temp_json_value);
+			AddJsonKeyValue(json_data, json_value);
 		}
 	}
-	temp_json_value.append(m_loadconfig->get_os_version());
-	temp_json_value.append(m_loadconfig->get_os_name());
-	json_value["system"] =temp_json_value ;
+	json_value.append(m_loadconfig->get_os_version());
+	json_value.append(m_loadconfig->get_os_name());
 	return 0;
 }
 
@@ -212,7 +207,7 @@ CProcessMonitor::write(int fd, Value& json_value)
 		process_data.append(process_name[i].c_str());
 		process_data.append(tcpnum);
 		process_data.append(process_status);
-		json_value["process"].append(process_data);
+		json_value.append(process_data);
 	}	
 	return 0;
 }
@@ -311,7 +306,7 @@ int CWebMonitor::write(int fd, Value& json_value)
 		temp_json_value.append(0);//应用程序池未开启
 		temp_json_value.append(0);//0个连接
 	}
-	json_value["web"].append(temp_json_value);
+	json_value.append(temp_json_value);
 	
 	return 0;
 }
@@ -380,7 +375,7 @@ int CMsSqlMonitor::write(int fd, Value& json_value)
 			else if (j == 0 || (j >= 3 && j <= 6)|| j > 8)
 				temp_json_value.append(vt_data2[j]);
 		}
-		json_value["mssql"].append(temp_json_value);
+		json_value.append(temp_json_value);
 	}
 	
 	return 0;
@@ -490,20 +485,20 @@ void CBuildMonitor::ConcreteMonitor(int type, CLoadConfig* loadconfig)
 {
 	
 #ifdef WIN32
-	if (MONITORTYPE_SYSTEM_INFO == type)
+	if (is_object_exist(type, loadconfig) && MONITORTYPE_SYSTEM_INFO == type)
 		m_system_monitor = new CSysInfo(loadconfig);
-	if (MONITORTYPE_PROCESS == type)
+	if (is_object_exist(type, loadconfig) && MONITORTYPE_PROCESS == type)
 		m_system_monitor = new CProcessMonitor(loadconfig);
-	if (MONITORTYPE_MSSQL == type)
+	if (is_object_exist(type, loadconfig) && MONITORTYPE_MSSQL == type)
 		m_system_monitor = new CMsSqlMonitor(loadconfig);
 #endif // WEIN32
-	if (MONITORTYPE_MYSQL == type)
+	if (is_object_exist(type, loadconfig) && MONITORTYPE_MYSQL == type)
 		m_system_monitor = new CMySqlMonitor(loadconfig);
-	if (MONITORTYPE_LINUX_SYSINFO == type)
+	if (is_object_exist(type, loadconfig) && MONITORTYPE_LINUX_SYSINFO == type)
 		m_system_monitor = new CLinuxSysinfo(loadconfig);
-	if (MONITORTYPE_WEB == type)
+	if (is_object_exist(type, loadconfig) && MONITORTYPE_WEB == type)
 		m_system_monitor = new CWebMonitor(loadconfig);
-	if (MONITORTYPE_ORACAL == type)
+	if (is_object_exist(type, loadconfig) && MONITORTYPE_ORACAL == type)
 		m_system_monitor = new COracleMonitor(loadconfig);
 }
 
@@ -515,4 +510,16 @@ CBuildMonitor::~CBuildMonitor()
 CMonitorSystem* CBuildMonitor::get_monitor_obj()
 {
 	return m_system_monitor;
+}
+
+BOOL CBuildMonitor::is_object_exist(int type, CLoadConfig* loadconfig)
+{
+	int object_num = loadconfig->get_object_num();
+	vector< short > object_type = loadconfig->get_object_type();
+	for (int i = 0; i < object_num;i++){
+		if (object_type[i] == type)
+			return TRUE;
+	}
+	return FALSE;
+
 }
