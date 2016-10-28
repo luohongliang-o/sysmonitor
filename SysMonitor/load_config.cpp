@@ -6,13 +6,13 @@ CLoadConfig::CLoadConfig()
 {
 	m_monitor_config = new MonitorConfig;
 	memset(m_monitor_config, 0, sizeof(MonitorConfig));
-	m_plink_manage = NULL;
+//	m_plink_manage = NULL;
 }
 
 CLoadConfig::~CLoadConfig()
 {
 	TDEL(m_monitor_config);
-	TDEL(m_plink_manage);
+//	TDEL(m_plink_manage);
 }
 
 void CLoadConfig::LoadConfig(CLoadConfig* this_ins)
@@ -231,10 +231,11 @@ LPDBCONFIG CLoadConfig::get_db_config()
 		return m_monitor_config->db_config;
 	return NULL;
 }
-CLinkManager* CLoadConfig::get_link()
-{
-	return m_plink_manage;
-}
+
+// CLinkManager* CLoadConfig::get_link()
+// {
+// 	return m_plink_manage;
+// }
 
 const char* CLoadConfig::get_mysql_connection_string()
 {

@@ -27,7 +27,7 @@ typedef struct tagDBCONFIG
 	CHAR	password[32];
 }DBCONFIG, *LPDBCONFIG;
 
-class CLinkManager;
+//class CLinkManager;
 class CLoadConfig
 {
 public:
@@ -100,12 +100,12 @@ public:
 	short    get_db_count();
 	short    get_db_default_sel();
 	LPDBCONFIG get_db_config();
-	CLinkManager* get_link();
+//	CLinkManager* get_link();
 private:
 	MonitorConfig*   m_monitor_config;
 	char m_os_name[100];
 	char m_os_version[100];
-	CLinkManager *m_plink_manage;
+//	CLinkManager *m_plink_manage;
 };
 
 #endif
