@@ -47,7 +47,7 @@ public:
 	
 protected:
 	
-	double WriteCounterVaule(int index, int counter_by_sec, char* str_counter_path_buffer);
+	void WriteCounterVaule(int counter_num, vector<string>* list_counter, Value* json_value);
 };
 
 #include <tlhelp32.h>

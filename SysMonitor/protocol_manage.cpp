@@ -85,10 +85,9 @@ int CProtocolManage::write(int fd)
 			Value temp_value;
 			temp_read.parse("[]", temp_value);
 			last_json_value.append(temp_value);
-		}	
+		}
 	}
 	strJsonData = temp_inswrite.write(last_json_value);
-	//strJsonData.replace(strJsonData.find("\r"), strJsonData.rfind("\r"), "");
 	strJsonData.replace(strJsonData.rfind("\n"), strJsonData.rfind("\n"), "");
 	m_list_buf.push_back(strJsonData);
 	WriteLog(m_log_flag, LOGFILENAME, "write data---%s", strJsonData.c_str());

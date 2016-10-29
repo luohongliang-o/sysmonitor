@@ -76,59 +76,57 @@ CSysInfo::write(int fd, Value& json_value)
 	//pdh performance counter
 	{
 		int counter_num = m_loadconfig->get_counter_num();
-		int counter_by_sec = m_loadconfig->get_counter_by_sec();
 		vector< string > counter_name = m_loadconfig->get_counter_name();
-		for (int i = 0; i < counter_num; i++){
-			double perfordata = WriteCounterVaule(i, counter_by_sec, (char*)counter_name[i].c_str());
-			_gcvt(perfordata, 31, json_data);
-			AddJsonKeyValue(json_data, json_value);
-		}
+		WriteCounterVaule(counter_num, &counter_name, &json_value);
 	}
 	json_value.append(m_loadconfig->get_os_version());
 	json_value.append(m_loadconfig->get_os_name());
 	return 0;
 }
 
-double 
-CSysInfo::WriteCounterVaule(int index, int counter_by_sec, char* str_counter_path_buffer)
+void
+CSysInfo::WriteCounterVaule(int counter_num,vector<string>* list_counter, Value* json_value)
 {
-	PDH_STATUS Status;
-	HQUERY Query = NULL;
-	HCOUNTER Counter;
+	vector<string> temp_list_counter = *list_counter;
+	vector<PDH_HCOUNTER*> vt_hcounter;
+	char json_data[50] = "";
 	PDH_FMT_COUNTERVALUE DisplayValue;
-	DWORD CounterType;
-	CHAR CounterPathBuffer[PDH_MAX_COUNTER_PATH];
-	ZeroMemory(&CounterPathBuffer, sizeof(CounterPathBuffer));
-	strcpy_s(CounterPathBuffer, str_counter_path_buffer);
+	HQUERY Query = NULL;
+	PDH_STATUS Status;
 	
 	Status = PdhOpenQuery(NULL, NULL, &Query);
 	if (Status != ERROR_SUCCESS) goto Cleanup;
-	Status = PdhAddCounter(Query, CounterPathBuffer, 0, &Counter);
-	if (Status != ERROR_SUCCESS) goto Cleanup;
+	
+	for (int i = 0; i < counter_num; i++){
+		PDH_HCOUNTER *pdh_hcounter = new PDH_HCOUNTER;
+		Status = PdhAddCounter(Query, temp_list_counter[i].c_str(), 0, pdh_hcounter);
+		if (Status != ERROR_SUCCESS) goto Cleanup;
+		vt_hcounter.push_back(pdh_hcounter);
+	}
+	
 	Status = PdhCollectQueryData(Query);
 	if (Status != ERROR_SUCCESS) goto Cleanup;
-	int counter_num = m_loadconfig->get_counter_num();
-	if (counter_by_sec > 0 && (index + counter_by_sec >= counter_num)){
-		int sleeptime = 1000 / counter_by_sec;
-		Sleep(sleeptime);
-		Status = PdhCollectQueryData(Query);
-		if (Status != ERROR_SUCCESS) goto Cleanup;
-	}
-
-	Status = PdhGetFormattedCounterValue(Counter,
-		PDH_FMT_DOUBLE,
-		&CounterType,
-		&DisplayValue);
+	Sleep(1000);
+	PdhCollectQueryData(Query);
 	if (Status != ERROR_SUCCESS) goto Cleanup;
-	if (Query)
-		PdhCloseQuery(Query);
-	return DisplayValue.doubleValue;
+	for (int j = 0; j < counter_num; j++){
+		Status = PdhGetFormattedCounterValue(*vt_hcounter[j],
+			PDH_FMT_DOUBLE,
+			(LPDWORD)NULL,
+			&DisplayValue);
+		if (Status != ERROR_SUCCESS) goto Cleanup;
+		_gcvt(DisplayValue.doubleValue, 31, json_data);
+		AddJsonKeyValue(json_data, *json_value);
+	}
+	
 Cleanup:
+	for (int x = 0; x < vt_hcounter.size(); x++){
+		PdhRemoveCounter(*vt_hcounter[x]);
+		TDEL(vt_hcounter[x]);
+	}
 	if (Query)
 		PdhCloseQuery(Query);
-	return 0;
 }
-
 //////////////////////////////////////////////////////////////////////////
 /*CProcessMonitor*/
 //////////////////////////////////////////////////////////////////////////
@@ -254,14 +252,9 @@ int CWebMonitor::write(int fd, Value& json_value)
 	if (IsW3wpRun()){
 		temp_json_value.append(1);		
 		int counter_num = m_loadconfig->get_web_counter_num();
-		int counter_by_sec = m_loadconfig->get_web_counter_by_sec();
 		vector< string > counter_name = m_loadconfig->get_web_counter_name();
 		char json_data[50] = "";
-		for (int i = 0; i < counter_num; i++){
-			double perfordata = WriteCounterVaule(i, counter_by_sec, (char*)counter_name[i].c_str());
-			_gcvt(perfordata, 31, json_data);
-			AddJsonKeyValue(json_data, temp_json_value);
-		}
+		WriteCounterVaule(counter_num, &counter_name,&json_value);
 	}
 	else{
 		temp_json_value.append(0);//应用程序池未开启

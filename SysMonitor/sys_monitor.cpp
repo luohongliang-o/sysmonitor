@@ -46,7 +46,7 @@ int    g_log_flag = 0;
 volatile BOOL g_thread_on_of = TRUE;
 struct packet{
 	long packet_len;
-	char buf[BUFLEN];
+	char buf[1];
 };
 struct client {
 // 	struct event* ev_timer;
@@ -88,7 +88,17 @@ on_timer(void *arg)
 			char current_time[128] = "";
 			strcpy(current_time, GetFormatSystemTime());
 			printf("\nwrite time:%s data len:%d bytes\n", current_time, write_len);
-			Sleep(2000);
+			BOOL bsleep = TRUE;
+			int object_num = g_monitor->load_config->get_object_num();
+			vector< short > object_type = g_monitor->load_config->get_object_type();
+			for (int i = 0; i < object_num;i++){
+				if (object_type[i] == 1 || object_type[i] == 3) {
+					bsleep = FALSE;
+					break;
+				}
+			}
+			if (bsleep)
+				Sleep(1000);
 		}
 	}
 	return 0;
@@ -103,16 +113,17 @@ buffered_on_read(struct bufferevent *bev, void *arg)
 		struct client *client = (struct client *)arg;
 		evbuffer_remove(bev->input, client->buffer, buffer_len);
 		if (client->proto_manage){
-			packet packet_data;
+			char send_buf[BUFLEN] = {0};
+			packet* packet_data = (packet*)send_buf;
 			client->buffer[buffer_len] = '\0';
 			int read_buf_len = client->proto_manage->read(client->fd, client->buffer);
-			packet_data.packet_len = read_buf_len + sizeof(packet_data.packet_len);
-			memcpy(packet_data.buf, client->buffer, read_buf_len);
+			packet_data->packet_len = read_buf_len ;
+			memcpy(packet_data->buf, client->buffer, read_buf_len);
 			if (read_buf_len > 0 && !strstr(client->buffer, "check error.")){
 				char current_time[128] = "";
 				strcpy(current_time, GetFormatSystemTime());
-				printf("\nread time:%s data len:%d bytes\n", current_time, packet_data.packet_len);
-				bufferevent_write(bev, &packet_data, packet_data.packet_len);
+				printf("\nread time:%s data len:%d bytes\n", current_time, packet_data->packet_len);
+				bufferevent_write(bev, packet_data, packet_data->packet_len + sizeof(packet_data->packet_len));
 			}
 		}
 	}
@@ -198,7 +209,7 @@ main(int argc, char **argv)
 	w_version_requested = MAKEWORD(2, 2);
 	(void)WSAStartup(w_version_requested, &wsa_data);
 #endif
-
+	BOOL blisten = TRUE;
 	struct event_base* eventbase;
 	int listen_fd;
 	struct sockaddr_in listen_addr;
@@ -210,8 +221,10 @@ main(int argc, char **argv)
 
 	/* Create our listening socket. */
 	listen_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (listen_fd < 0)
+	if (listen_fd < 0){
 		err_plantform(1, "listen failed");
+		blisten = FALSE;
+	}
 	evutil_make_listen_socket_reuseable(listen_fd);
 
 	monitor_global* g_monitor = new monitor_global;
@@ -228,21 +241,26 @@ main(int argc, char **argv)
 	listen_addr.sin_port = htons(port);
 
 	if (bind(listen_fd, (struct sockaddr *)&listen_addr,
-		sizeof(listen_addr)) < 0)
+		sizeof(listen_addr)) < 0){
+		blisten = FALSE;
 		err_plantform(1, "\nbind failed");
-	if (listen(listen_fd, 5) < 0)
+	}	
+	if (listen(listen_fd, 5) < 0){
+		blisten = FALSE;
 		err_plantform(1, "\nlisten failed");
+	}
 	
 	evutil_make_socket_nonblocking(listen_fd);
 	event_set(&ev_accept, listen_fd, EV_READ | EV_PERSIST, on_accept, g_monitor);
 	event_add(&ev_accept, NULL);
-	unsigned threadid;
+	if (blisten){
+		unsigned threadid;
 #ifdef WIN32
-	g_time_handle = (HANDLE)_beginthreadex(NULL, 0, on_timer, g_monitor, CREATE_SUSPENDED, &threadid);
-	g_monitor->load_config->get_sys_os_info();
-	ResumeThread(g_time_handle);
+		g_time_handle = (HANDLE)_beginthreadex(NULL, 0, on_timer, g_monitor, CREATE_SUSPENDED, &threadid);
+		g_monitor->load_config->get_sys_os_info();
+		ResumeThread(g_time_handle);
 #endif // WIN32
-	
+	}
 	event_dispatch();
 
 	TDEL(g_monitor->load_config);
