@@ -1,7 +1,6 @@
-#include "sys_config.h"
 #include "load_config.h"
 #include "func.h"
-#include "link_manager.h"
+
 CLoadConfig::CLoadConfig()
 {
 	m_monitor_config = new MonitorConfig;
@@ -14,60 +13,68 @@ CLoadConfig::~CLoadConfig()
 
 }
 
-void CLoadConfig::LoadConfig(CLoadConfig* this_ins)
+CLoadConfig* CLoadConfig::_instance = new CLoadConfig;
+CLoadConfig* CLoadConfig::CreateInstance()
+{
+	if (_instance == NULL)
+		_instance = new CLoadConfig;
+	return _instance;
+}
+
+void CLoadConfig::LoadConfig()
 {
 	char filebuf[256] = "";
 	GetCurrentPath(filebuf, "config.ini");
-	MonitorConfig* config = this_ins->m_monitor_config;
+	
 	//service
-	config->listen_port = GetIniKeyInt("service", "port", filebuf);
-	config->log_flag = GetIniKeyInt("service", "logflag", filebuf);
+	m_monitor_config->listen_port = GetIniKeyInt("service", "port", filebuf);
+	m_monitor_config->log_flag = GetIniKeyInt("service", "logflag", filebuf);
 	//monitortype
 	{
-		config->object_num = GetIniKeyInt("monitortype", "num", filebuf);
-		config->object_type.resize(config->object_num);
-		for (int i = 0; i < config->object_num; i++){
+		m_monitor_config->object_num = GetIniKeyInt("monitortype", "num", filebuf);
+		m_monitor_config->object_type.resize(m_monitor_config->object_num);
+		for (int i = 0; i < m_monitor_config->object_num; i++){
 			char objectkey[6] = "";
 			sprintf_s(objectkey, sizeof(objectkey), "%s%d", "type", i + 1);
-			config->object_type[i] = GetIniKeyInt("monitortype", objectkey, filebuf);
+			m_monitor_config->object_type[i] = GetIniKeyInt("monitortype", objectkey, filebuf);
 		}
 	}
 	{
-		for (int i = 0; i < config->object_num;i++){
-			if (config->object_type[i] == CONFIG_SYSTEM){
-				config->counter_num = GetIniKeyInt("system", "counter_num", filebuf);
-				config->counter_name.resize(config->counter_num);
-				for (int i = 0; i < config->counter_num; i++){
+		for (int i = 0; i < m_monitor_config->object_num; i++){
+			if (m_monitor_config->object_type[i] == CONFIG_SYSTEM){
+				m_monitor_config->counter_num = GetIniKeyInt("system", "counter_num", filebuf);
+				m_monitor_config->counter_name.resize(m_monitor_config->counter_num);
+				for (int i = 0; i < m_monitor_config->counter_num; i++){
 					char counter_key[20] = "";
 					sprintf_s(counter_key, sizeof(counter_key), "%s%d", "counter_name", i + 1);
-					config->counter_name[i] = GetIniKeyString("system", counter_key, filebuf);
+					m_monitor_config->counter_name[i] = GetIniKeyString("system", counter_key, filebuf);
 				}
 			}
-			else if (config->object_type[i] == CONFIG_MYSQL){
-				strcpy(config->mysql_connstr, GetIniKeyString("mysql", "connectonstr", filebuf));
+			else if (m_monitor_config->object_type[i] == CONFIG_MYSQL){
+				strcpy(m_monitor_config->mysql_connstr, GetIniKeyString("mysql", "connectonstr", filebuf));
 			}
-			else if (config->object_type[i] == CONFIG_WEB){
-				config->web_counter_num = GetIniKeyInt("web", "counter_num", filebuf);
-				config->web_counter_name.resize(config->web_counter_num);
-				for (int i = 0; i < config->web_counter_num; i++){
+			else if (m_monitor_config->object_type[i] == CONFIG_WEB){
+				m_monitor_config->web_counter_num = GetIniKeyInt("web", "counter_num", filebuf);
+				m_monitor_config->web_counter_name.resize(m_monitor_config->web_counter_num);
+				for (int i = 0; i < m_monitor_config->web_counter_num; i++){
 					char counter_key[20] = "";
 					sprintf_s(counter_key, sizeof(counter_key), "%s%d", "counter_name", i + 1);
-					config->web_counter_name[i] = GetIniKeyString("web", counter_key, filebuf);
+					m_monitor_config->web_counter_name[i] = GetIniKeyString("web", counter_key, filebuf);
 				}
 			}
-			else if (config->object_type[i] == CONFIG_PROCESS){
-				config->process_num = GetIniKeyInt("process", "process_num", filebuf);
-				config->process_name.resize(config->process_num);
-				for (int i = 0; i < config->process_num; i++){
+			else if (m_monitor_config->object_type[i] == CONFIG_PROCESS){
+				m_monitor_config->process_num = GetIniKeyInt("process", "process_num", filebuf);
+				m_monitor_config->process_name.resize(m_monitor_config->process_num);
+				for (int i = 0; i < m_monitor_config->process_num; i++){
 					char process_key[20] = "";
 					sprintf_s(process_key, sizeof(process_key), "%s%d", "process_name", i + 1);
-					config->process_name[i]=GetIniKeyString("process", process_key, filebuf);
+					m_monitor_config->process_name[i] = GetIniKeyString("process", process_key, filebuf);
 				}
 			}
-			else if (config->object_type[i] == CONFIG_MSSQL){
-				config->db_count = GetIniKeyInt("mssql", "dbcount", filebuf);
-				config->db_default_sel = GetIniKeyInt("mssql", "dbsel", filebuf);
-				for (int i = 0; i < config->db_count;i++){
+			else if (m_monitor_config->object_type[i] == CONFIG_MSSQL){
+				m_monitor_config->db_count = GetIniKeyInt("mssql", "dbcount", filebuf);
+				m_monitor_config->db_default_sel = GetIniKeyInt("mssql", "dbsel", filebuf);
+				for (int i = 0; i < m_monitor_config->db_count; i++){
 					char db_source_key[20] = "";
 					char db_key[20] = "";
 					char db_user_key[20] = "";
@@ -76,10 +83,10 @@ void CLoadConfig::LoadConfig(CLoadConfig* this_ins)
 					sprintf_s(db_key, sizeof(db_key), "%s%d", "data_base", i + 1);
 					sprintf_s(db_user_key, sizeof(db_user_key), "%s%d", "user_name", i + 1);
 					sprintf_s(db_password_key, sizeof(db_password_key), "%s%d", "password", i + 1);
-					strcpy(config->db_config[i].data_source, GetIniKeyString("mssql", db_source_key, filebuf));
-					strcpy(config->db_config[i].data_base, GetIniKeyString("mssql", db_key, filebuf));
-					strcpy(config->db_config[i].user_name, GetIniKeyString("mssql", db_user_key, filebuf));
-					strcpy(config->db_config[i].password, GetIniKeyString("mssql", db_password_key, filebuf));
+					strcpy(m_monitor_config->db_config[i].data_source, GetIniKeyString("mssql", db_source_key, filebuf));
+					strcpy(m_monitor_config->db_config[i].data_base, GetIniKeyString("mssql", db_key, filebuf));
+					strcpy(m_monitor_config->db_config[i].user_name, GetIniKeyString("mssql", db_user_key, filebuf));
+					strcpy(m_monitor_config->db_config[i].password, GetIniKeyString("mssql", db_password_key, filebuf));
 				}
 			}
 		}
@@ -146,6 +153,7 @@ vector< string > CLoadConfig::get_web_counter_name()
 
 void CLoadConfig::get_sys_os_info()
 {	
+#ifdef WIN32
 	FILE *ppipe = NULL;
 	char* pbuffer = new char[1000];
 	int nread_line = 0;
@@ -170,6 +178,7 @@ void CLoadConfig::get_sys_os_info()
 	TDELARRAY(pbuffer);
 	if (feof(ppipe))
 		_pclose(ppipe);
+#endif
 }
 
 

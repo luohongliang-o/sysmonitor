@@ -1,15 +1,17 @@
+//#include "func.h"
 #include "monitor_system.h"
-#include "func.h"
+#include "mysql_monitor.h"
+#include "Oracle_Monitor.h"
+#include "web_monitor.h"
+#include "linux_monitor_system.h"
+#include "mssql_monitor.h"
 #ifdef WIN32
 #include <pdh.h>
 #include <pdhmsg.h>
 #include <process.h>
 #pragma comment(lib, "pdh.lib")
-#include "sys_config.h"
-#include "mysql_monitor.h"
-#include "Oracle_Monitor.h"
-#include "web_monitor.h"
-#include "linux_monitor_system.h"
+#include <stdio.h>
+#include <fstream>
 //////////////////////////////////////////////////////////////////////////
 /*CSysInfo*/
 //////////////////////////////////////////////////////////////////////////
@@ -79,12 +81,12 @@ CSysInfo::write(int fd, Value& json_value)
 	
 	//pdh performance counter
 	{
-		int counter_num = m_loadconfig->get_counter_num();
-		vector< string > counter_name = m_loadconfig->get_counter_name();
+		int counter_num = CLoadConfig::CreateInstance()->get_counter_num();
+		vector< string > counter_name = CLoadConfig::CreateInstance()->get_counter_name();
 		WriteCounterVaule(counter_num, &counter_name, &json_value);
 	}
-	json_value.append(m_loadconfig->get_os_version());
-	json_value.append(m_loadconfig->get_os_name());
+	json_value.append(CLoadConfig::CreateInstance()->get_os_version());
+	json_value.append(CLoadConfig::CreateInstance()->get_os_name());
 	return 0;
 }
 
@@ -134,8 +136,6 @@ Cleanup:
 //////////////////////////////////////////////////////////////////////////
 /*CProcessMonitor*/
 //////////////////////////////////////////////////////////////////////////
-#include <stdio.h>
-#include <fstream>
 
 int
 CProcessMonitor::write(int fd, Value& json_value)
@@ -143,8 +143,8 @@ CProcessMonitor::write(int fd, Value& json_value)
 	if (!GetProcessList()) return 0;
 	string jsonstr;
 	char json_data[51] = "";
-	int process_num = m_loadconfig->get_process_num();
-	vector< string > process_name = m_loadconfig->get_process_name();
+	int process_num = CLoadConfig::CreateInstance()->get_process_num();
+	vector< string > process_name = CLoadConfig::CreateInstance()->get_process_name();
 	for ( int i= 0; i < process_num; i++){
 		int tcpnum = 0;
 		int process_status = 0;
@@ -211,8 +211,8 @@ CProcessMonitor::GetProcessList()
 		if (hProcess == NULL)
 			printError(TEXT("OpenProcess"));
 		else{
-			vector< string > process_name = m_loadconfig->get_process_name();
-			int procee_num = m_loadconfig->get_process_num();
+			vector< string > process_name = CLoadConfig::CreateInstance()->get_process_name();
+			int procee_num = CLoadConfig::CreateInstance()->get_process_num();
 			for (int i = 0; i < procee_num;i++){
 				if (!process_name[i].compare(pe32.szExeFile))
 					m_map_process_name_pid[pe32.szExeFile].push_back(pe32.th32ProcessID);
@@ -246,102 +246,31 @@ CProcessMonitor::printError(TCHAR* msg)
 		((*p == '.') || (*p < 33)));
 }
 
-//////////////////////////////////////////////////////////////////////////
-/*
-CMsSqlMonitor
-*/
-//////////////////////////////////////////////////////////////////////////
 
-int CMsSqlMonitor::write(int fd, Value& json_value)
-{	
-	int datanum = m_loadconfig->get_db_count();
-	Value temp_json_value;
-	for (int i = 0; i < datanum;i++){
-		vector< int > vt_data1, vt_data2;
-		//locks by sec
-		int record_count = 0;
-		get_counter_value(i,vt_data1);
-		Sleep(1000);
-		record_count = get_counter_value(i,vt_data2);
-		for (int j = 0; j < record_count;j++){
-			if (j == 0 || (j >= 4 && j <= 6) || j >= 13)
-				vt_data2[j] = vt_data2[j] - vt_data1[j];
-			if (j == 2 || j == 8){
-				char temp_data[10] = "";
-				sprintf_s(temp_data, sizeof(temp_data), "%.2f", vt_data2[j - 1] * 100.0 / vt_data2[j]);
-				temp_json_value.append(temp_data);
-			}
-			else if (j == 0 || (j >= 3 && j <= 6)|| j > 8)
-				temp_json_value.append(vt_data2[j]);
-		}
-		json_value.append(temp_json_value);
-	}
-	
-	return 0;
-}
-
-int CMsSqlMonitor::get_counter_value(int data_sel,vector< int >& vt_data)
-{
-	const char select_str_format[1024] =
-"select cntr_value from sys.sysperfinfo \
-where counter_name in ('Full Scans/sec', 'Average Latch Wait Time (ms)', 'User Connections', 'Processes blocked') or \
-(counter_name in ('buffer cache hit ratio', 'buffer cache hit ratio base',\
-'Lazy Writes/sec', 'Page reads/sec', 'Page writes/sec', 'Database pages') and object_name like '%%buffer manager%%') or \
-(counter_name in ('Cache Hit Ratio', 'Cache Hit Ratio base') and instance_name = '%s') or \
-(counter_name in ('Number of Deadlocks/sec', 'Average Wait Time (ms)', 'Lock Requests/sec') and instance_name = '_Total') \
-order by object_name, counter_name";
-
-	char dberror[256];
-	LPOPLINK plink = m_plink_manage->GetLink(dberror, 256, data_sel);
-	long record_count = 0;
-	CADODatabase* p_ado_db = plink->ado_db;
-	CADORecordset ado_recordset(p_ado_db);
-	char select_str[1024];
-	sprintf_s(select_str, sizeof(select_str), select_str_format, (m_loadconfig->get_db_config())[data_sel].data_base);
-	try{
-		do {
-			if (!ado_recordset.Open(select_str, CADORecordset::openStoredProc)) break;
-			if (!ado_recordset.IsOpen()) break;
-			record_count = ado_recordset.GetRecordCount();
-			vt_data.resize(record_count);
-			for (long i = 0; i < record_count; i++, ado_recordset.MoveNext()){
-				long field_count = ado_recordset.GetFieldCount();
-				long cntr_value = 0;
-				ado_recordset.GetFieldValue(0, cntr_value);
-				vt_data[i] = cntr_value;
-			}
-		} while (FALSE);
-
-	}
-	catch (...){
-	}
-	m_plink_manage->FreeLink(plink);
-	return record_count;
-}
 #endif // WIN32
 
 //////////////////////////////////////////////////////////////////////////
 /* CBuilderMonitor */
 //////////////////////////////////////////////////////////////////////////
-void CBuildMonitor::ConcreteMonitor(int type, CLoadConfig* loadconfig)
+void CBuildMonitor::ConcreteMonitor(int type)
 {
 	
 #ifdef WIN32
-	if (is_object_exist(type, loadconfig) && MONITORTYPE_SYSTEM_INFO == type)
-		m_system_monitor = new CSysInfo(loadconfig);
-	if (is_object_exist(type, loadconfig) && MONITORTYPE_PROCESS == type)
-		m_system_monitor = new CProcessMonitor(loadconfig);
-	if (is_object_exist(type, loadconfig) && MONITORTYPE_MSSQL == type)
-		m_system_monitor = new CMsSqlMonitor(loadconfig);
+	if (is_object_exist(type) && MONITORTYPE_SYSTEM_INFO == type)
+		m_system_monitor = new CSysInfo();
+	if (is_object_exist(type ) && MONITORTYPE_PROCESS == type)
+		m_system_monitor = new CProcessMonitor();
+	if (is_object_exist(type ) && MONITORTYPE_MSSQL == type)
+		m_system_monitor = new CMsSqlMonitor();
 #endif // WEIN32
-	if (is_object_exist(type, loadconfig) && MONITORTYPE_MYSQL == type)
-		m_system_monitor = new CMysqlMonitor(loadconfig);
-	if (is_object_exist(type, loadconfig) && MONITORTYPE_LINUX_SYSINFO == type)
-		m_system_monitor = new CLinuxSysinfo(loadconfig);
-	if (is_object_exist(type, loadconfig) && MONITORTYPE_WEB == type)
-		m_system_monitor = new CWebMonitor(loadconfig);
-	if (is_object_exist(type, loadconfig) && MONITORTYPE_ORACAL == type)
-		m_system_monitor = new COracleMonitor(loadconfig);
+	if (is_object_exist(type ) && MONITORTYPE_MYSQL == type)
+		m_system_monitor = new CMysqlMonitor();
+	if (is_object_exist(type ) && MONITORTYPE_LINUX_SYSINFO == type)
+		m_system_monitor = new CLinuxSysinfo();
+	if (is_object_exist(type ) && MONITORTYPE_WEB == type)
+		m_system_monitor = new CWebMonitor();
+	if (is_object_exist(type ) && MONITORTYPE_ORACAL == type)
+		m_system_monitor = new COracleMonitor();
 }
 
 CBuildMonitor::~CBuildMonitor()
@@ -354,10 +283,10 @@ CMonitorSystem* CBuildMonitor::get_monitor_obj()
 	return m_system_monitor;
 }
 
-BOOL CBuildMonitor::is_object_exist(int type, CLoadConfig* loadconfig)
+BOOL CBuildMonitor::is_object_exist(int type)
 {
-	int object_num = loadconfig->get_object_num();
-	vector< short > object_type = loadconfig->get_object_type();
+	int object_num = CLoadConfig::CreateInstance()->get_object_num();
+	vector< short > object_type = CLoadConfig::CreateInstance()->get_object_type();
 	for (int i = 0; i < object_num;i++){
 		if (object_type[i] == type)
 			return TRUE;

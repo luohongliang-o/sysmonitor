@@ -1,15 +1,14 @@
 #include "protocol_manage.h"
 #include "func.h"
-
+#include "load_config.h"
 #define  CHECK_WORD "sysmonitor"
 #define  CHECK_ERROR "check error."
 #define  OBJECT_NUM 6
-CProtocolManage::CProtocolManage(CLoadConfig* loadconfg)
+CProtocolManage::CProtocolManage()
 {
 	m_bCheck = false;
-	m_load_config = loadconfg;
 	m_list_buf = list< string >(NULL);
-	m_log_flag = loadconfg->get_log_flag();
+	m_log_flag = CLoadConfig::CreateInstance()->get_log_flag();
 }
 
 CProtocolManage::~CProtocolManage()
@@ -32,6 +31,7 @@ CProtocolManage::read(int fd, char *buf)
 		memcpy(buf, CHECK_ERROR, strlen(CHECK_ERROR)+1);
 		return strlen(CHECK_ERROR)+1;
 	}
+	return 0;
 }
 
 int CProtocolManage::get_last_buf(char* buf)
@@ -74,7 +74,7 @@ int CProtocolManage::write(int fd)
 	for (int i = 0; i < OBJECT_NUM; i++){
 		Value json_value;
 		CBuildMonitor build_monitor;
-		build_monitor.ConcreteMonitor(i+1, m_load_config);
+		build_monitor.ConcreteMonitor(i+1);
 		CMonitorSystem* monitorsys = build_monitor.get_monitor_obj();
 		if (monitorsys){
 			monitorsys->write(fd, json_value);

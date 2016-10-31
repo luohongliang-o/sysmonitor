@@ -1,13 +1,11 @@
 #ifndef PROTOCOL_MANAGE_H
 #define PROTOCOL_MANAGE_H
-#include "sys_config.h"
 #include "monitor_system.h"
-#include "load_config.h"
 
 class CProtocolManage
 {
 public:
-	CProtocolManage(CLoadConfig* loadconfg);
+	CProtocolManage();
 	~CProtocolManage();
 
 	int read(int fd, char *buf);	
@@ -19,7 +17,6 @@ protected:
 private:	
 
 	bool  m_bCheck;
-	CLoadConfig* m_load_config;
 	list< string > m_list_buf;
 	
 	char m_os_name[100];

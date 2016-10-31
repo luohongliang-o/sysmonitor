@@ -1,7 +1,12 @@
 #ifndef SYS_CONFIG_H
 #define SYS_CONFIG_H
-
 #define LOGFILENAME "sysmonitor"
+#ifdef WIN32
+#define _WIN32_WINNT 0x0501 
+#include <targetver.h>
+#include <afx.h>
+#endif
+
 #include "json.h"
 using namespace Json;
 #include <string>

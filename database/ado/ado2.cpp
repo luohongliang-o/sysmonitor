@@ -1,3 +1,4 @@
+#include "sys_config.h"
 #include "ado2.h"
 
 #define ChunkSize 100

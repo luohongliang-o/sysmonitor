@@ -21,7 +21,7 @@
 int GetCurrentPath(char buf[], char *pFileName);
 char *GetIniKeyString(char *title, char *key, char *filename);
 int GetIniKeyInt(char *title, char *key, char *filename);
-char* GetFormatSystemTime();
+int GetFormatSystemTime(char* current_time,int str_len);
 
 static void WriteLog(int logflag ,char* p_lpcszFileNamePrifix, char* p_lpcszFormat, ...)
 {

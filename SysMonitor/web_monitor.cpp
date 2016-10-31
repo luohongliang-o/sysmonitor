@@ -1,13 +1,14 @@
 #include "web_monitor.h"
 
-
+#ifdef WIN32
 int CWebMonitor::write(int fd, Value& json_value)
 {
+
 	Value temp_json_value;
 	if (IsW3wpRun()){
 		temp_json_value.append(1);
-		int counter_num = m_loadconfig->get_web_counter_num();
-		vector< string > counter_name = m_loadconfig->get_web_counter_name();
+		int counter_num = CLoadConfig::CreateInstance()->get_web_counter_num();
+		vector< string > counter_name = CLoadConfig::CreateInstance()->get_web_counter_name();
 		char json_data[50] = "";
 		WriteCounterVaule(counter_num, &counter_name, &json_value);
 	}
@@ -16,9 +17,9 @@ int CWebMonitor::write(int fd, Value& json_value)
 		temp_json_value.append(0);//0¸öÁ¬½Ó
 	}
 	json_value.append(temp_json_value);
+
 	return 0;
 }
-
 
 BOOL CWebMonitor::IsW3wpRun()
 {
@@ -55,3 +56,5 @@ BOOL CWebMonitor::IsW3wpRun()
 	CloseHandle(hProcessSnap);
 	return bret;
 }
+#endif
+

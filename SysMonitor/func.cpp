@@ -85,14 +85,13 @@ int GetIniKeyInt(char *title, char *key, char *filename)
 }
 
 
-char* GetFormatSystemTime()
+int GetFormatSystemTime(char* current_time, int str_len)
 {
-	char current_time[128] = "";
 #ifdef WIN32
 	SYSTEMTIME sys;
 	GetLocalTime(&sys);
 #endif
-	sprintf_s(current_time, sizeof(current_time), "%d%d%d %d:%d:%d.%d",
+	sprintf_s(current_time, str_len, "%d%d%d %d:%d:%d.%d",
 		sys.wYear, sys.wMonth, sys.wDay, sys.wHour, sys.wMinute, sys.wSecond, sys.wMilliseconds);
-	return current_time;
+	return strlen(current_time) + 1;
 }

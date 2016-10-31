@@ -5,8 +5,10 @@
 class CMysqlMonitor :public CMonitorSystem
 {
 public:
-	CMysqlMonitor(){ };
-	CMysqlMonitor(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){ m_mysql_connection = new CMysqlConnection; };
+	CMysqlMonitor()
+	{
+		m_mysql_connection = new CMysqlConnection;
+	};
 	~CMysqlMonitor(){
 		TDEL(m_mysql_connection);
 	};

@@ -5,7 +5,7 @@ CMysqlMonitor::write(int fd, Value& json_value)
 {
 	uint64_t row_count = 0;
 	uint32_t field_count = 0;
-	m_mysql_connection->connect(m_loadconfig->get_mysql_connection_string());
+	m_mysql_connection->connect(CLoadConfig::CreateInstance()->get_mysql_connection_string());
 	m_mysql_connection->execute("show status;", TRUE);
 	CMysqlRecordSet* record_set = m_mysql_connection->get_record_set();
 

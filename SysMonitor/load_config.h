@@ -1,40 +1,23 @@
 #ifndef LOAD_CONFIG_H
 #define LOAD_CONFIG_H
-#ifdef WIN32
-#include "ado2.h"
-#endif // WIN32
 #include "sys_config.h"
-#ifdef WIN32
-
 #define MAX_LINK_NUM 30
 #define MAX_DBCOUNT  5
-typedef struct tagOPLINK
-{
-	BOOL	is_busy;						// 是否使用中
-	short	cur_sel;						// 选择哪个数据库
-	BOOL	is_connected;					// 是否连接
-	long	busy_time;					// 开始忙时间点
-	CADODatabase* ado_db;
-} OPLINK, *LPOPLINK;
-
-#endif
 // 数据库配置
 typedef struct tagDBCONFIG
 {
-	CHAR	data_source[32];
-	CHAR	data_base[32];
-	CHAR	user_name[32];
-	CHAR	password[32];
+	char	data_source[32];
+	char	data_base[32];
+	char	user_name[32];
+	char	password[32];
 }DBCONFIG, *LPDBCONFIG;
 
 
 class CLoadConfig
 {
 public:
-	CLoadConfig();
-	CLoadConfig(const CLoadConfig& other);
 	~CLoadConfig();
-
+	static CLoadConfig* CreateInstance();
 	enum 
 	{
 		CONFIG_SYSTEM = 1,
@@ -72,7 +55,7 @@ public:
 		vector< string >   process_name;
 	};
 
-	static void LoadConfig(CLoadConfig* this_ins);
+	void LoadConfig();
 
 	int      get_port();
 	int      get_object_num();
@@ -83,7 +66,6 @@ public:
 	
 	int      get_web_counter_num();
 	vector< string > get_web_counter_name();
-
 	void     get_sys_os_info();
 
 	char*    get_os_name();
@@ -98,9 +80,13 @@ public:
 	LPDBCONFIG get_db_config();
 
 private:
+	CLoadConfig();
+	DISALLOW_COPY_AND_ASSIGN(CLoadConfig);
+private:
 	MonitorConfig*   m_monitor_config;
 	char m_os_name[100];
 	char m_os_version[100];
+	static CLoadConfig* _instance;
 
 };
 

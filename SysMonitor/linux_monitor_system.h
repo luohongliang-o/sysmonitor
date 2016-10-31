@@ -3,7 +3,6 @@ class CLinuxSysinfo :public CMonitorSystem
 {
 public:
 	CLinuxSysinfo(){ ; };
-	CLinuxSysinfo(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){ ; };
 	~CLinuxSysinfo(){ ; };
 
 	virtual int write(int fd, Value& json_value);

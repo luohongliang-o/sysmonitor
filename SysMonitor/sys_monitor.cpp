@@ -1,8 +1,9 @@
+#include "protocol_manage.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include "load_config.h"
+
 #ifndef _WIN32
 #include <netinet/in.h>
 # ifdef _XOPEN_SOURCE_EXTENDED
@@ -14,6 +15,7 @@
 #include <err.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <pthread.h>
 #else
 #include <time.h>
 #include <WinSock2.h>
@@ -22,7 +24,6 @@
 #include <process.h>
 #endif
 
-#include "protocol_manage.h"
 #include <event2/event.h>
 #ifdef __cplusplus
 extern "C" {
@@ -40,8 +41,9 @@ extern "C" {
 #endif
 #include "func.h"
 #define BUFLEN 1024*4
-
+#ifdef WIN32
 HANDLE g_time_handle = NULL;
+#endif
 int    g_log_flag = 0;
 volatile BOOL g_thread_on_of = TRUE;
 struct packet{
@@ -52,14 +54,14 @@ struct client {
 // 	struct event* ev_timer;
 	int fd;
 	struct bufferevent *buf_ev;
-	CLoadConfig*     load_config;
+	//CLoadConfig*     load_config;
 	CProtocolManage* proto_manage;
 	char*            buffer;
 };
 struct monitor_global 
 {
 	struct event_base *ev_base;
-	CLoadConfig*     load_config;
+	//CLoadConfig*     load_config;
 	CProtocolManage* proto_manage;
 };
 struct timeval time_val;
@@ -83,14 +85,14 @@ on_timer(void *arg)
 	if (g_monitor){
 		while (g_thread_on_of){
 			if (!g_monitor->proto_manage)
-				g_monitor->proto_manage = new CProtocolManage(g_monitor->load_config);
+				g_monitor->proto_manage = new CProtocolManage();
 			int write_len = g_monitor->proto_manage->write();
 			char current_time[128] = "";
-			strcpy(current_time, GetFormatSystemTime());
+			GetFormatSystemTime(current_time,128);
 			printf("\nwrite time:%s data len:%d bytes\n", current_time, write_len);
 			BOOL bsleep = TRUE;
-			int object_num = g_monitor->load_config->get_object_num();
-			vector< short > object_type = g_monitor->load_config->get_object_type();
+			int object_num = CLoadConfig::CreateInstance()->get_object_num();
+			vector< short > object_type = CLoadConfig::CreateInstance()->get_object_type();
 			for (int i = 0; i < object_num;i++){
 				if (object_type[i] == 1 || object_type[i] == 3) {
 					bsleep = FALSE;
@@ -121,7 +123,7 @@ buffered_on_read(struct bufferevent *bev, void *arg)
 			memcpy(packet_data->buf, client->buffer, read_buf_len);
 			if (read_buf_len > 0 && !strstr(client->buffer, "check error.")){
 				char current_time[128] = "";
-				strcpy(current_time, GetFormatSystemTime());
+				GetFormatSystemTime(current_time,128);
 				printf("\nread time:%s data len:%d bytes\n", current_time, packet_data->packet_len);
 				bufferevent_write(bev, packet_data, packet_data->packet_len + sizeof(packet_data->packet_len));
 			}
@@ -150,7 +152,6 @@ buffered_on_error(struct bufferevent *bev, short what, void *arg)
 		WARN("\nClient socket error, disconnecting.\n");
 	}
 	bufferevent_free(client->buf_ev);
-	client->load_config = NULL;
 	client->proto_manage = NULL;
 	TDELARRAY(client->buffer);
 #ifdef WIN32
@@ -178,7 +179,7 @@ on_accept(int fd, short ev, void *arg)
 	ins_client = (client*)calloc(1, sizeof(*ins_client));
 	if (ins_client == NULL)
 		err_plantform(1, "malloc failed");
-	ins_client->load_config = g_monitor->load_config;
+	
 	ins_client->proto_manage = g_monitor->proto_manage;
 	ins_client->buffer = new char[BUFLEN];
 	
@@ -228,16 +229,16 @@ main(int argc, char **argv)
 	evutil_make_listen_socket_reuseable(listen_fd);
 
 	monitor_global* g_monitor = new monitor_global;
-	g_monitor->load_config = new CLoadConfig;
 	g_monitor->ev_base = eventbase;
-	CLoadConfig::LoadConfig(g_monitor->load_config);
-	g_log_flag = g_monitor->load_config->get_log_flag();
-	g_monitor->proto_manage = new CProtocolManage(g_monitor->load_config);
+	CLoadConfig* load_config = CLoadConfig::CreateInstance();
+	load_config->LoadConfig();
+	g_log_flag = load_config->get_log_flag();
+	g_monitor->proto_manage = new CProtocolManage();
 
 	memset(&listen_addr, 0, sizeof(listen_addr));
 	listen_addr.sin_family = AF_INET;
 	listen_addr.sin_addr.s_addr = INADDR_ANY;
-	port = g_monitor->load_config->get_port();
+	port = load_config->get_port();
 	listen_addr.sin_port = htons(port);
 
 	if (bind(listen_fd, (struct sockaddr *)&listen_addr,
@@ -256,21 +257,23 @@ main(int argc, char **argv)
 	if (blisten){
 		unsigned threadid;
 #ifdef WIN32
-		g_time_handle = (HANDLE)_beginthreadex(NULL, 0, on_timer, g_monitor, CREATE_SUSPENDED, &threadid);
-		g_monitor->load_config->get_sys_os_info();
-		ResumeThread(g_time_handle);
+		load_config->get_sys_os_info();
+		g_time_handle = (HANDLE)_beginthreadex(NULL, 0, on_timer, g_monitor, 0, &threadid);
+#else
+		pthread_t a_thread; 
+		threadid = pthread_create(&a_thread, NULL, on_timer, (void*)g_monitor)
 #endif // WIN32
+
 	}
 	event_dispatch();
 
-	TDEL(g_monitor->load_config);
 	TDEL(g_monitor->proto_manage);
 	event_base_free(g_monitor->ev_base);
 	TDEL(g_monitor);
 
 #ifdef WIN32
-	if (WaitForSingleObject(g_time_handle, 500) == WAIT_TIMEOUT);
-	TerminateThread(g_time_handle, 0);
+	if (WaitForSingleObject(g_time_handle, 500) == WAIT_TIMEOUT)
+		TerminateThread(g_time_handle, 0);
 	CLOSEHANDLE(g_time_handle);
 #endif
 

@@ -1,17 +1,23 @@
 #pragma once
-//#include "sys_config.h"
+#include "load_config.h"
 #ifdef WIN32
 #include "ado2.h"
 #include <afxmt.h>
-#endif // WIN32
 
-#include "load_config.h"
 
-class CLoadConfig;
+typedef struct tagOPLINK
+{
+	BOOL	is_busy;						// 是否使用中
+	short	cur_sel;						// 选择哪个数据库
+	BOOL	is_connected;					// 是否连接
+	long	busy_time;					// 开始忙时间点
+	CADODatabase* ado_db;
+} OPLINK, *LPOPLINK;
+
 class CLinkManager
 {
 public:
-	CLinkManager(CLoadConfig* loadconfig);
+	CLinkManager();
 	~CLinkManager();
 
 public:
@@ -32,6 +38,6 @@ protected:
 	DBCONFIG		m_dbConfig[MAX_DBCOUNT];
 	long				m_nFailCount;
 	CCriticalSection	m_csLink;
-	CLoadConfig*        m_pload_config;
 	OPLINK			    m_aLinkInfo[MAX_LINK_NUM];	// 数据库连接池
 };
+#endif // WIN32

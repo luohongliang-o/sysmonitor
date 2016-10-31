@@ -7,10 +7,6 @@ class CMonitorSystem
 {
 public:
 	CMonitorSystem(){ ; };
-	CMonitorSystem(CLoadConfig * loadconfig)
-	{ 
-		m_loadconfig = loadconfig; 
-	};
 	virtual ~CMonitorSystem()
 	{
 	};
@@ -28,8 +24,6 @@ public:
 		}
 		json_value.append(data.c_str());
 	}
-
-	CLoadConfig* m_loadconfig;
 };
 
 #ifdef WIN32
@@ -38,9 +32,6 @@ class CSysInfo :public CMonitorSystem
 {
 public:
 	CSysInfo(){ ; };
-	CSysInfo(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig)//,Thread(loadconfig)
-	{ ; };
-
 	~CSysInfo(){ ; };
 
 	virtual int write(int fd, Value& json_value);
@@ -55,8 +46,6 @@ class CProcessMonitor : public CMonitorSystem
 {
 public:
 	CProcessMonitor(){ ; }
-	CProcessMonitor(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){ ; }
-	
 	~CProcessMonitor(){ ; }
 	virtual int write(int fd, Value& json_value);
 protected:
@@ -67,25 +56,7 @@ protected:
 };
 
 
-#include "link_manager.h"
 
-class CMsSqlMonitor :public CMonitorSystem
-{
-public:
-	CMsSqlMonitor(){};
-	CMsSqlMonitor(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig)
-	{
-		m_plink_manage = new CLinkManager(loadconfig);
-		m_plink_manage->Init();
-	};
-	~CMsSqlMonitor(){ TDEL(m_plink_manage); };
-
-	virtual int write(int fd, Value& json_value);
-protected:
-	int get_counter_value(int data_sel,vector< int >& vt_data);
-private:
-	CLinkManager* m_plink_manage;
-};
 #endif // WIN32
 
 
@@ -108,11 +79,11 @@ public:
 		MONITORTYPE_LINUX_PROCESS,
 	};
 
-	void ConcreteMonitor(int type, CLoadConfig* loadconfig);
+	void ConcreteMonitor(int type);
 	~CBuildMonitor();
 	CMonitorSystem* get_monitor_obj();
 protected:
-	BOOL is_object_exist(int type, CLoadConfig* loadconfig);
+	BOOL is_object_exist(int type);
 private:
 	CMonitorSystem* m_system_monitor;
 

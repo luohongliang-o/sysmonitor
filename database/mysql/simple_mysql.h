@@ -1,12 +1,12 @@
 #pragma once
-
+#include "db_utility.h"
 #ifdef WIN32
 # include <winsock2.h>
 #else
 #endif //
 
 #include "mysql.h"
-#include "db_utility.h"
+
 
 class CCMysqlRecordSet;
 //

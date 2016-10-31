@@ -1,9 +1,8 @@
+#include "load_config.h"
 #include "link_manager.h"
-#include "sys_config.h"
 
-CLinkManager::CLinkManager(CLoadConfig* loadconfig)
+CLinkManager::CLinkManager()
 {
-	m_pload_config = loadconfig;
 	memset(m_aLinkInfo, 0, sizeof(OPLINK)*MAX_LINK_NUM);
 	m_nFailCount = 0;
 	::CoInitialize(NULL);
@@ -32,10 +31,10 @@ BOOL CLinkManager::_Init(LPOPLINK pLinkInfo)
 // ³õÊ¼»¯
 BOOL CLinkManager::Init()
 {
-	m_nDbCount = m_pload_config->get_db_count();
-	m_nDefaultSel = m_pload_config->get_db_default_sel();
+	m_nDbCount = CLoadConfig::CreateInstance()->get_db_count();
+	m_nDefaultSel = CLoadConfig::CreateInstance()->get_db_default_sel();
 	if (m_nDefaultSel < 0 || m_nDefaultSel >= m_nDbCount) m_nDefaultSel = 0;
-	memcpy(m_dbConfig, m_pload_config->get_db_config(),sizeof(DBCONFIG)*m_nDbCount);
+	memcpy(m_dbConfig, CLoadConfig::CreateInstance()->get_db_config(), sizeof(DBCONFIG)*m_nDbCount);
 
 	for (DWORD dwLinkIndex = 0; dwLinkIndex < MAX_LINK_NUM; dwLinkIndex++){
 		_Init(&m_aLinkInfo[dwLinkIndex]);
