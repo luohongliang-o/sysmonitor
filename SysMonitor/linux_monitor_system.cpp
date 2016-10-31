@@ -1,4 +1,5 @@
 #include "monitor_system.h"
+#include "linux_monitor_system.h"
 #include "sys_config.h"
 #ifndef WIN32
 #include <stdio.h>

@@ -78,7 +78,14 @@ int CProtocolManage::write(int fd)
 		CMonitorSystem* monitorsys = build_monitor.get_monitor_obj();
 		if (monitorsys){
 			monitorsys->write(fd, json_value);
-			last_json_value.append(json_value);
+			if (json_value.isNull()){
+				Reader temp_read;
+				Value temp_value;
+				temp_read.parse("[]", temp_value);
+				last_json_value.append(temp_value);
+			}
+			else
+				last_json_value.append(json_value);	
 		}
 		else{
 			Reader temp_read;

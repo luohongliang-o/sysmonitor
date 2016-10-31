@@ -6,6 +6,10 @@
 #include <process.h>
 #pragma comment(lib, "pdh.lib")
 #include "sys_config.h"
+#include "mysql_monitor.h"
+#include "Oracle_Monitor.h"
+#include "web_monitor.h"
+#include "linux_monitor_system.h"
 //////////////////////////////////////////////////////////////////////////
 /*CSysInfo*/
 //////////////////////////////////////////////////////////////////////////
@@ -243,64 +247,6 @@ CProcessMonitor::printError(TCHAR* msg)
 }
 
 //////////////////////////////////////////////////////////////////////////
-/*CWebMonitor*/
-//////////////////////////////////////////////////////////////////////////
-
-int CWebMonitor::write(int fd, Value& json_value)
-{	
-	Value temp_json_value;
-	if (IsW3wpRun()){
-		temp_json_value.append(1);		
-		int counter_num = m_loadconfig->get_web_counter_num();
-		vector< string > counter_name = m_loadconfig->get_web_counter_name();
-		char json_data[50] = "";
-		WriteCounterVaule(counter_num, &counter_name,&json_value);
-	}
-	else{
-		temp_json_value.append(0);//应用程序池未开启
-		temp_json_value.append(0);//0个连接
-	}
-	json_value.append(temp_json_value);
-	return 0;
-}
-
-
-BOOL CWebMonitor::IsW3wpRun()
-{
-	BOOL bret = FALSE;
-	HANDLE hProcessSnap;
-	HANDLE hProcess;
-	PROCESSENTRY32 pe32;
-
-	// Take a snapshot of all processes in the system.
-	hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	if (hProcessSnap == INVALID_HANDLE_VALUE)
-		return(FALSE);
-
-	// Set the size of the structure before using it.
-	pe32.dwSize = sizeof(PROCESSENTRY32);
-
-	// Retrieve information about the first process,
-	// and exit if unsuccessful
-	if (!Process32First(hProcessSnap, &pe32)){
-		CloseHandle(hProcessSnap);          // clean the snapshot object
-		return(FALSE);
-	}
-	do{
-		hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
-		if (hProcess == NULL)
-			;//return FALSE;
-		else if (!strcmp(pe32.szExeFile, "w3wp.exe"))
-			bret = TRUE;
-		CloseHandle(hProcess);
-		if (bret) 
-			break;
-	} while (Process32Next(hProcessSnap, &pe32));
-
-	CloseHandle(hProcessSnap);
-	return bret;
-}
-//////////////////////////////////////////////////////////////////////////
 /*
 CMsSqlMonitor
 */
@@ -373,64 +319,7 @@ order by object_name, counter_name";
 	return record_count;
 }
 #endif // WIN32
-//////////////////////////////////////////////////////////////////////////
-/*CMySqlMonitor */
-//////////////////////////////////////////////////////////////////////////
 
-int
-CMySqlMonitor::write(int fd, Value& json_value)
-{	
-	uint64_t row_count = 0;
-	uint32_t field_count = 0;
-	m_mysql_connection->connect(m_loadconfig->get_mysql_connection_string());
-	m_mysql_connection->execute("show status;", TRUE);
-	CMysqlRecordSet* record_set = m_mysql_connection->get_record_set();
-	
-	record_set->get_field_count(&field_count);
-	record_set->get_row_count(&row_count);
-	for (int i = 0; i < row_count;i++){
-		CMysqlRecord* record = record_set->get_record();
-		uchar_t* temp_value[2] = { 0 };
-		for (int j = 0; j < field_count;j++){
-			rc_t rt = record->get_data(j, &temp_value[j]);
-			int a = 0;
-		}
-		record_set->next();
-	}
-	return 0;
-}
-//////////////////////////////////////////////////////////////////////////
-/*
-COracleMonitor
-*/
-//////////////////////////////////////////////////////////////////////////
-#include "ocilib.hpp"
-using namespace ocilib;
-int COracleMonitor::write(int fd, Value& json_value)
-{
-	int ncount = 0;
-	try
-	{
-		Environment::Initialize();
-		ocilib::Connection con("xe", "lhl", "123456");
-		Statement st(con);
-		st.Execute("select * from person_info");
-		Resultset rs = st.GetResultset();
-		while (rs.Next())
-		{
-
-		}
-		ncount = rs.GetCount();
-
-	}
-	catch (std::exception &ex)
-	{
-		const char *erro = ex.what() ;
-		int a = 0;
-	}
-	Environment::Cleanup();
-	return 0;
-}
 //////////////////////////////////////////////////////////////////////////
 /* CBuilderMonitor */
 //////////////////////////////////////////////////////////////////////////
@@ -446,7 +335,7 @@ void CBuildMonitor::ConcreteMonitor(int type, CLoadConfig* loadconfig)
 		m_system_monitor = new CMsSqlMonitor(loadconfig);
 #endif // WEIN32
 	if (is_object_exist(type, loadconfig) && MONITORTYPE_MYSQL == type)
-		m_system_monitor = new CMySqlMonitor(loadconfig);
+		m_system_monitor = new CMysqlMonitor(loadconfig);
 	if (is_object_exist(type, loadconfig) && MONITORTYPE_LINUX_SYSINFO == type)
 		m_system_monitor = new CLinuxSysinfo(loadconfig);
 	if (is_object_exist(type, loadconfig) && MONITORTYPE_WEB == type)

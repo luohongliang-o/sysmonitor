@@ -66,18 +66,7 @@ protected:
 	map< string, vector< int > > m_map_process_name_pid;
 };
 
-class CWebMonitor : public CSysInfo
-{
-public:
-	CWebMonitor(){ ; }
-	CWebMonitor(CLoadConfig* loadconfig) : CSysInfo(loadconfig){ ; }
-	~CWebMonitor(){ ; }
 
-	virtual int write(int fd, Value& json_value);
-protected:
-	BOOL IsW3wpRun();
-
-};
 #include "link_manager.h"
 
 class CMsSqlMonitor :public CMonitorSystem
@@ -99,64 +88,6 @@ private:
 };
 #endif // WIN32
 
-// cross platform
-
-class CLinuxSysinfo :public CMonitorSystem
-{
-public:
-	CLinuxSysinfo(){ ; };
-	CLinuxSysinfo(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){ ; };
-	~CLinuxSysinfo(){ ; };
-
-	virtual int write(int fd, Value& json_value);
-protected:
-	
-	void  get_loadavg(Value& json_value);         //cpu负载
-	void  get_systemtime(Value& json_value);      //系统运行状态
-	void  get_kernel_version(Value& json_value);  //系统版本
-	void  get_os_name(Value& json_value);         //系统名称
-	void  get_diskinfo(Value& json_value);        //磁盘信息
-	void  get_meminfo(Value& json_value);         //内存与虚拟内存信息
-	void  get_tcp_connections(Value& json_value);
-
-	void  get_monitor_data_sec(Value& json_value);
-	void  get_network_transfers(long& bytes);
-	void  get_disk_io(int& io_num);
-	void  get_cpu_time(int& all_time,int& idle_time);
-};
-
-#include "simple_mysql.h"
-class CMySqlMonitor :public CMonitorSystem
-{
-public:
-	CMySqlMonitor(){ };
-	CMySqlMonitor(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){ m_mysql_connection = new CMysqlConnection; };
-	~CMySqlMonitor(){ 
-		TDEL(m_mysql_connection);
-	};
-
-	virtual int write(int fd, Value& json_value);
-	
-private:
-	CMysqlConnection*  m_mysql_connection;
-
-};
-
-
-
-class COracleMonitor :public CMonitorSystem
-{
-public:
-	COracleMonitor(){ };
-	COracleMonitor(CLoadConfig* loadconfig) :CMonitorSystem(loadconfig){  };
-	~COracleMonitor(){};
-
-	virtual int write(int fd, Value& json_value);
-
-private:
-	
-
-};
 
 class CBuildMonitor
 {

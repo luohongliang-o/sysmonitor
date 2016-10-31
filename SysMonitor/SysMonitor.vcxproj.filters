@@ -114,6 +114,18 @@
     <ClInclude Include="..\database\oracle\include\ocilib_impl.hpp">
       <Filter>database\oracle</Filter>
     </ClInclude>
+    <ClInclude Include="mysql_monitor.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Oracle_Monitor.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="linux_monitor_system.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="web_monitor.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="json_reader.cpp">
@@ -157,6 +169,15 @@
     </ClCompile>
     <ClCompile Include="..\database\mysql\db_utility.cpp">
       <Filter>database\mysql</Filter>
+    </ClCompile>
+    <ClCompile Include="mysql_monitor.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Oracle_Monitor.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="web_monitor.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
