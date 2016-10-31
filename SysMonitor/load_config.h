@@ -27,7 +27,7 @@ typedef struct tagDBCONFIG
 	CHAR	password[32];
 }DBCONFIG, *LPDBCONFIG;
 
-//class CLinkManager;
+
 class CLoadConfig
 {
 public:
@@ -57,13 +57,11 @@ public:
 		//system
 		int        counter_num;
 		vector< string >   counter_name;
-		int        counter_by_sec;
 		//mysql
 		char       mysql_connstr[256];
 		//web
 		int        web_counter_num;
 		vector< string >   web_counter_name;
-		int        web_counter_by_sec;
 		//mssql
 		short      db_count;
 		short      db_default_sel;
@@ -80,11 +78,9 @@ public:
 	int      get_object_num();
 	vector< short >   get_object_type();
 	int      get_log_flag();
-	int      get_counter_by_sec();
 	int      get_counter_num();
 	vector< string > get_counter_name();
 	
-	int      get_web_counter_by_sec();
 	int      get_web_counter_num();
 	vector< string > get_web_counter_name();
 
@@ -100,12 +96,12 @@ public:
 	short    get_db_count();
 	short    get_db_default_sel();
 	LPDBCONFIG get_db_config();
-//	CLinkManager* get_link();
+
 private:
 	MonitorConfig*   m_monitor_config;
 	char m_os_name[100];
 	char m_os_version[100];
-//	CLinkManager *m_plink_manage;
+
 };
 
 #endif

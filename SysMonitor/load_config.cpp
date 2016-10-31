@@ -36,7 +36,6 @@ void CLoadConfig::LoadConfig(CLoadConfig* this_ins)
 		for (int i = 0; i < config->object_num;i++){
 			if (config->object_type[i] == CONFIG_SYSTEM){
 				config->counter_num = GetIniKeyInt("system", "counter_num", filebuf);
-				config->counter_by_sec = GetIniKeyInt("system", "counter_by_sec", filebuf);
 				config->counter_name.resize(config->counter_num);
 				for (int i = 0; i < config->counter_num; i++){
 					char counter_key[20] = "";
@@ -49,7 +48,6 @@ void CLoadConfig::LoadConfig(CLoadConfig* this_ins)
 			}
 			else if (config->object_type[i] == CONFIG_WEB){
 				config->web_counter_num = GetIniKeyInt("web", "counter_num", filebuf);
-				config->web_counter_by_sec = GetIniKeyInt("web", "counter_by_sec", filebuf);
 				config->web_counter_name.resize(config->web_counter_num);
 				for (int i = 0; i < config->web_counter_num; i++){
 					char counter_key[20] = "";
@@ -83,10 +81,6 @@ void CLoadConfig::LoadConfig(CLoadConfig* this_ins)
 					strcpy(config->db_config[i].user_name, GetIniKeyString("mssql", db_user_key, filebuf));
 					strcpy(config->db_config[i].password, GetIniKeyString("mssql", db_password_key, filebuf));
 				}
-/*
-				this_ins->m_plink_manage = new CLinkManager(this_ins);
-				this_ins->m_plink_manage->Init();
-*/
 			}
 		}
 	}
@@ -127,12 +121,6 @@ int CLoadConfig::get_counter_num()
 		return m_monitor_config->counter_num;
 	return 0;
 }
-int CLoadConfig::get_counter_by_sec()
-{
-	if (m_monitor_config)
-		return m_monitor_config->counter_by_sec;
-	return 0;
-}
 
 vector< string > CLoadConfig::get_counter_name()
 {
@@ -145,12 +133,6 @@ int CLoadConfig::get_web_counter_num()
 {
 	if (m_monitor_config)
 		return m_monitor_config->web_counter_num;
-	return 0;
-}
-int CLoadConfig::get_web_counter_by_sec()
-{
-	if (m_monitor_config)
-		return m_monitor_config->web_counter_by_sec;
 	return 0;
 }
 
@@ -230,11 +212,6 @@ LPDBCONFIG CLoadConfig::get_db_config()
 		return m_monitor_config->db_config;
 	return NULL;
 }
-
-// CLinkManager* CLoadConfig::get_link()
-// {
-// 	return m_plink_manage;
-// }
 
 const char* CLoadConfig::get_mysql_connection_string()
 {
