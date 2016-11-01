@@ -3,7 +3,6 @@
 */
 
 #include "port.h"
-
 #include <string.h>
 
 /*

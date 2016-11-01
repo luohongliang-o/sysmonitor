@@ -71,10 +71,11 @@ int CProtocolManage::write(int fd)
 	FastWriter temp_inswrite;
 	
 	Value last_json_value;
+	vector< short > object_type = CLoadConfig::CreateInstance()->get_object_type();
 	for (int i = 0; i < OBJECT_NUM; i++){
 		Value json_value;
 		CBuildMonitor build_monitor;
-		build_monitor.ConcreteMonitor(i+1);
+		build_monitor.ConcreteMonitor(object_type[i]);
 		CMonitorSystem* monitorsys = build_monitor.get_monitor_obj();
 		if (monitorsys){
 			monitorsys->write(fd, json_value);
@@ -98,5 +99,6 @@ int CProtocolManage::write(int fd)
 	strJsonData.replace(strJsonData.rfind("\n"), strJsonData.rfind("\n"), "");
 	m_list_buf.push_back(strJsonData);
 	WriteLog(m_log_flag, LOGFILENAME, "write data---%s", strJsonData.c_str());
+	
 	return strJsonData.length()+1;
 }

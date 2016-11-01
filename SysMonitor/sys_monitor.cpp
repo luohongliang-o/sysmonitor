@@ -1,3 +1,4 @@
+#include "sys_monitor.h"
 #include "protocol_manage.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -16,18 +17,19 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <pthread.h>
+#define  __stdcall
 #else
 #include <time.h>
 #include <WinSock2.h>
-#pragma comment(lib,"ws2_32.lib")
+//#pragma comment(lib,"ws2_32.lib")
 #include <io.h>
 #include <process.h>
 #endif
-
-#include <event2/event.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include <event2/event-config.h>
+#include <event2/event.h>
 #include <event2/bufferevent.h>
 #include <event2/bufferevent_compat.h>
 #include <event2/bufferevent_struct.h>
@@ -45,23 +47,26 @@ extern "C" {
 HANDLE g_time_handle = NULL;
 #endif
 int    g_log_flag = 0;
-volatile BOOL g_thread_on_of = TRUE;
-struct packet{
+volatile bool g_thread_on_of = TRUE;
+
+struct PacketHead{
+	short protocol_versoin;
 	long packet_len;
+};
+struct packet{
+	PacketHead  packet_head;
 	char buf[1];
 };
+
 struct client {
-// 	struct event* ev_timer;
 	int fd;
 	struct bufferevent *buf_ev;
-	//CLoadConfig*     load_config;
 	CProtocolManage* proto_manage;
 	char*            buffer;
 };
 struct monitor_global 
 {
 	struct event_base *ev_base;
-	//CLoadConfig*     load_config;
 	CProtocolManage* proto_manage;
 };
 struct timeval time_val;
@@ -78,6 +83,7 @@ struct timeval time_val;
 #define WARN(erromsg) warn(erromsg);
 #endif
 
+#if defined(WIN32)
 static unsigned __stdcall
 on_timer(void *arg)
 {
@@ -90,7 +96,7 @@ on_timer(void *arg)
 			char current_time[128] = "";
 			GetFormatSystemTime(current_time,128);
 			printf("\nwrite time:%s data len:%d bytes\n", current_time, write_len);
-			BOOL bsleep = TRUE;
+			bool bsleep = TRUE;
 			int object_num = CLoadConfig::CreateInstance()->get_object_num();
 			vector< short > object_type = CLoadConfig::CreateInstance()->get_object_type();
 			for (int i = 0; i < object_num;i++){
@@ -105,6 +111,37 @@ on_timer(void *arg)
 	}
 	return 0;
 }
+#else 
+static void*
+on_timer(void *arg)
+{
+	monitor_global *g_monitor = (monitor_global*)arg;
+	if (g_monitor){
+		while (g_thread_on_of){
+			if (!g_monitor->proto_manage)
+				g_monitor->proto_manage = new CProtocolManage();
+			int write_len = g_monitor->proto_manage->write();
+			char current_time[128] = "";
+			GetFormatSystemTime(current_time, 128);
+			printf("\nwrite time:%s data len:%d bytes\n", current_time, write_len);
+			bool bsleep = TRUE;
+			int object_num = CLoadConfig::CreateInstance()->get_object_num();
+			vector< short > object_type = CLoadConfig::CreateInstance()->get_object_type();
+			for (int i = 0; i < object_num; i++){
+				if (object_type[i] == 1 || object_type[i] == 3) {
+					bsleep = FALSE;
+					break;
+				}
+			}
+			if (bsleep)
+				sleep(1);
+		}
+	}
+	return 0;
+}
+
+#endif
+
 
 void
 buffered_on_read(struct bufferevent *bev, void *arg)
@@ -119,13 +156,15 @@ buffered_on_read(struct bufferevent *bev, void *arg)
 			packet* packet_data = (packet*)send_buf;
 			client->buffer[buffer_len] = '\0';
 			int read_buf_len = client->proto_manage->read(client->fd, client->buffer);
-			packet_data->packet_len = read_buf_len ;
+			packet_data->packet_head.packet_len = read_buf_len ;
+			packet_data->packet_head.protocol_versoin = 1;
+			int all_len = packet_data->packet_head.packet_len + sizeof(packet_data->packet_head);
 			memcpy(packet_data->buf, client->buffer, read_buf_len);
 			if (read_buf_len > 0 && !strstr(client->buffer, "check error.")){
 				char current_time[128] = "";
 				GetFormatSystemTime(current_time,128);
-				printf("\nread time:%s data len:%d bytes\n", current_time, packet_data->packet_len);
-				bufferevent_write(bev, packet_data, packet_data->packet_len + sizeof(packet_data->packet_len));
+				printf("\nread time:%s data len:%d bytes\n", current_time, packet_data->packet_head.packet_len);
+				bufferevent_write(bev, packet_data, all_len);
 			}
 		}
 	}
@@ -201,8 +240,10 @@ on_accept(int fd, short ev, void *arg)
 		inet_ntoa(client_addr.sin_addr), htons(client_addr.sin_port));
 }
 
-int
-main(int argc, char **argv)
+ int
+ main(int argc, char **argv)
+//MYDLLAPI
+//void start()
 {
 #ifdef _WIN32
 	WORD w_version_requested;
@@ -210,7 +251,7 @@ main(int argc, char **argv)
 	w_version_requested = MAKEWORD(2, 2);
 	(void)WSAStartup(w_version_requested, &wsa_data);
 #endif
-	BOOL blisten = TRUE;
+	bool blisten = TRUE;
 	struct event_base* eventbase;
 	int listen_fd;
 	struct sockaddr_in listen_addr;
@@ -261,7 +302,7 @@ main(int argc, char **argv)
 		g_time_handle = (HANDLE)_beginthreadex(NULL, 0, on_timer, g_monitor, 0, &threadid);
 #else
 		pthread_t a_thread; 
-		threadid = pthread_create(&a_thread, NULL, on_timer, (void*)g_monitor)
+		threadid = pthread_create(&a_thread, NULL, on_timer, (void*)g_monitor);
 #endif // WIN32
 
 	}

@@ -1,6 +1,6 @@
 #include "load_config.h"
 #include "link_manager.h"
-
+#ifdef WIN32
 CLinkManager::CLinkManager()
 {
 	memset(m_aLinkInfo, 0, sizeof(OPLINK)*MAX_LINK_NUM);
@@ -211,3 +211,4 @@ BOOL CLinkManager::ConnectDataBase(LPDBCONFIG lpdbConfig, CADODatabase* pAdoDb)
 	return pAdoDb->IsOpen();
 }
 
+#endif

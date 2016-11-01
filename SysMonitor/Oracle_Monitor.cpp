@@ -1,4 +1,5 @@
 #include "Oracle_Monitor.h"
+#if defined(HAS_ORACLE)
 #include "ocilib.hpp"
 using namespace ocilib;
 
@@ -27,3 +28,5 @@ int COracleMonitor::write(int fd, Value& json_value)
 	Environment::Cleanup();
 	return 0;
 }
+
+#endif

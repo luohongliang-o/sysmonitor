@@ -1,5 +1,5 @@
 #include "mysql_monitor.h"
-
+#ifdef HAS_MYSQL
 int
 CMysqlMonitor::write(int fd, Value& json_value)
 {
@@ -22,3 +22,4 @@ CMysqlMonitor::write(int fd, Value& json_value)
 	}
 	return 0;
 }
+#endif

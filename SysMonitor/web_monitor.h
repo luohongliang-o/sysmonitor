@@ -9,8 +9,19 @@ public:
 
 	virtual int write(int fd, Value& json_value);
 protected:
-	BOOL IsW3wpRun();
+	bool IsW3wpRun();
 
 
+};
+
+#else
+class CWebMonitor : public CMonitorSystem
+{
+public:
+	CWebMonitor(){ ; }
+	~CWebMonitor(){ ; }
+
+	virtual int write(int fd, Value& json_value);
+protected:
 };
 #endif

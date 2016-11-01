@@ -1,5 +1,6 @@
 #pragma once
 #include "monitor_system.h"
+#ifdef HAS_MYSQL
 #include "simple_mysql.h"
 
 class CMysqlMonitor :public CMonitorSystem
@@ -19,3 +20,5 @@ private:
 	CMysqlConnection*  m_mysql_connection;
 
 };
+
+#endif

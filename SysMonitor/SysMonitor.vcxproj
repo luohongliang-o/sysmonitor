@@ -67,6 +67,12 @@
     <Manifest>
       <GenerateCatalogFiles>true</GenerateCatalogFiles>
     </Manifest>
+    <Lib>
+      <AdditionalLibraryDirectories>C:\Program Files (x86)\MySQL\MySQL Server 5.5\lib;../database/oracle/lib;../libevent/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>nafxcwd.lib;ws2_32.lib;wsock32.lib;event_d.lib;event_core_d.lib;event_extra_d.lib;libmysql.lib;ocilib_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -121,6 +127,7 @@
     <ClInclude Include="protocol_manage.h" />
     <ClInclude Include="reader.h" />
     <ClInclude Include="sys_config.h" />
+    <ClInclude Include="sys_monitor.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="value.h" />
     <ClInclude Include="web_monitor.h" />

@@ -1,7 +1,7 @@
 
 #ifndef PORT_H_
 #define PORT_H_
-
+#include <stdio.h>
 char * strstr_s(const char * string, size_t slen, const char * find);
 
 char * strchr_s(const char * string, size_t slen, int ch);

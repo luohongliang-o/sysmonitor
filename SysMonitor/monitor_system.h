@@ -1,5 +1,16 @@
 #ifndef MONITOR_SYSTEM_H
 #define MONITOR_SYSTEM_H
+#include "json.h"
+using namespace Json;
+
+#if !defined(HAS_MYSQL)
+#define HAS_MYSQL
+#endif
+
+#if !defined(HAS_ORACLE)
+#define HAS_ORACLE
+#endif
+
 
 #include "load_config.h"
 
@@ -41,7 +52,7 @@ protected:
 	void WriteCounterVaule(int counter_num, vector<string>* list_counter, Value* json_value);
 };
 
-#include <tlhelp32.h>
+
 class CProcessMonitor : public CMonitorSystem
 {
 public:
@@ -82,8 +93,7 @@ public:
 	void ConcreteMonitor(int type);
 	~CBuildMonitor();
 	CMonitorSystem* get_monitor_obj();
-protected:
-	BOOL is_object_exist(int type);
+
 private:
 	CMonitorSystem* m_system_monitor;
 

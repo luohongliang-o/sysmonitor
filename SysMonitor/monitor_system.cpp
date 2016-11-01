@@ -10,6 +10,7 @@
 #include <pdhmsg.h>
 #include <process.h>
 #pragma comment(lib, "pdh.lib")
+#include <tlhelp32.h>
 #include <stdio.h>
 #include <fstream>
 //////////////////////////////////////////////////////////////////////////
@@ -256,21 +257,25 @@ void CBuildMonitor::ConcreteMonitor(int type)
 {
 	
 #ifdef WIN32
-	if (is_object_exist(type) && MONITORTYPE_SYSTEM_INFO == type)
+	if (MONITORTYPE_SYSTEM_INFO == type)
 		m_system_monitor = new CSysInfo();
-	if (is_object_exist(type ) && MONITORTYPE_PROCESS == type)
+	if (MONITORTYPE_PROCESS == type)
 		m_system_monitor = new CProcessMonitor();
-	if (is_object_exist(type ) && MONITORTYPE_MSSQL == type)
+	if (MONITORTYPE_MSSQL == type)
 		m_system_monitor = new CMsSqlMonitor();
 #endif // WEIN32
-	if (is_object_exist(type ) && MONITORTYPE_MYSQL == type)
+#if defined(HAS_MYSQL)
+	if (MONITORTYPE_MYSQL == type)
 		m_system_monitor = new CMysqlMonitor();
-	if (is_object_exist(type ) && MONITORTYPE_LINUX_SYSINFO == type)
+#endif
+	if (MONITORTYPE_LINUX_SYSINFO == type)
 		m_system_monitor = new CLinuxSysinfo();
-	if (is_object_exist(type ) && MONITORTYPE_WEB == type)
+	if (MONITORTYPE_WEB == type)
 		m_system_monitor = new CWebMonitor();
-	if (is_object_exist(type ) && MONITORTYPE_ORACAL == type)
+#if defined(HAS_ORACLE)
+	if (MONITORTYPE_ORACAL == type)
 		m_system_monitor = new COracleMonitor();
+#endif
 }
 
 CBuildMonitor::~CBuildMonitor()
@@ -281,16 +286,4 @@ CBuildMonitor::~CBuildMonitor()
 CMonitorSystem* CBuildMonitor::get_monitor_obj()
 {
 	return m_system_monitor;
-}
-
-BOOL CBuildMonitor::is_object_exist(int type)
-{
-	int object_num = CLoadConfig::CreateInstance()->get_object_num();
-	vector< short > object_type = CLoadConfig::CreateInstance()->get_object_type();
-	for (int i = 0; i < object_num;i++){
-		if (object_type[i] == type)
-			return TRUE;
-	}
-	return FALSE;
-
 }

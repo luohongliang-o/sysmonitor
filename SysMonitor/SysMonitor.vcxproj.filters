@@ -129,6 +129,9 @@
     <ClInclude Include="mssql_monitor.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="sys_monitor.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="json_reader.cpp">

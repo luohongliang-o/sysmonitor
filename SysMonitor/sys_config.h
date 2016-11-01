@@ -5,29 +5,20 @@
 #define _WIN32_WINNT 0x0501 
 #include <targetver.h>
 #include <afx.h>
+#else
+#if !defined(SSIZE_T)
+typedef int SSIZE_T;
 #endif
 
-#include "json.h"
-using namespace Json;
-#include <string>
-using std::string;
+#endif
 
 #include <map>
 #include <vector>
 #include <list>
+#include <string>
 using namespace std;
-
 #include "port.h"
 
-#if !defined(HAS_PLATFORM)
-# define HAS_PLATFORM
-# if defined(_MSC_VER)
-#   define PLATFORM_API_WINDOWS         1
-#   define PLATFORM_API_POSIX           0
-# else  // _MSC_VER
-#   error "PLATFORM is unknown"
-# endif // !_MSC_VER
-#endif // HAS_PLATFORM
 
 // extern
 #if !defined(HAS_EXTERN_C) && !defined(EXTERN_C)
@@ -69,7 +60,7 @@ using namespace std;
 #else
 # define HAS_TRACE                      0
 #endif // 
-
+#if defined(WIN32)
 typedef char                            int8_t;
 typedef short                           int16_t;
 typedef int                             int32_t;
@@ -105,7 +96,7 @@ const  int32_t kint32max = ((int32_t)0x7FFFFFFF);
 const  int64_t kint64min = ((int64_t)GG_LONGLONG(0x8000000000000000));
 const  int64_t kint64max = ((int64_t)GG_LONGLONG(0x7FFFFFFFFFFFFFFF));
 
-
+#endif
 //////////////////////////////////////////////////////////////////////////
 //
 #ifndef NULL
@@ -204,8 +195,11 @@ typedef unsigned char                   uchar_t;
 # endif // UNICODE
 #endif // HAS_STRING
 
+#if defined(__cplusplus)
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
 	TypeName(const TypeName&);               \
 	void operator=(const TypeName&)
+#endif
+
 
 #endif // SYS_CONFIG_H

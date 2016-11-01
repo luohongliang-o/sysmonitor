@@ -1,6 +1,6 @@
 #include "web_monitor.h"
-
 #ifdef WIN32
+#include <tlhelp32.h>
 int CWebMonitor::write(int fd, Value& json_value)
 {
 
@@ -21,7 +21,7 @@ int CWebMonitor::write(int fd, Value& json_value)
 	return 0;
 }
 
-BOOL CWebMonitor::IsW3wpRun()
+bool CWebMonitor::IsW3wpRun()
 {
 	BOOL bret = FALSE;
 	HANDLE hProcessSnap;
@@ -55,6 +55,12 @@ BOOL CWebMonitor::IsW3wpRun()
 
 	CloseHandle(hProcessSnap);
 	return bret;
+}
+
+#else
+int CWebMonitor::write(int fd, Value& json_value)
+{
+	return 0;
 }
 #endif
 

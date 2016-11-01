@@ -1,5 +1,6 @@
 #pragma once
 #include "monitor_system.h"
+#ifdef HAS_ORACLE
 class COracleMonitor :public CMonitorSystem
 {
 public:
@@ -12,3 +13,4 @@ private:
 
 
 };
+#endif
