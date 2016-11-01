@@ -240,10 +240,8 @@ on_accept(int fd, short ev, void *arg)
 		inet_ntoa(client_addr.sin_addr), htons(client_addr.sin_port));
 }
 
- int
- main(int argc, char **argv)
-//MYDLLAPI
-//void start()
+MYDLLAPI
+void start()
 {
 #ifdef _WIN32
 	WORD w_version_requested;
@@ -317,6 +315,4 @@ on_accept(int fd, short ev, void *arg)
 		TerminateThread(g_time_handle, 0);
 	CLOSEHANDLE(g_time_handle);
 #endif
-
-	return 0;
 }

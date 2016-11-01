@@ -60,6 +60,16 @@ using namespace std;
 #else
 # define HAS_TRACE                      0
 #endif // 
+
+#if !defined(HAS_DECLSPEC)
+# define HAS_DECLSPEC                   1
+# define SYMBOL_EXPORT                  __declspec(dllexport)
+# define SYMBOL_IMPORT                  __declspec(dllimport)
+#else
+# define HAS_DECLSPEC                   0  
+#endif // HAS_DECLSPEC
+
+
 #if defined(WIN32)
 typedef char                            int8_t;
 typedef short                           int16_t;
