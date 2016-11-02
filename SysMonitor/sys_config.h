@@ -19,6 +19,26 @@ typedef int SSIZE_T;
 using namespace std;
 #include "port.h"
 
+#if defined(NDEBUG)
+#pragma comment(lib,"nafxcw.lib")
+#pragma comment(lib,"ws2_32.lib")
+#pragma comment(lib,"wsock32.lib")
+#pragma comment(lib,"event.lib")
+#pragma comment(lib,"event_core.lib")
+#pragma comment(lib,"event_extra.lib")
+#pragma comment(lib,"libmysql.lib")
+#pragma comment(lib,"ocilib.lib")
+#endif
+#if defined(_DEBUG)
+#pragma comment(lib,"nafxcwd.lib")
+#pragma comment(lib,"ws2_32.lib")
+#pragma comment(lib,"wsock32.lib")
+#pragma comment(lib,"event_d.lib")
+#pragma comment(lib,"event_core_d.lib")
+#pragma comment(lib,"event_extra_d.lib")
+#pragma comment(lib,"libmysql.lib")
+#pragma comment(lib,"ocilib_d.lib")
+#endif
 
 // extern
 #if !defined(HAS_EXTERN_C) && !defined(EXTERN_C)

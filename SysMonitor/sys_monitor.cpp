@@ -21,7 +21,6 @@
 #else
 #include <time.h>
 #include <WinSock2.h>
-//#pragma comment(lib,"ws2_32.lib")
 #include <io.h>
 #include <process.h>
 #endif
