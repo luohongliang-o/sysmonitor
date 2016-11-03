@@ -72,7 +72,7 @@ struct monitor_global
 struct timeval time_val;
 
 
-//monitor_global* g_monitor = NULL;
+monitor_global* g_monitor = NULL;
 
 #ifdef WIN32
 #define err_plantform(n, erromsg) printf(erromsg)
@@ -91,12 +91,12 @@ static unsigned __stdcall
 on_timer(void *arg)
 {
 	::CoInitialize(NULL);
-	monitor_global *g_monitor = (monitor_global*)arg;
-	if (g_monitor){
+	monitor_global *p_monitor = (monitor_global*)arg;
+	if (p_monitor){
 		while (g_thread_on_of){
-			if (!g_monitor->proto_manage)
-				g_monitor->proto_manage = new CProtocolManage();
-			int write_len = g_monitor->proto_manage->write();
+			if (!p_monitor->proto_manage)
+				p_monitor->proto_manage = new CProtocolManage();
+			int write_len = p_monitor->proto_manage->write();
 			char current_time[128] = "";
 			GetFormatSystemTime(current_time,128);
 			printf("\nwrite time:%s data len:%d bytes\n", current_time, write_len);
@@ -120,12 +120,12 @@ on_timer(void *arg)
 static void*
 on_timer(void *arg)
 {
-	monitor_global *g_monitor = (monitor_global*)arg;
-	if (g_monitor){
+	monitor_global *p_monitor = (monitor_global*)arg;
+	if (p_monitor){
 		while (g_thread_on_of){
-			if (!g_monitor->proto_manage)
-				g_monitor->proto_manage = new CProtocolManage();
-			int write_len = g_monitor->proto_manage->write();
+			if (!p_monitor->proto_manage)
+				p_monitor->proto_manage = new CProtocolManage();
+			int write_len = p_monitor->proto_manage->write();
 			char current_time[128] = "";
 			GetFormatSystemTime(current_time, 128);
 			printf("\nwrite time:%s data len:%d bytes\n", current_time, write_len);
@@ -209,7 +209,7 @@ buffered_on_error(struct bufferevent *bev, short what, void *arg)
 void
 on_accept(int fd, short ev, void *arg)
 {
-	monitor_global *g_monitor = (monitor_global*)arg;
+	monitor_global *p_monitor = (monitor_global*)arg;
 	int client_fd;
 	struct sockaddr_in client_addr;
 	socklen_t client_len = sizeof(client_addr);
@@ -224,12 +224,12 @@ on_accept(int fd, short ev, void *arg)
 	if (ins_client == NULL)
 		err_plantform(1, "malloc failed");
 	
-	ins_client->proto_manage = g_monitor->proto_manage;
+	ins_client->proto_manage = p_monitor->proto_manage;
 	ins_client->buffer = new char[BUFLEN];
 	
 	ins_client->fd = client_fd;
 	
-	ins_client->buf_ev = bufferevent_socket_new(g_monitor->ev_base, client_fd, BEV_OPT_CLOSE_ON_FREE);
+	ins_client->buf_ev = bufferevent_socket_new(p_monitor->ev_base, client_fd, BEV_OPT_CLOSE_ON_FREE);
 
 	evutil_make_socket_nonblocking(client_fd);
 
@@ -272,7 +272,7 @@ void start()
 	}
 	evutil_make_listen_socket_reuseable(listen_fd);
 
-	monitor_global* g_monitor = new monitor_global;
+	g_monitor = new monitor_global;
 	g_monitor->ev_base = eventbase;
 	CLoadConfig* load_config = CLoadConfig::CreateInstance();
 	load_config->LoadConfig();
@@ -299,7 +299,7 @@ void start()
 	event_set(&ev_accept, listen_fd, EV_READ | EV_PERSIST, on_accept, g_monitor);
 	event_add(&ev_accept, NULL);
 	if (blisten){
-		unsigned threadid;
+		unsigned int threadid;
 #ifdef WIN32
 		load_config->get_sys_os_info();
 		g_time_handle = (HANDLE)_beginthreadex(NULL, 0, on_timer, g_monitor, 0, &threadid);
@@ -312,34 +312,29 @@ void start()
 	event_dispatch();
 
 
+/*
 	TDEL(g_monitor->proto_manage);
 	event_base_free(g_monitor->ev_base);
 	TDEL(g_monitor);
-
 #ifdef WIN32
-/*
 	if (WaitForSingleObject(g_time_handle, 500) == WAIT_TIMEOUT)
 		TerminateThread(g_time_handle, 0);
-*/
-	WaitForSingleObject(g_time_handle, INFINITE);
 	CLOSEHANDLE(g_time_handle);
 #endif
+*/
 
 }
 
-/*
 MYDLLAPI
-void __stdcall stop()
+void stop()
 {
+#ifdef WIN32
+	if (WaitForSingleObject(g_time_handle, 500) == WAIT_TIMEOUT)
+		TerminateThread(g_time_handle, 0);
+	CLOSEHANDLE(g_time_handle);
+#endif
 	TDEL(g_monitor->proto_manage);
 	event_base_free(g_monitor->ev_base);
 	TDEL(g_monitor);
-
-#ifdef WIN32
-	//if (WaitForSingleObject(g_time_handle, 500) == WAIT_TIMEOUT)
-		//TerminateThread(g_time_handle, 0);
-	WaitForSingleObject(g_time_handle, INFINITE);
-	CLOSEHANDLE(g_time_handle);
-#endif
+	event_loopbreak();
 }
-*/
