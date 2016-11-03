@@ -1,5 +1,6 @@
 #ifndef MONITOR_SYSTEM_H
 #define MONITOR_SYSTEM_H
+#include "load_config.h"
 #include "json.h"
 using namespace Json;
 
@@ -8,11 +9,8 @@ using namespace Json;
 #endif
 
 #if !defined(HAS_ORACLE)
-#define HAS_ORACLE
+//#define HAS_ORACLE
 #endif
-
-
-#include "load_config.h"
 
 class CMonitorSystem
 {

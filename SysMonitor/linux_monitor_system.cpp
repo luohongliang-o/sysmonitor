@@ -1,6 +1,6 @@
 #include "monitor_system.h"
 #include "linux_monitor_system.h"
-
+#include "func.h"
 #ifndef WIN32
 #include <stdio.h>
 #include <sys/time.h>

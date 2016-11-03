@@ -230,7 +230,7 @@ on_accept(int fd, short ev, void *arg)
 	bufferevent_setcb(ins_client->buf_ev, buffered_on_read,
 		NULL, buffered_on_error, ins_client);
 
-	bufferevent_enable(ins_client->buf_ev, EV_READ |EV_WRITE|EV_PERSIST);
+	bufferevent_enable(ins_client->buf_ev, EV_READ|EV_WRITE|EV_PERSIST);
 
 	printf("Accepted connection from addr:%s port:%d\n",
 		inet_ntoa(client_addr.sin_addr), htons(client_addr.sin_port));
