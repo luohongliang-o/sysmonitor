@@ -53,7 +53,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;NO_WARN_MBCS_MFC_DEPRECATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../database/mysql/include;../SysMonitor;../database/mysql/src;../database/oracle/src;../database/ado/src;../database/ado/;../libevent/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../database/mysql/include;../database/oracle/src;../database/ado/src;../database/ado/;../libevent/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -108,9 +108,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\database\ado\src\ado2.h" />
-    <ClInclude Include="..\database\mysql\src\db_utility.h" />
-    <ClInclude Include="..\database\mysql\src\error.h" />
-    <ClInclude Include="..\database\mysql\src\simple_mysql.h" />
     <ClInclude Include="..\database\oracle\src\ocilib.h" />
     <ClInclude Include="..\database\oracle\src\ocilib.hpp" />
     <ClInclude Include="..\database\oracle\src\ocilib_core.hpp" />
@@ -118,6 +115,8 @@
     <ClInclude Include="assertions.h" />
     <ClInclude Include="autolink.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="db_utility.h" />
+    <ClInclude Include="error.h" />
     <ClInclude Include="features.h" />
     <ClInclude Include="forwards.h" />
     <ClInclude Include="func.h" />
@@ -134,6 +133,7 @@
     <ClInclude Include="port.h" />
     <ClInclude Include="protocol_manage.h" />
     <ClInclude Include="reader.h" />
+    <ClInclude Include="simple_mysql.h" />
     <ClInclude Include="sys_config.h" />
     <ClInclude Include="sys_monitor.h" />
     <ClInclude Include="targetver.h" />
@@ -143,8 +143,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\database\ado\src\ado2.cpp" />
-    <ClCompile Include="..\database\mysql\src\db_utility.cpp" />
-    <ClCompile Include="..\database\mysql\src\simple_mysql.cpp" />
+    <ClCompile Include="db_utility.cpp" />
     <ClCompile Include="func.cpp" />
     <ClCompile Include="json_reader.cpp" />
     <ClCompile Include="json_value.cpp" />
@@ -158,6 +157,7 @@
     <ClCompile Include="Oracle_Monitor.cpp" />
     <ClCompile Include="port.cpp" />
     <ClCompile Include="protocol_manage.cpp" />
+    <ClCompile Include="simple_mysql.cpp" />
     <ClCompile Include="sys_monitor.cpp" />
     <ClCompile Include="web_monitor.cpp" />
   </ItemGroup>

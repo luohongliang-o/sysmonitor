@@ -3,7 +3,7 @@
 #define LOGFILENAME "sysmonitor"
 #ifdef WIN32
 #define _WIN32_WINNT 0x0501 
-#include <targetver.h>
+//#include <targetver.h>
 #include <afx.h>
 #else
 #if !defined(SSIZE_T)
