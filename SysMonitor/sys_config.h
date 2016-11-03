@@ -26,7 +26,6 @@ using namespace std;
 #include "port.h"
 
 #if defined(NDEBUG)
-#pragma comment(lib,"nafxcw.lib")
 #pragma comment(lib,"ws2_32.lib")
 #pragma comment(lib,"wsock32.lib")
 #pragma comment(lib,"event.lib")
@@ -36,7 +35,6 @@ using namespace std;
 #pragma comment(lib,"ocilib.lib")
 #endif
 #if defined(_DEBUG)
-#pragma comment(lib,"nafxcwd.lib")
 #pragma comment(lib,"ws2_32.lib")
 #pragma comment(lib,"wsock32.lib")
 #pragma comment(lib,"event_d.lib")

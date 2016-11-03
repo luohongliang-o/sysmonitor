@@ -245,7 +245,7 @@ on_accept(int fd, short ev, void *arg)
 		inet_ntoa(client_addr.sin_addr), htons(client_addr.sin_port));
 }
 
-MYDLLAPI
+EXTERN_C MYDLLAPI
 void start()
 {
 #ifdef _WIN32

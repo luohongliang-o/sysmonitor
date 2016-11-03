@@ -18,7 +18,7 @@
 #else
 #define MYDLLAPI
 #endif
-extern "C" __declspec(dllexport) void start();
-//EXTERN_C MYDLLAPI void __stdcall start();
+//extern "C" __declspec(dllexport) void start();
+EXTERN_C MYDLLAPI void start();
 //EXTERN_C MYDLLAPI void __stdcall stop();
 #endif
