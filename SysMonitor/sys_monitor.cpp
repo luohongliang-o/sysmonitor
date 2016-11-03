@@ -48,7 +48,7 @@ HANDLE g_time_handle = NULL;
 #endif
 int    g_log_flag = 0;
 volatile bool g_thread_on_of = TRUE;
-
+#pragma pack(1)
 struct PacketHead{
 	short protocol_versoin;
 	long packet_len;
@@ -69,6 +69,7 @@ struct monitor_global
 	struct event_base *ev_base;
 	CProtocolManage* proto_manage;
 };
+#pragma pack()
 struct timeval time_val;
 
 #ifdef WIN32
@@ -158,6 +159,7 @@ buffered_on_read(struct bufferevent *bev, void *arg)
 			int read_buf_len = client->proto_manage->read(client->fd, client->buffer);
 			packet_data->packet_head.packet_len = read_buf_len ;
 			packet_data->packet_head.protocol_versoin = 1;
+			int sizelen = sizeof(PacketHead);
 			int all_len = packet_data->packet_head.packet_len + sizeof(PacketHead);
 			memcpy(packet_data->buf, client->buffer, read_buf_len);
 			if (read_buf_len > 0 && !strstr(client->buffer, "check error.")){
