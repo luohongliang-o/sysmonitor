@@ -1,4 +1,4 @@
-#include "sys_monitor.h"
+//#include "sys_monitor.h"
 #include "protocol_manage.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -158,7 +158,7 @@ buffered_on_read(struct bufferevent *bev, void *arg)
 			int read_buf_len = client->proto_manage->read(client->fd, client->buffer);
 			packet_data->packet_head.packet_len = read_buf_len ;
 			packet_data->packet_head.protocol_versoin = 1;
-			int all_len = packet_data->packet_head.packet_len + sizeof(packet_data->packet_head);
+			int all_len = packet_data->packet_head.packet_len + sizeof(PacketHead);
 			memcpy(packet_data->buf, client->buffer, read_buf_len);
 			if (read_buf_len > 0 && !strstr(client->buffer, "check error.")){
 				char current_time[128] = "";
