@@ -8,6 +8,7 @@ public:
 	~CWebMonitor(){ ; }
 
 	virtual int write(int fd, Value& json_value);
+	virtual int get_object_type(){ return MONITORTYPE_WEB; }
 protected:
 	bool IsW3wpRun();
 
@@ -22,6 +23,7 @@ public:
 	~CWebMonitor(){ ; }
 
 	virtual int write(int fd, Value& json_value);
+	virtual int get_object_type(){ return MONITORTYPE_WEB; }
 protected:
 };
 #endif

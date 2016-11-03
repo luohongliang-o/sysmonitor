@@ -15,7 +15,7 @@ public:
 	};
 
 	virtual int write(int fd, Value& json_value);
-
+	virtual int get_object_type(){ return MONITORTYPE_MYSQL; }
 private:
 	CMysqlConnection*  m_mysql_connection;
 

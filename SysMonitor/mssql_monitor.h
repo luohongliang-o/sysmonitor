@@ -13,6 +13,7 @@ public:
 	~CMsSqlMonitor(){ TDEL(m_plink_manage); };
 
 	virtual int write(int fd, Value& json_value);
+	virtual int get_object_type(){ return MONITORTYPE_MSSQL; }
 protected:
 	int get_counter_value(int data_sel, vector< int >& vt_data);
 private:

@@ -1,5 +1,5 @@
-#include "sys_monitor.h"
 #include "protocol_manage.h"
+#include "sys_monitor.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -48,6 +48,7 @@ HANDLE g_time_handle = NULL;
 int    g_log_flag = 0;
 volatile bool g_thread_on_of = TRUE;
 
+
 struct PacketHead{
 	short protocol_versoin;
 	long packet_len;
@@ -70,6 +71,9 @@ struct monitor_global
 };
 struct timeval time_val;
 
+
+//monitor_global* g_monitor = NULL;
+
 #ifdef WIN32
 #define err_plantform(n, erromsg) printf(erromsg)
 #else
@@ -86,6 +90,7 @@ struct timeval time_val;
 static unsigned __stdcall
 on_timer(void *arg)
 {
+	::CoInitialize(NULL);
 	monitor_global *g_monitor = (monitor_global*)arg;
 	if (g_monitor){
 		while (g_thread_on_of){
@@ -108,6 +113,7 @@ on_timer(void *arg)
 				Sleep(1000);
 		}
 	}
+	::CoUninitialize();
 	return 0;
 }
 #else 
@@ -305,13 +311,35 @@ void start()
 	}
 	event_dispatch();
 
+
 	TDEL(g_monitor->proto_manage);
 	event_base_free(g_monitor->ev_base);
 	TDEL(g_monitor);
 
 #ifdef WIN32
+/*
 	if (WaitForSingleObject(g_time_handle, 500) == WAIT_TIMEOUT)
 		TerminateThread(g_time_handle, 0);
+*/
+	WaitForSingleObject(g_time_handle, INFINITE);
+	CLOSEHANDLE(g_time_handle);
+#endif
+
+}
+
+/*
+MYDLLAPI
+void __stdcall stop()
+{
+	TDEL(g_monitor->proto_manage);
+	event_base_free(g_monitor->ev_base);
+	TDEL(g_monitor);
+
+#ifdef WIN32
+	//if (WaitForSingleObject(g_time_handle, 500) == WAIT_TIMEOUT)
+		//TerminateThread(g_time_handle, 0);
+	WaitForSingleObject(g_time_handle, INFINITE);
 	CLOSEHANDLE(g_time_handle);
 #endif
 }
+*/

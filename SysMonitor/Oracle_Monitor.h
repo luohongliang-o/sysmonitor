@@ -8,7 +8,7 @@ public:
 	~COracleMonitor(){};
 
 	virtual int write(int fd, Value& json_value);
-
+	virtual int get_object_type(){ return MONITORTYPE_ORACAL; }
 private:
 
 

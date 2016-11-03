@@ -14,7 +14,7 @@
 #define DBUG_RETURN     return
 
 #undef  STRSTR
-#   define STRSTR(s,l,f)                strstr(s, f)
+#define STRSTR(s,l,f)                strstr(s, f)
 
 #undef  STRCHR
 #define STRCHR(s,l,c)   strchr(s,c)
@@ -27,7 +27,7 @@ static rc_t get_param_value(uint32_t* pos, uint32_t* len, const int8_t* str, con
   DBUG_ENTER("get_param_value");
   if (NULL == pos || NULL == len || NULL == str || NULL == param) { return RC_S_NULL_VALUE; }
 
-  pdest = STRSTR(str, STRLEN(str), param);
+  pdest = strstr((const char*)str,  (char*)param);
   if (NULL == pdest || str == pdest || ' ' != (*(pdest - 1))) { DBUG_RETURN(RC_S_NOTFOUND); }
 
   (*pos) = (uint32_t)(pdest - str) + 1 + STRLEN(param) + 1; /* " */

@@ -105,7 +105,7 @@ CSysInfo::WriteCounterVaule(int counter_num,vector<string>* list_counter, Value*
 	if (Status != ERROR_SUCCESS) goto Cleanup;
 	
 	for (int i = 0; i < counter_num; i++){
-		PDH_HCOUNTER *pdh_hcounter = new PDH_HCOUNTER;
+		PDH_HCOUNTER *pdh_hcounter = (HCOUNTER*)GlobalAlloc(GPTR, sizeof(HCOUNTER));
 		Status = PdhAddCounter(Query, temp_list_counter[i].c_str(), 0, pdh_hcounter);
 		if (Status != ERROR_SUCCESS) goto Cleanup;
 		vt_hcounter.push_back(pdh_hcounter);
@@ -129,7 +129,7 @@ CSysInfo::WriteCounterVaule(int counter_num,vector<string>* list_counter, Value*
 Cleanup:
 	for (int x = 0; x < vt_hcounter.size(); x++){
 		PdhRemoveCounter(*vt_hcounter[x]);
-		TDEL(vt_hcounter[x]);
+		GlobalFree(vt_hcounter[x]);
 	}
 	if (Query)
 		PdhCloseQuery(Query);
@@ -259,23 +259,25 @@ void CBuildMonitor::ConcreteMonitor(int type)
 #ifdef WIN32
 	if (MONITORTYPE_SYSTEM_INFO == type)
 		m_system_monitor = new CSysInfo();
-	if (MONITORTYPE_PROCESS == type)
+	else if (MONITORTYPE_PROCESS == type)
 		m_system_monitor = new CProcessMonitor();
-	if (MONITORTYPE_MSSQL == type)
+	else if (MONITORTYPE_MSSQL == type)
 		m_system_monitor = new CMsSqlMonitor();
 #endif // WEIN32
 #if defined(HAS_MYSQL)
-	if (MONITORTYPE_MYSQL == type)
+	else if (MONITORTYPE_MYSQL == type)
 		m_system_monitor = new CMysqlMonitor();
 #endif
-	if (MONITORTYPE_LINUX_SYSINFO == type)
+	else if (MONITORTYPE_LINUX_SYSINFO == type)
 		m_system_monitor = new CLinuxSysinfo();
-	if (MONITORTYPE_WEB == type)
+	else if (MONITORTYPE_WEB == type)
 		m_system_monitor = new CWebMonitor();
 #if defined(HAS_ORACLE)
-	if (MONITORTYPE_ORACAL == type)
+	else if (MONITORTYPE_ORACAL == type)
 		m_system_monitor = new COracleMonitor();
 #endif
+	else
+		m_system_monitor = NULL;
 }
 
 CBuildMonitor::~CBuildMonitor()

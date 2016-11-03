@@ -6,6 +6,7 @@ public:
 	~CLinuxSysinfo(){ ; };
 
 	virtual int write(int fd, Value& json_value);
+	virtual int get_object_type(){ return MONITORTYPE_LINUX_SYSINFO; }
 protected:
 
 	void  get_loadavg(Value& json_value);         //cpu∏∫‘ÿ
