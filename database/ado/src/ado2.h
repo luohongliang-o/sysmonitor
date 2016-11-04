@@ -78,7 +78,7 @@ public:
 		m_strConnection = _T("");
 		m_strLastError = _T("");
 		m_dwLastError = 0;
-		m_pConnection.CreateInstance(__uuidof(Connection));
+		m_pConnection.CreateInstance(__uuidof(ADODB::Connection));
 		m_nRecordsAffected = 0;
 		m_nConnectionTimeout = 0;
 	}

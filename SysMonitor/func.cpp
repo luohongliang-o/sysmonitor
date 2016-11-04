@@ -106,3 +106,53 @@ int GetFormatSystemTime(char* current_time, int str_len)
 // {
 // 	writelog_static(logflag, p_lpcszFileNamePrifix, p_lpcszFormat);
 // }
+#ifdef WIN32
+#pragma comment( linker, "/subsystem:/"windows/" /entry:/"mainCRTStartup/"" ) // 设置入口地址  
+BOOL system_hide(char* CommandLine,char* pbuffer,int buffer_len)
+{
+	//DWORD tick1 = GetTickCount();
+	SECURITY_ATTRIBUTES   sa;
+	HANDLE   hRead, hWrite;
+
+	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+	sa.lpSecurityDescriptor = NULL;
+	sa.bInheritHandle = TRUE;
+	if (!CreatePipe(&hRead, &hWrite, &sa, 0))
+	{
+		return   FALSE;
+	}
+
+	STARTUPINFO   si;
+	PROCESS_INFORMATION   pi;
+	si.cb = sizeof(STARTUPINFO);
+	GetStartupInfo(&si);
+	si.hStdError = hWrite;
+	si.hStdOutput = hWrite;
+	si.wShowWindow = SW_HIDE;
+	si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
+	if (!CreateProcess(NULL, CommandLine, NULL, NULL, TRUE, NULL, NULL, NULL, &si, &pi)){
+		return   FALSE;
+	}
+	CloseHandle(hWrite);
+	DWORD   bytesRead = 0;
+	int cur_read_len = 0;
+	char temp_buffer[10*1024] = {0};
+ 	while (true)
+ 	{
+		cur_read_len += bytesRead;
+		memset(temp_buffer, 0, 10*1024);
+		if (ReadFile(hRead, temp_buffer, buffer_len, &bytesRead, NULL) == NULL)
+			break;
+		memmove(pbuffer + cur_read_len, temp_buffer, bytesRead);
+		Sleep(100);
+	}
+// 	DWORD tick2 = GetTickCount();
+// 	printf("cmmandline time:%d\n", tick2 - tick1);
+	WaitForSingleObject(pi.hProcess, INFINITE);
+	CloseHandle(hRead);
+	CloseHandle(pi.hThread);
+	CloseHandle(pi.hProcess);
+	return   TRUE;
+}
+
+#endif

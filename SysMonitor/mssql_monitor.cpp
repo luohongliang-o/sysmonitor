@@ -1,8 +1,9 @@
 #include "mssql_monitor.h"
 #ifdef WIN32
-
+CMsSqlMonitor* CMsSqlMonitor::_instance = NULL;
 int CMsSqlMonitor::write(int fd, Value& json_value)
 {
+	//DWORD tick1 = GetTickCount();
 	int datanum = CLoadConfig::CreateInstance()->get_db_count();
 	Value temp_json_value;
 	for (int i = 0; i < datanum; i++){
@@ -25,7 +26,8 @@ int CMsSqlMonitor::write(int fd, Value& json_value)
 		}
 		json_value.append(temp_json_value);
 	}
-
+// 	DWORD tick2 = GetTickCount();
+// 	printf("mssql write time:%d\n",tick2 - tick1);
 	return 0;
 }
 

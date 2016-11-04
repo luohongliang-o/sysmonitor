@@ -12,19 +12,13 @@ CProtocolManage::CProtocolManage()
 	vector< short > object_type = CLoadConfig::CreateInstance()->get_object_type();
 	m_build_monitor = new CBuildMonitor;
 	for (int i = 0; i < OBJECT_NUM;i++){
-		m_build_monitor->ConcreteMonitor(object_type[i]);
-		CMonitorSystem* monitorsys = m_build_monitor->get_monitor_obj();
-		m_vector_monitor_object.push_back(monitorsys);
+		m_build_monitor->ConcreteMonitor(i,object_type[i]);
 	}
 
 }
 
 CProtocolManage::~CProtocolManage()
 {
-	for (int i = 0; i < m_vector_monitor_object.size();i++)
-	{
-		TDEL(m_vector_monitor_object[i]);
-	}
 	TDEL(m_build_monitor);
 	m_list_buf.clear();
 }
@@ -88,7 +82,7 @@ int CProtocolManage::write(int fd)
 	vector< short > object_type = CLoadConfig::CreateInstance()->get_object_type();
 	for (int i = 0; i < OBJECT_NUM; i++){
 		Value json_value;
-		CMonitorSystem* monitorsys = m_vector_monitor_object[i];
+		CMonitorSystem* monitorsys = m_build_monitor->get_monitor_obj(i);
 		if (monitorsys){
 			monitorsys->write(fd, json_value);
 			if (json_value.isNull()){

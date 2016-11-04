@@ -1,6 +1,8 @@
 #include "web_monitor.h"
 #ifdef WIN32
 #include <tlhelp32.h>
+
+CWebMonitor* CWebMonitor::_instance = NULL;
 int CWebMonitor::write(int fd, Value& json_value)
 {
 

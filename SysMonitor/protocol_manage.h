@@ -23,7 +23,6 @@ private:
 	char m_os_version[100];
 	int  m_log_flag;
 	CBuildMonitor* m_build_monitor;
-	vector<CMonitorSystem*> m_vector_monitor_object;
 };
 
 #endif

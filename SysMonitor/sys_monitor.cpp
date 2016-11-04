@@ -325,16 +325,18 @@ void start()
 
 }
 
-MYDLLAPI
+EXTERN_C MYDLLAPI
 void stop()
 {
 #ifdef WIN32
-	if (WaitForSingleObject(g_time_handle, 500) == WAIT_TIMEOUT)
-		TerminateThread(g_time_handle, 0);
+// 	if (WaitForSingleObject(g_time_handle, 500) == WAIT_TIMEOUT)
+// 		TerminateThread(g_time_handle, 0);
+	event_loopbreak();
+	WaitForSingleObject(g_time_handle, INFINITE);
 	CLOSEHANDLE(g_time_handle);
 #endif
 	TDEL(g_monitor->proto_manage);
 	event_base_free(g_monitor->ev_base);
 	TDEL(g_monitor);
-	event_loopbreak();
+	
 }

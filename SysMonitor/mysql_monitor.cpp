@@ -1,8 +1,10 @@
 #include "mysql_monitor.h"
 #ifdef HAS_MYSQL
+CMysqlMonitor* CMysqlMonitor::_instance = NULL;
 int
 CMysqlMonitor::write(int fd, Value& json_value)
 {
+	//DWORD tick1 = GetTickCount();
 	uint64_t row_count = 0;
 	uint32_t field_count = 0;
 	m_mysql_connection->connect(CLoadConfig::CreateInstance()->get_mysql_connection_string());
@@ -20,6 +22,8 @@ CMysqlMonitor::write(int fd, Value& json_value)
 		}
 		record_set->next();
 	}
+// 	DWORD tick2 = GetTickCount();
+// 	printf("mysql wirte time:%d\n", tick2 - tick1);
 	return 0;
 }
 #endif

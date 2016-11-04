@@ -13,12 +13,18 @@ public:
 	~CMysqlMonitor(){
 		TDEL(m_mysql_connection);
 	};
+	static CMysqlMonitor* get_instance()
+	{
+		if (!_instance) _instance = new CMysqlMonitor;
+		return _instance;
+	}
 
 	virtual int write(int fd, Value& json_value);
 	virtual int get_object_type(){ return MONITORTYPE_MYSQL; }
 private:
 	CMysqlConnection*  m_mysql_connection;
-
+	DISALLOW_COPY_AND_ASSIGN(CMysqlMonitor);
+	static CMysqlMonitor* _instance;
 };
 
 #endif

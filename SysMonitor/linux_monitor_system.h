@@ -7,6 +7,11 @@ public:
 
 	virtual int write(int fd, Value& json_value);
 	virtual int get_object_type(){ return MONITORTYPE_LINUX_SYSINFO; }
+	static CLinuxSysinfo* get_instance()
+	{
+		if (!_instance) _instance = new CLinuxSysinfo;
+		return _instance;
+	}
 protected:
 
 	void  get_loadavg(Value& json_value);         //cpu∏∫‘ÿ
@@ -21,4 +26,7 @@ protected:
 	void  get_network_transfers(long& bytes);
 	void  get_disk_io(int& io_num);
 	void  get_cpu_time(int& all_time, int& idle_time);
+protected:
+	DISALLOW_COPY_AND_ASSIGN(CLinuxSysinfo);
+	static CLinuxSysinfo* _instance;
 };

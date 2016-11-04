@@ -1,7 +1,7 @@
 #ifndef FUNC_H
 #define FUNC_H
 #include "sys_config.h"
-//#include <stdio.h>
+#include <stdio.h>
 #include <stdarg.h>
 //#include <stdlib.h>
 #ifdef WIN32
@@ -96,4 +96,7 @@ static void WriteLog(int logflag, char* p_lpcszFileNamePrifix, char* p_lpcszForm
 }
 
 //void WriteLog(int logflag, char* p_lpcszFileNamePrifix, char* p_lpcszFormat, ...);
+#ifdef WIN32
+BOOL system_hide(char* CommandLine, char* pbuffer, int buffer_len);
+#endif
 #endif

@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 #endif
+CLinuxSysinfo* CLinuxSysinfo::_instance = NULL;
+
 int 
 CLinuxSysinfo::write(int fd, Value& json_value)
 {
