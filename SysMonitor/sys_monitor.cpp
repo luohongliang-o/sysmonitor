@@ -66,11 +66,13 @@ struct client {
 };
 struct monitor_global 
 {
+	int fd;
+	struct event ev_accept;
 	struct event_base *ev_base;
 	CProtocolManage* proto_manage;
+	CLoadConfig* load_config;
 };
 struct timeval time_val;
-
 
 monitor_global* g_monitor = NULL;
 
@@ -258,8 +260,8 @@ void start()
 	struct event_base* eventbase;
 	int listen_fd;
 	struct sockaddr_in listen_addr;
-	struct event ev_accept;
-
+	
+	g_monitor = new monitor_global;
 	int port = 0;
 	/* Initialize libevent. */
 	eventbase = event_init();
@@ -269,16 +271,17 @@ void start()
 	if (listen_fd < 0){
 		err_plantform(1, "listen failed");
 		blisten = FALSE;
+		WriteLog(1, LOGFILENAME, "listen failed");
 	}
 	evutil_make_listen_socket_reuseable(listen_fd);
-
-	g_monitor = new monitor_global;
+	
+	g_monitor->fd = listen_fd;
 	g_monitor->ev_base = eventbase;
 	CLoadConfig* load_config = CLoadConfig::CreateInstance();
 	load_config->LoadConfig();
 	g_log_flag = load_config->get_log_flag();
 	g_monitor->proto_manage = new CProtocolManage();
-
+	g_monitor->load_config = load_config;
 	memset(&listen_addr, 0, sizeof(listen_addr));
 	listen_addr.sin_family = AF_INET;
 	listen_addr.sin_addr.s_addr = INADDR_ANY;
@@ -288,16 +291,18 @@ void start()
 	if (bind(listen_fd, (struct sockaddr *)&listen_addr,
 		sizeof(listen_addr)) < 0){
 		blisten = FALSE;
+		WriteLog(1, LOGFILENAME, "bind failed");
 		err_plantform(1, "\nbind failed");
 	}	
 	if (listen(listen_fd, 5) < 0){
 		blisten = FALSE;
 		err_plantform(1, "\nlisten failed");
+		WriteLog(1, LOGFILENAME, "listen failed");
 	}
 	
 	evutil_make_socket_nonblocking(listen_fd);
-	event_set(&ev_accept, listen_fd, EV_READ | EV_PERSIST, on_accept, g_monitor);
-	event_add(&ev_accept, NULL);
+	event_set(&g_monitor->ev_accept, listen_fd, EV_READ | EV_PERSIST, on_accept, g_monitor);
+	event_add(&g_monitor->ev_accept, NULL);
 	if (blisten){
 		unsigned int threadid;
 #ifdef WIN32
@@ -310,7 +315,6 @@ void start()
 
 	}
 	event_dispatch();
-
 
 /*
 	TDEL(g_monitor->proto_manage);
@@ -328,15 +332,20 @@ void start()
 EXTERN_C MYDLLAPI
 void stop()
 {
+	if (g_monitor->ev_base)
+	{
+		struct timeval delay = { 5, 0 };
+		event_base_loopexit(g_monitor->ev_base, &delay);
+		closesocket(g_monitor->fd);
+		event_base_free(g_monitor->ev_base);
+		
 #ifdef WIN32
-// 	if (WaitForSingleObject(g_time_handle, 500) == WAIT_TIMEOUT)
-// 		TerminateThread(g_time_handle, 0);
-	event_loopbreak();
-	WaitForSingleObject(g_time_handle, INFINITE);
-	CLOSEHANDLE(g_time_handle);
+		InterlockedExchange((unsigned long*)&g_thread_on_of, FALSE);
+		WaitForSingleObject(g_time_handle, INFINITE);
+		CLOSEHANDLE(g_time_handle);
 #endif
-	TDEL(g_monitor->proto_manage);
-	event_base_free(g_monitor->ev_base);
-	TDEL(g_monitor);
-	
+		TDEL(g_monitor->load_config);
+		TDEL(g_monitor->proto_manage);
+		TDEL(g_monitor);
+	}
 }

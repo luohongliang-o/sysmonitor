@@ -7,7 +7,7 @@ class CMsSqlMonitor :public CMonitorSystem
 public:
 	CMsSqlMonitor()
 	{
-		m_plink_manage = new CLinkManager();
+		m_plink_manage = new CLinkManager;
 		m_plink_manage->Init();
 	};
 	~CMsSqlMonitor(){ TDEL(m_plink_manage); };

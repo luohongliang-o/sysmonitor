@@ -52,7 +52,10 @@ class CSysInfo :public CMonitorSystem
 {
 public:
 	CSysInfo(){ ; };
-	~CSysInfo(){ ; };
+	~CSysInfo()
+	{
+		;
+	};
 
 	virtual int write(int fd, Value& json_value);
 	virtual int get_object_type(){ return MONITORTYPE_SYSTEM_INFO; }
@@ -73,7 +76,10 @@ class CProcessMonitor : public CMonitorSystem
 {
 public:
 	CProcessMonitor(){ ; }
-	~CProcessMonitor(){ m_map_process_name_pid.clear(); }
+	~CProcessMonitor()
+	{ 
+		m_map_process_name_pid.clear(); 
+	}
 	virtual int write(int fd, Value& json_value);
 	virtual int get_object_type(){ return MONITORTYPE_PROCESS; }
 	static CProcessMonitor* get_instance()
@@ -103,7 +109,7 @@ public:
 	{
 		m_vector_system_monitor = vector<CMonitorSystem*>(NULL);
 		int object_num = CLoadConfig::CreateInstance()->get_object_num();
-		m_vector_system_monitor.resize(object_num);
+		m_vector_system_monitor.resize(OBJECT_NUM);
 	};
 
 	void ConcreteMonitor(int object_index,int type);

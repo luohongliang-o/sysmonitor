@@ -3,7 +3,7 @@
 #include "load_config.h"
 #define  CHECK_WORD "sysmonitor"
 #define  CHECK_ERROR "check error."
-#define  OBJECT_NUM 6
+
 CProtocolManage::CProtocolManage()
 {
 	m_bCheck = false;
