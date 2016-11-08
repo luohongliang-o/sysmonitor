@@ -233,7 +233,7 @@ on_accept(int fd, short ev, void *arg)
 	bufferevent_setcb(ins_client->buf_ev, buffered_on_read,
 		NULL, buffered_on_error, ins_client);
 
-	bufferevent_enable(ins_client->buf_ev, EV_READ |EV_WRITE|EV_PERSIST);
+	bufferevent_enable(ins_client->buf_ev, EV_READ|EV_WRITE|EV_PERSIST);
 
 	printf("Accepted connection from addr:%s port:%d\n",
 		inet_ntoa(client_addr.sin_addr), htons(client_addr.sin_port));
@@ -242,10 +242,8 @@ on_accept(int fd, short ev, void *arg)
 		inet_ntoa(client_addr.sin_addr), htons(client_addr.sin_port));
 }
 
- int
- main(int argc, char **argv)
-//MYDLLAPI
-//void start()
+
+int main()
 {
 #ifdef _WIN32
 	WORD w_version_requested;

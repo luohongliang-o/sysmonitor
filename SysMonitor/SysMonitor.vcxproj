@@ -53,14 +53,15 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;NO_WARN_MBCS_MFC_DEPRECATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Program Files (x86)\MySQL\MySQL Server 5.5\include;../SysMonitor;../database/mysql;../database/oracle/include;../database/ado;../libevent/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../database/mysql/include;../database/ado/src;../SysMonitor;../database/oracle/src;../database/ado;../libevent/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Program Files (x86)\MySQL\MySQL Server 5.5\lib;../database/oracle/lib;../libevent/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ws2_32.lib;wsock32.lib;event_d.lib;event_core_d.lib;event_extra_d.lib;libmysql.lib;ocilib_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../database/mysql/lib;../database/oracle/lib;../libevent/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
     </Link>
@@ -73,6 +74,9 @@
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
     </Lib>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -99,17 +103,16 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\database\ado\ado2.h" />
-    <ClInclude Include="..\database\mysql\db_utility.h" />
-    <ClInclude Include="..\database\mysql\error.h" />
-    <ClInclude Include="..\database\mysql\simple_mysql.h" />
-    <ClInclude Include="..\database\oracle\include\ocilib.h" />
-    <ClInclude Include="..\database\oracle\include\ocilib.hpp" />
-    <ClInclude Include="..\database\oracle\include\ocilib_core.hpp" />
-    <ClInclude Include="..\database\oracle\include\ocilib_impl.hpp" />
+    <ClInclude Include="..\database\ado\src\ado2.h" />
+    <ClInclude Include="..\database\oracle\src\ocilib.h" />
+    <ClInclude Include="..\database\oracle\src\ocilib.hpp" />
+    <ClInclude Include="..\database\oracle\src\ocilib_core.hpp" />
+    <ClInclude Include="..\database\oracle\src\ocilib_impl.hpp" />
     <ClInclude Include="assertions.h" />
     <ClInclude Include="autolink.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="db_utility.h" />
+    <ClInclude Include="error.h" />
     <ClInclude Include="features.h" />
     <ClInclude Include="forwards.h" />
     <ClInclude Include="func.h" />
@@ -126,6 +129,7 @@
     <ClInclude Include="port.h" />
     <ClInclude Include="protocol_manage.h" />
     <ClInclude Include="reader.h" />
+    <ClInclude Include="simple_mysql.h" />
     <ClInclude Include="sys_config.h" />
     <ClInclude Include="sys_monitor.h" />
     <ClInclude Include="targetver.h" />
@@ -134,9 +138,8 @@
     <ClInclude Include="writer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\database\ado\ado2.cpp" />
-    <ClCompile Include="..\database\mysql\db_utility.cpp" />
-    <ClCompile Include="..\database\mysql\simple_mysql.cpp" />
+    <ClCompile Include="..\database\ado\src\ado2.cpp" />
+    <ClCompile Include="db_utility.cpp" />
     <ClCompile Include="func.cpp" />
     <ClCompile Include="json_reader.cpp" />
     <ClCompile Include="json_value.cpp" />
@@ -150,6 +153,7 @@
     <ClCompile Include="Oracle_Monitor.cpp" />
     <ClCompile Include="port.cpp" />
     <ClCompile Include="protocol_manage.cpp" />
+    <ClCompile Include="simple_mysql.cpp" />
     <ClCompile Include="sys_monitor.cpp" />
     <ClCompile Include="web_monitor.cpp" />
   </ItemGroup>

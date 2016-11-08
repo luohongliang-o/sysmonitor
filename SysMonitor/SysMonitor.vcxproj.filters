@@ -84,35 +84,11 @@
     <ClInclude Include="load_config.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\database\ado\ado2.h">
-      <Filter>database\ado</Filter>
-    </ClInclude>
     <ClInclude Include="link_manager.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\database\mysql\simple_mysql.h">
-      <Filter>database\mysql</Filter>
-    </ClInclude>
     <ClInclude Include="port.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\database\mysql\error.h">
-      <Filter>database\mysql</Filter>
-    </ClInclude>
-    <ClInclude Include="..\database\mysql\db_utility.h">
-      <Filter>database\mysql</Filter>
-    </ClInclude>
-    <ClInclude Include="..\database\oracle\include\ocilib.h">
-      <Filter>database\oracle</Filter>
-    </ClInclude>
-    <ClInclude Include="..\database\oracle\include\ocilib.hpp">
-      <Filter>database\oracle</Filter>
-    </ClInclude>
-    <ClInclude Include="..\database\oracle\include\ocilib_core.hpp">
-      <Filter>database\oracle</Filter>
-    </ClInclude>
-    <ClInclude Include="..\database\oracle\include\ocilib_impl.hpp">
-      <Filter>database\oracle</Filter>
     </ClInclude>
     <ClInclude Include="mysql_monitor.h">
       <Filter>头文件</Filter>
@@ -131,6 +107,30 @@
     </ClInclude>
     <ClInclude Include="sys_monitor.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\database\ado\src\ado2.h">
+      <Filter>database\ado</Filter>
+    </ClInclude>
+    <ClInclude Include="db_utility.h">
+      <Filter>database\mysql</Filter>
+    </ClInclude>
+    <ClInclude Include="error.h">
+      <Filter>database\mysql</Filter>
+    </ClInclude>
+    <ClInclude Include="simple_mysql.h">
+      <Filter>database\mysql</Filter>
+    </ClInclude>
+    <ClInclude Include="..\database\oracle\src\ocilib.h">
+      <Filter>database\oracle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\database\oracle\src\ocilib.hpp">
+      <Filter>database\oracle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\database\oracle\src\ocilib_core.hpp">
+      <Filter>database\oracle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\database\oracle\src\ocilib_impl.hpp">
+      <Filter>database\oracle</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -161,20 +161,11 @@
     <ClCompile Include="load_config.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\database\ado\ado2.cpp">
-      <Filter>database\ado</Filter>
-    </ClCompile>
     <ClCompile Include="link_manager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\database\mysql\simple_mysql.cpp">
-      <Filter>database\mysql</Filter>
-    </ClCompile>
     <ClCompile Include="port.cpp">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\database\mysql\db_utility.cpp">
-      <Filter>database\mysql</Filter>
     </ClCompile>
     <ClCompile Include="mysql_monitor.cpp">
       <Filter>源文件</Filter>
@@ -187,6 +178,15 @@
     </ClCompile>
     <ClCompile Include="mssql_monitor.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\database\ado\src\ado2.cpp">
+      <Filter>database\ado</Filter>
+    </ClCompile>
+    <ClCompile Include="db_utility.cpp">
+      <Filter>database\mysql</Filter>
+    </ClCompile>
+    <ClCompile Include="simple_mysql.cpp">
+      <Filter>database\mysql</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

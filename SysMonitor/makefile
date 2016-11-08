@@ -3,6 +3,7 @@ XX = g++
 CFLAGS = -Wall -O 
 
 TARGET = ./sysmonitor
+INC_SYSMONITOR = ../Sysmonitor/
 INC_LIBEVENT = ../libevent/include/ 
 INC_MYSQL = ../database/mysql/include/
 #INC_ORACLE = ../database/oracle/include/
@@ -13,11 +14,11 @@ INC_MYSQL = ../database/mysql/include/
 
 %.o:%.cpp
 
-	$(XX) $(CFLAGS) -c  -I$(INC_LIBEVENT) -I$(INC_MYSQL) $< -o $@
+	$(XX) $(CFLAGS) -c -I$(INC) $< -o $@
 
  
 
-SOURCES = $(wildcard *.c *.cpp)
+SOURCES = $(wildcard *.c *.cpp )
 OBJS = $(patsubst %.c,%.o,$(patsubst %.cpp,%.o,$(SOURCES)))
 
 LIBPATH_LIBEVENT = -L../libevent/lib
@@ -25,7 +26,7 @@ LIBPATH_MYSQL = -L../database/mysql/lib
 LIB_LIBEVENT = -levent -levent_core -levent_extra 
 LIB_MYSQL = -llibmysqlclient
 $(TARGET) : $(OBJS)
-	$(XX) $(OBJS) $(LIBPATH_LIBEVENT) $(LIBPATH_MYSQL) $(LIB_LIBEVENT) $(LIB_MYSQL) -lm -lrt -o $(TARGET)  
+	$(XX) $(OBJS) $(LIBPATH) $(LIB) -lm -lrt -o $(TARGET)  
 
 	chmod a+x $(TARGET)
 
