@@ -5,12 +5,12 @@ CLinkManager::CLinkManager()
 {
 	memset(m_aLinkInfo, 0, sizeof(OPLINK)*MAX_LINK_NUM);
 	m_nFailCount = 0;
-	::CoInitialize(NULL);
+//	::CoInitialize(NULL);
 }
 
 CLinkManager::~CLinkManager()
 {
-	::CoUninitialize();
+//	::CoUninitialize();
 	Exit();
 }
 

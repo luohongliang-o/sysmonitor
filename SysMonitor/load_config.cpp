@@ -4,16 +4,16 @@
 CLoadConfig::CLoadConfig()
 {
 	m_monitor_config = new MonitorConfig;
-	memset(m_monitor_config, 0, sizeof(MonitorConfig));
+	//memset(m_monitor_config, 0, sizeof(MonitorConfig));
 }
 
 CLoadConfig::~CLoadConfig()
 {
-	TDEL(m_monitor_config);
-
+ 	TDEL(m_monitor_config);
+	
 }
 
-CLoadConfig* CLoadConfig::_instance = new CLoadConfig;
+CLoadConfig* CLoadConfig::_instance = NULL;
 CLoadConfig* CLoadConfig::CreateInstance()
 {
 	if (_instance == NULL)
@@ -23,6 +23,7 @@ CLoadConfig* CLoadConfig::CreateInstance()
 
 void CLoadConfig::LoadConfig()
 {
+
 	char filebuf[256] = "";
 	GetCurrentPath(filebuf, "config.ini");
 	
@@ -31,16 +32,16 @@ void CLoadConfig::LoadConfig()
 	m_monitor_config->log_flag = GetIniKeyInt("service", "logflag", filebuf);
 	//monitortype
 	{
-		m_monitor_config->object_num = GetIniKeyInt("monitortype", "num", filebuf);
-		m_monitor_config->object_type.resize(m_monitor_config->object_num);
-		for (int i = 0; i < m_monitor_config->object_num; i++){
+		//m_monitor_config->object_num = GetIniKeyInt("monitortype", "num", filebuf);
+		m_monitor_config->object_type.resize(OBJECT_NUM/*m_monitor_config->object_num*/);
+		for (int i = 0; i < OBJECT_NUM; i++){
 			char objectkey[6] = "";
 			sprintf_s(objectkey, sizeof(objectkey), "%s%d", "type", i + 1);
 			m_monitor_config->object_type[i] = GetIniKeyInt("monitortype", objectkey, filebuf);
 		}
 	}
 	{
-		for (int i = 0; i < m_monitor_config->object_num; i++){
+		for (int i = 0; i < OBJECT_NUM; i++){
 			if (m_monitor_config->object_type[i] == CONFIG_SYSTEM){
 				m_monitor_config->counter_num = GetIniKeyInt("system", "counter_num", filebuf);
 				m_monitor_config->counter_name.resize(m_monitor_config->counter_num);
@@ -117,9 +118,12 @@ vector< short > CLoadConfig::get_object_type()
 
 int CLoadConfig::get_object_num()
 {
+/*
 	if (m_monitor_config)
 		return m_monitor_config->object_num;
 	return 0;
+*/
+	return OBJECT_NUM;
 }
 
 int CLoadConfig::get_counter_num()

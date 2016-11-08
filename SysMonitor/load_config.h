@@ -3,6 +3,7 @@
 #include "sys_config.h"
 #define MAX_LINK_NUM 30
 #define MAX_DBCOUNT  5
+#define  OBJECT_NUM 6
 //  ˝æ›ø‚≈‰÷√
 typedef struct tagDBCONFIG
 {
@@ -35,7 +36,7 @@ public:
 		short      listen_port;
 		int        log_flag;
 		//monitortype
-		int        object_num;
+		//int        object_num;
 		vector< short >     object_type;
 		//system
 		int        counter_num;

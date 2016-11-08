@@ -1,6 +1,6 @@
 #include "monitor_system.h"
 #include "linux_monitor_system.h"
-
+#include "func.h"
 #ifndef WIN32
 #include <stdio.h>
 #include <sys/time.h>
@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 #endif
+CLinuxSysinfo* CLinuxSysinfo::_instance = NULL;
+
 int 
 CLinuxSysinfo::write(int fd, Value& json_value)
 {

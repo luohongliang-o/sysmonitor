@@ -1,5 +1,6 @@
 #include "mysql_monitor.h"
 #ifdef HAS_MYSQL
+CMysqlMonitor* CMysqlMonitor::_instance = NULL;
 int
 CMysqlMonitor::write(int fd, Value& json_value)
 {

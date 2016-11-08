@@ -3,16 +3,24 @@
 #include "load_config.h"
 #define  CHECK_WORD "sysmonitor"
 #define  CHECK_ERROR "check error."
-#define  OBJECT_NUM 6
+
 CProtocolManage::CProtocolManage()
 {
 	m_bCheck = false;
 	m_list_buf = list< string >(NULL);
 	m_log_flag = CLoadConfig::CreateInstance()->get_log_flag();
+	vector< short > object_type = CLoadConfig::CreateInstance()->get_object_type();
+	m_build_monitor = new CBuildMonitor;
+	for (int i = 0; i < OBJECT_NUM;i++){
+		m_build_monitor->ConcreteMonitor(i,object_type[i]);
+	}
+
 }
 
 CProtocolManage::~CProtocolManage()
 {
+	TDEL(m_build_monitor);
+	m_list_buf.clear();
 }
 
 int 
@@ -74,9 +82,7 @@ int CProtocolManage::write(int fd)
 	vector< short > object_type = CLoadConfig::CreateInstance()->get_object_type();
 	for (int i = 0; i < OBJECT_NUM; i++){
 		Value json_value;
-		CBuildMonitor build_monitor;
-		build_monitor.ConcreteMonitor(object_type[i]);
-		CMonitorSystem* monitorsys = build_monitor.get_monitor_obj();
+		CMonitorSystem* monitorsys = m_build_monitor->get_monitor_obj(i);
 		if (monitorsys){
 			monitorsys->write(fd, json_value);
 			if (json_value.isNull()){

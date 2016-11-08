@@ -1,4 +1,3 @@
-//#include "sys_monitor.h"
 #include "protocol_manage.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -21,7 +20,6 @@
 #else
 #include <time.h>
 #include <WinSock2.h>
-//#pragma comment(lib,"ws2_32.lib")
 #include <io.h>
 #include <process.h>
 #endif
@@ -88,6 +86,7 @@ struct timeval time_val;
 static unsigned __stdcall
 on_timer(void *arg)
 {
+	::CoInitialize(NULL);
 	monitor_global *g_monitor = (monitor_global*)arg;
 	if (g_monitor){
 		while (g_thread_on_of){
@@ -110,6 +109,7 @@ on_timer(void *arg)
 				Sleep(1000);
 		}
 	}
+	::CoUninitialize();
 	return 0;
 }
 #else 
@@ -268,6 +268,7 @@ on_accept(int fd, short ev, void *arg)
 	if (listen_fd < 0){
 		err_plantform(1, "listen failed");
 		blisten = FALSE;
+		WriteLog(1, LOGFILENAME, "listen failed");
 	}
 	evutil_make_listen_socket_reuseable(listen_fd);
 
@@ -287,11 +288,13 @@ on_accept(int fd, short ev, void *arg)
 	if (bind(listen_fd, (struct sockaddr *)&listen_addr,
 		sizeof(listen_addr)) < 0){
 		blisten = FALSE;
+		WriteLog(1, LOGFILENAME, "bind failed");
 		err_plantform(1, "\nbind failed");
 	}	
 	if (listen(listen_fd, 5) < 0){
 		blisten = FALSE;
 		err_plantform(1, "\nlisten failed");
+		WriteLog(1, LOGFILENAME, "listen failed");
 	}
 	
 	evutil_make_socket_nonblocking(listen_fd);

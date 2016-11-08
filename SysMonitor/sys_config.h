@@ -3,7 +3,7 @@
 #define LOGFILENAME "sysmonitor"
 #ifdef WIN32
 #define _WIN32_WINNT 0x0501 
-#include <targetver.h>
+//#include <targetver.h>
 #include <afx.h>
 #else
 #if !defined(SSIZE_T)
@@ -12,6 +12,10 @@ typedef int SSIZE_T;
 
 #endif
 
+#include <limits.h>         // So we can set the bounds of our types
+#include <stddef.h>         // For size_t
+
+
 #include <map>
 #include <vector>
 #include <list>
@@ -19,19 +23,25 @@ typedef int SSIZE_T;
 using namespace std;
 #include "port.h"
 
+#if defined(NDEBUG)
+#pragma comment(lib,"ws2_32.lib")
+#pragma comment(lib,"wsock32.lib")
+#pragma comment(lib,"event.lib")
+#pragma comment(lib,"event_core.lib")
+#pragma comment(lib,"event_extra.lib")
+#pragma comment(lib,"libmysql.lib")
+#pragma comment(lib,"ocilib.lib")
+#endif
+#if defined(_DEBUG)
+#pragma comment(lib,"ws2_32.lib")
+#pragma comment(lib,"wsock32.lib")
+#pragma comment(lib,"event_d.lib")
+#pragma comment(lib,"event_core_d.lib")
+#pragma comment(lib,"event_extra_d.lib")
+#pragma comment(lib,"libmysql.lib")
+#pragma comment(lib,"ocilib_d.lib")
+#endif
 
-// extern
-#if !defined(HAS_EXTERN_C) && !defined(EXTERN_C)
-# define HAS_EXTERN_C                   1
-# if defined(__cplusplus)
-#   define EXTERN_C                     extern "C"
-# else
-#   define EXTERN_C
-# endif // __cplusplus
-#else
-# define HAS_EXTERN_C                   0
-#endif // HAS_EXTERN_C
-// 
 #if defined(_MSC_VER)
 #define COMPILER_MSVC
 #endif // MSC_VER
@@ -60,6 +70,8 @@ using namespace std;
 #else
 # define HAS_TRACE                      0
 #endif // 
+
+typedef unsigned int                    uint32_t;
 #if defined(WIN32)
 typedef char                            int8_t;
 typedef short                           int16_t;
@@ -67,7 +79,7 @@ typedef int                             int32_t;
 
 typedef unsigned char                   uint8_t;
 typedef unsigned short                  uint16_t;
-typedef unsigned int                    uint32_t;
+
 
 #if defined(COMPILER_MSVC)
 typedef __int64                         int64_t;
@@ -95,7 +107,8 @@ const  int32_t kint32min = ((int32_t)0x80000000);
 const  int32_t kint32max = ((int32_t)0x7FFFFFFF);
 const  int64_t kint64min = ((int64_t)GG_LONGLONG(0x8000000000000000));
 const  int64_t kint64max = ((int64_t)GG_LONGLONG(0x7FFFFFFFFFFFFFFF));
-
+#else
+#include <sys/types.h>
 #endif
 //////////////////////////////////////////////////////////////////////////
 //
@@ -173,7 +186,7 @@ typedef unsigned char                   uchar_t;
 #   define STRLEN                       strlen
 #   define STRNLEN                      strnlen
 #   define STRCHR                       strchr_s
-#   define STRSTR                       strstr_s
+//#   define STRSTR                       strstr_s
 //#   define STRSTR(s,l,f)                strstr(s, f)
 #   define STRCAT                       strcat_s
 #   define STRNCAT                      strncat_s

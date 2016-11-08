@@ -2,7 +2,7 @@
 #if defined(HAS_ORACLE)
 #include "ocilib.hpp"
 using namespace ocilib;
-
+COracleMonitor* COracleMonitor::_instance = NULL;
 int COracleMonitor::write(int fd, Value& json_value)
 {
 	int ncount = 0;

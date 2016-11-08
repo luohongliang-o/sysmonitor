@@ -1,4 +1,4 @@
-//#include "func.h"
+#include "func.h"
 #include "monitor_system.h"
 #include "mysql_monitor.h"
 #include "Oracle_Monitor.h"
@@ -16,7 +16,7 @@
 //////////////////////////////////////////////////////////////////////////
 /*CSysInfo*/
 //////////////////////////////////////////////////////////////////////////
-
+CSysInfo* CSysInfo::_instance = NULL;
 int
 CSysInfo::write(int fd, Value& json_value)
 {
@@ -105,7 +105,7 @@ CSysInfo::WriteCounterVaule(int counter_num,vector<string>* list_counter, Value*
 	if (Status != ERROR_SUCCESS) goto Cleanup;
 	
 	for (int i = 0; i < counter_num; i++){
-		PDH_HCOUNTER *pdh_hcounter = new PDH_HCOUNTER;
+		PDH_HCOUNTER *pdh_hcounter = (HCOUNTER*)GlobalAlloc(GPTR, sizeof(HCOUNTER));
 		Status = PdhAddCounter(Query, temp_list_counter[i].c_str(), 0, pdh_hcounter);
 		if (Status != ERROR_SUCCESS) goto Cleanup;
 		vt_hcounter.push_back(pdh_hcounter);
@@ -129,7 +129,7 @@ CSysInfo::WriteCounterVaule(int counter_num,vector<string>* list_counter, Value*
 Cleanup:
 	for (int x = 0; x < vt_hcounter.size(); x++){
 		PdhRemoveCounter(*vt_hcounter[x]);
-		TDEL(vt_hcounter[x]);
+		GlobalFree(vt_hcounter[x]);
 	}
 	if (Query)
 		PdhCloseQuery(Query);
@@ -137,11 +137,17 @@ Cleanup:
 //////////////////////////////////////////////////////////////////////////
 /*CProcessMonitor*/
 //////////////////////////////////////////////////////////////////////////
-
+CProcessMonitor* CProcessMonitor::_instance = NULL;
 int
 CProcessMonitor::write(int fd, Value& json_value)
 {
 	if (!GetProcessList()) return 0;
+	char pbuffer[1000];
+	FILE *ppipe = NULL;
+	int nread_line = 0;
+	char tcp[10], local_address[50], remote_address[50], state[100];
+	int pid = 0;
+	ppipe = _popen("netstat -npoa TCP ", "rt");
 	string jsonstr;
 	char json_data[51] = "";
 	int process_num = CLoadConfig::CreateInstance()->get_process_num();
@@ -156,12 +162,6 @@ CProcessMonitor::write(int fd, Value& json_value)
 		if (process_status){
 			vector<int> v_pidlist = m_map_process_name_pid[process_name[i].c_str()];
 			for (int j = 0; j < v_pidlist.size(); j++){
-				char pbuffer[1000];
-				FILE *ppipe = NULL;
-				int nread_line = 0;
-				char tcp[10], local_address[50], remote_address[50], state[100];
-				int pid = 0;
-				ppipe = _popen("netstat -npoa TCP ", "rt");
 				while (fgets(pbuffer, 1000, ppipe)){
 					if (nread_line>3){
 						sscanf(pbuffer, "%s %s %s %s %d\n", 
@@ -172,8 +172,6 @@ CProcessMonitor::write(int fd, Value& json_value)
 					}
 					nread_line++;
 				}
-				if (feof(ppipe))
-					_pclose(ppipe);
 			}
 		}
 		Value process_data;
@@ -182,6 +180,8 @@ CProcessMonitor::write(int fd, Value& json_value)
 		process_data.append(process_status);
 		json_value.append(process_data);
 	}	
+	if (feof(ppipe))
+		_pclose(ppipe);
 	return 0;
 }
 
@@ -253,37 +253,39 @@ CProcessMonitor::printError(TCHAR* msg)
 //////////////////////////////////////////////////////////////////////////
 /* CBuilderMonitor */
 //////////////////////////////////////////////////////////////////////////
-void CBuildMonitor::ConcreteMonitor(int type)
+void CBuildMonitor::ConcreteMonitor(int object_index,int type)
 {
-	
 #ifdef WIN32
 	if (MONITORTYPE_SYSTEM_INFO == type)
-		m_system_monitor = new CSysInfo();
-	if (MONITORTYPE_PROCESS == type)
-		m_system_monitor = new CProcessMonitor();
-	if (MONITORTYPE_MSSQL == type)
-		m_system_monitor = new CMsSqlMonitor();
+		m_vector_system_monitor[object_index]= CSysInfo::get_instance();
+	else if (MONITORTYPE_PROCESS == type)
+		m_vector_system_monitor[object_index] = CProcessMonitor::get_instance();
+	else if (MONITORTYPE_MSSQL == type)
+		m_vector_system_monitor[object_index] = CMsSqlMonitor::get_instance();
 #endif // WEIN32
 #if defined(HAS_MYSQL)
-	if (MONITORTYPE_MYSQL == type)
-		m_system_monitor = new CMysqlMonitor();
+	else if (MONITORTYPE_MYSQL == type)
+		m_vector_system_monitor[object_index] = CMysqlMonitor::get_instance();
 #endif
-	if (MONITORTYPE_LINUX_SYSINFO == type)
-		m_system_monitor = new CLinuxSysinfo();
-	if (MONITORTYPE_WEB == type)
-		m_system_monitor = new CWebMonitor();
+	else if (MONITORTYPE_LINUX_SYSINFO == type)
+		m_vector_system_monitor[object_index] = CLinuxSysinfo::get_instance();
+	else if (MONITORTYPE_WEB == type)
+		m_vector_system_monitor[object_index] = CWebMonitor::get_instance();
 #if defined(HAS_ORACLE)
-	if (MONITORTYPE_ORACAL == type)
-		m_system_monitor = new COracleMonitor();
+	else if (MONITORTYPE_ORACAL == type)
+		m_vector_system_monitor[object_index] = COracleMonitor::get_instance();
 #endif
 }
 
 CBuildMonitor::~CBuildMonitor()
 {
-	TDEL(m_system_monitor);
+	for (int i = 0; i < m_vector_system_monitor.size();i++){
+		TDEL(m_vector_system_monitor[i]);
+	}
+	m_vector_system_monitor.clear();
 }
 
-CMonitorSystem* CBuildMonitor::get_monitor_obj()
+CMonitorSystem* CBuildMonitor::get_monitor_obj(int object_index)
 {
-	return m_system_monitor;
+	return m_vector_system_monitor[object_index];
 }

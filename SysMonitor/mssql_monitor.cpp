@@ -1,6 +1,6 @@
 #include "mssql_monitor.h"
 #ifdef WIN32
-
+CMsSqlMonitor* CMsSqlMonitor::_instance = NULL;
 int CMsSqlMonitor::write(int fd, Value& json_value)
 {
 	int datanum = CLoadConfig::CreateInstance()->get_db_count();
