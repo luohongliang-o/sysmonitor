@@ -58,7 +58,7 @@ public:
 
 public:
 	rc_t get_field_count(uint32_t* count);
-	rc_t get_field_name(char_t* name, uint32_t idx);
+	rc_t get_field_name(char_t** name, uint32_t idx);
 	rc_t get_field_idx(uint32_t* idx, const char_t* name);
 
 	rc_t get_row_count(uint32_t* count);

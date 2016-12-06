@@ -16,8 +16,10 @@ CMysqlMonitor::write(int fd, Value& json_value)
 		CMysqlRecord* record = record_set->get_record();
 		uchar_t* temp_value[2] = { 0 };
 		for (int j = 0; j < field_count; j++){
+			char_t *filed_name = NULL;
+			record_set->get_field_name(&filed_name, j);
 			rc_t rt = record->get_data(j, &temp_value[j]);
-			int a = 0;
+		
 		}
 		record_set->next();
 	}

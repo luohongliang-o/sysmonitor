@@ -148,10 +148,17 @@ rc_t CMysqlRecordSet::get_field_count(uint32_t* count) {
 	return RC_S_OK;
 }
 
-rc_t CMysqlRecordSet::get_field_name(char_t* name, uint32_t idx) {
-
-	UNUSED_PARAM(name);
-	UNUSED_PARAM(idx);
+rc_t CMysqlRecordSet::get_field_name(char_t** name, uint32_t idx) {
+	
+	ASSERT(m_res);
+	MYSQL_FIELD *fields;
+	fields = mysql_fetch_fields(m_res);
+	for (uint32_t i = 0; i < m_filed_count; i++){
+		if (idx == i){
+			*name = fields[i].name;
+			break;
+		}	
+	}
 	return RC_E_UNSUPPORTED;
 }
 
