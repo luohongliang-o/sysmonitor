@@ -15,40 +15,40 @@
 */
 #define MAX_DB_CS_LEN     256
 
-static const char_t* db_cs_default_value    = _STR("");
-static const char_t* db_cs_default_charset  = _STR("utf8");
-static const char_t* db_cs_value_enable     = _STR("yes");
+static const CHAR_T* db_cs_default_value = _STR("");
+static const CHAR_T* db_cs_default_charset = _STR("utf8");
+static const CHAR_T* db_cs_value_enable = _STR("yes");
 
-static const uint32_t db_default_value      = 0;
-static const uint32_t db_flag_default_value = 0x00030000; // CLIENT_MULTI_RESULTS | CLIENT_MULTI_STATEMENTS
+static const UINT32_T db_default_value = 0;
+static const UINT32_T db_flag_default_value = 0x00030000; // CLIENT_MULTI_RESULTS | CLIENT_MULTI_STATEMENTS
                                             // CLIENT_COMPRESS
 
 typedef struct st_db_conn_str {
 
-  const char_t* cs_name;
+	const CHAR_T* cs_name;
+	
+	const CHAR_T* db_driver;
+	const CHAR_T* db_source;  /* host */
+	
+	const CHAR_T* db_name;
+	const CHAR_T* db_user;
+	const CHAR_T* db_pwd;
+	
+	const CHAR_T* db_charset;
+	
+	const CHAR_T* db_host;
+  UINT32_T      db_port;    /* port */
+  UINT32_T      db_flag;
 
-  const char_t* db_driver;
-  const char_t* db_source;  /* host */
+  const CHAR_T* db_socket;  /* mysql */
 
-  const char_t* db_name;
-  const char_t* db_user;
-  const char_t* db_pwd;
+  UINT32_T      db_slave_id;
 
-  const char_t* db_charset;
+  UINT32_T      db_keep_alive; /* second */
+  UINT32_T      db_max_conn;
+  UINT32_T      db_base_conn;
 
-  const char_t* db_host;
-  uint32_t      db_port;    /* port */
-  uint32_t      db_flag;
-
-  const char_t* db_socket;  /* mysql */
-
-  uint32_t      db_slave_id;
-
-  uint32_t      db_keep_alive; /* second */
-  uint32_t      db_max_conn;
-  uint32_t      db_base_conn;
-
-  char_t        cs_buf[MAX_DB_CS_LEN];
+  CHAR_T        cs_buf[MAX_DB_CS_LEN];
   //char_t        cs_org[MAX_DB_CS_LEN];
 
 } db_conn_str_t;
@@ -73,7 +73,7 @@ typedef enum DB_CONN_STR_E_ {
 
 } DB_CONN_STR_E;
 
-static const char_t* db_cs_param[] = {
+static const CHAR_T* db_cs_param[] = {
 
   _STR("name")
   , _STR("driver")
@@ -92,7 +92,7 @@ static const char_t* db_cs_param[] = {
   , NULL
 };
 
-static const char_t* db_cs_driver[] = {
+static const CHAR_T* db_cs_driver[] = {
 
   _STR("MYSQLCI")    /* mysql c api */
   , _STR("sqloledb")
@@ -108,7 +108,7 @@ typedef enum DB_TYPE_E_ {
 
 } DB_TYPE_E;
 
-rc_t db_parse_cs(db_conn_str_t* db_cs, const char_t* str);
+rc_t db_parse_cs(db_conn_str_t* db_cs, const CHAR_T* str);
 
 /*****************************************************************************/
 

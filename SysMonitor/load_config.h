@@ -40,12 +40,12 @@ public:
 		vector< short >     object_type;
 		//system
 		int        counter_num;
-		vector< string >   counter_name;
+		char**     counter_name;
 		//mysql
 		char       mysql_connstr[256];
 		//web
 		int        web_counter_num;
-		vector< string >   web_counter_name;
+		char**   web_counter_name;
 		//mssql
 		short      db_count;
 		short      db_default_sel;
@@ -53,7 +53,7 @@ public:
 
 		//process
 		int        process_num;
-		vector< string >   process_name;
+		char**   process_name;
 	};
 
 	void LoadConfig();
@@ -63,18 +63,18 @@ public:
 	vector< short >   get_object_type();
 	int      get_log_flag();
 	int      get_counter_num();
-	vector< string > get_counter_name();
+	char**   get_counter_name();
 	
 	int      get_web_counter_num();
-	vector< string > get_web_counter_name();
+	char**   get_web_counter_name();
 	void     get_sys_os_info();
 
 	char*    get_os_name();
 	char*    get_os_version();
 
 	int      get_process_num();
-	vector< string > get_process_name();
-
+	char**   get_process_name();
+ 
 	const char* get_mysql_connection_string();
 	short    get_db_count();
 	short    get_db_default_sel();

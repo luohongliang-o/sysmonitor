@@ -71,45 +71,42 @@ using namespace std;
 # define HAS_TRACE                      0
 #endif // 
 
-typedef unsigned int                    uint32_t;
-#if defined(WIN32)
-typedef char                            int8_t;
-typedef short                           int16_t;
-typedef int                             int32_t;
-
-typedef unsigned char                   uint8_t;
-typedef unsigned short                  uint16_t;
+typedef unsigned int                    UINT32_T;
+typedef char                            INT8_T;
+typedef unsigned char                   UINT8_T;
+typedef short                           INT16_T;
+typedef unsigned short                  UINT16_T;
+typedef int                             INT32_T;
 
 
 #if defined(COMPILER_MSVC)
-typedef __int64                         int64_t;
-typedef unsigned __int64                uint64_t;
+typedef __int64                         INT64_T;
+typedef unsigned __int64                UINT64_T;
 #else
-typedef long long                       int64_t;
-typedef unsigned long long              uint64_t;
+typedef long long                       INT64_T;
+typedef unsigned long long              UINT64_T;
+#define _atoi64(val)     strtoll(val, NULL, 10)
 #endif // COMPILER_MSVC
 
-typedef float                           float_t;
-typedef double                          double_t;
+typedef float                           FLOAT_T;
+typedef double                          DOUBLE_T;
 
-typedef uint32_t                        bool_t;
+typedef UINT32_T                        BOOL_T;
 
 
-const uint8_t  kuint8max = ((uint8_t)0xFF);
-const uint16_t kuint16max = ((uint16_t)0xFFFF);
-const uint32_t kuint32max = ((uint32_t)0xFFFFFFFF);
-const uint64_t kuint64max = ((uint64_t)GG_LONGLONG(0xFFFFFFFFFFFFFFFF));
-const  int8_t  kint8min = ((int8_t)(-128)/*0x80*/);
-const  int8_t  kint8max = ((int8_t)0x7F);
-const  int16_t kint16min = ((int16_t)(-32768)/*0x8000*/);
-const  int16_t kint16max = ((int16_t)0x7FFF);
-const  int32_t kint32min = ((int32_t)0x80000000);
-const  int32_t kint32max = ((int32_t)0x7FFFFFFF);
-const  int64_t kint64min = ((int64_t)GG_LONGLONG(0x8000000000000000));
-const  int64_t kint64max = ((int64_t)GG_LONGLONG(0x7FFFFFFFFFFFFFFF));
-#else
-#include <sys/types.h>
-#endif
+const UINT8_T  kuint8max  = ((UINT8_T)0xFF);
+const UINT16_T kuint16max = ((UINT16_T)0xFFFF);
+const UINT32_T kuint32max = ((UINT32_T)0xFFFFFFFF);
+const UINT64_T kuint64max = ((UINT64_T)GG_LONGLONG(0xFFFFFFFFFFFFFFFF));
+const  INT8_T  kint8min   = ((INT8_T)(-128)/*0x80*/);
+const  INT8_T  kint8max   = ((INT8_T)0x7F);
+const  INT16_T kint16min  = ((INT16_T)(-32768)/*0x8000*/);
+const  INT16_T kint16max  = ((INT16_T)0x7FFF);
+const  INT32_T kint32min  = ((INT32_T)0x80000000);
+const  INT32_T kint32max  = ((INT32_T)0x7FFFFFFF);
+const  INT64_T kint64min  = ((INT64_T)GG_LONGLONG(0x8000000000000000));
+const  INT64_T kint64max  = ((INT64_T)GG_LONGLONG(0x7FFFFFFFFFFFFFFF));
+
 //////////////////////////////////////////////////////////////////////////
 //
 #ifndef NULL
@@ -172,8 +169,8 @@ const  int64_t kint64max = ((int64_t)GG_LONGLONG(0x7FFFFFFFFFFFFFFF));
 #if !defined(HAS_STRING)
 # define HAS_STRING                     1
 # if !defined(UNICODE)
-typedef char                            char_t;
-typedef unsigned char                   uchar_t;
+typedef char                            CHAR_T;
+typedef unsigned char                   UCHAR_T;
 #   define _STR(x)                      (x)
 #   define _CHAR(x)                     (x)
 #include <string.h>

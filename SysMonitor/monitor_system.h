@@ -65,7 +65,7 @@ public:
 		return _instance;
 	}
 protected:
-	void WriteCounterVaule(int counter_num, vector<string>* list_counter, Value* json_value);
+	void WriteCounterVaule(int counter_num, char** list_counter, Value* json_value);
 private:
 	DISALLOW_COPY_AND_ASSIGN(CSysInfo);
 	static CSysInfo* _instance;

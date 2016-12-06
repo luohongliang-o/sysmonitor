@@ -83,8 +83,8 @@ CSysInfo::write(int fd, Value& json_value)
 	//pdh performance counter
 	{
 		int counter_num = CLoadConfig::CreateInstance()->get_counter_num();
-		vector< string > counter_name = CLoadConfig::CreateInstance()->get_counter_name();
-		WriteCounterVaule(counter_num, &counter_name, &json_value);
+		char** counter_name = CLoadConfig::CreateInstance()->get_counter_name();
+		WriteCounterVaule(counter_num, counter_name, &json_value);
 	}
 	json_value.append(CLoadConfig::CreateInstance()->get_os_version());
 	json_value.append(CLoadConfig::CreateInstance()->get_os_name());
@@ -92,9 +92,9 @@ CSysInfo::write(int fd, Value& json_value)
 }
 
 void
-CSysInfo::WriteCounterVaule(int counter_num,vector<string>* list_counter, Value* json_value)
+CSysInfo::WriteCounterVaule(int counter_num,char** list_counter, Value* json_value)
 {
-	vector<string> temp_list_counter = *list_counter;
+	char** temp_list_counter = list_counter;
 	vector<PDH_HCOUNTER*> vt_hcounter;
 	char json_data[50] = "";
 	PDH_FMT_COUNTERVALUE DisplayValue;
@@ -106,7 +106,7 @@ CSysInfo::WriteCounterVaule(int counter_num,vector<string>* list_counter, Value*
 	
 	for (int i = 0; i < counter_num; i++){
 		PDH_HCOUNTER *pdh_hcounter = (HCOUNTER*)GlobalAlloc(GPTR, sizeof(HCOUNTER));
-		Status = PdhAddCounter(Query, temp_list_counter[i].c_str(), 0, pdh_hcounter);
+		Status = PdhAddCounter(Query, temp_list_counter[i], 0, pdh_hcounter);
 		if (Status != ERROR_SUCCESS) goto Cleanup;
 		vt_hcounter.push_back(pdh_hcounter);
 	}
@@ -151,7 +151,7 @@ CProcessMonitor::write(int fd, Value& json_value)
 	string jsonstr;
 	char json_data[51] = "";
 	int process_num = CLoadConfig::CreateInstance()->get_process_num();
-	vector< string > process_name = CLoadConfig::CreateInstance()->get_process_name();
+	char** process_name = CLoadConfig::CreateInstance()->get_process_name();
 	for ( int i= 0; i < process_num; i++){
 		int tcpnum = 0;
 		int process_status = 0;
@@ -160,7 +160,7 @@ CProcessMonitor::write(int fd, Value& json_value)
 		if (map_itorator_process_name != m_map_process_name_pid.end()) 
 			process_status = 1;                     // 查看进程状态
 		if (process_status){
-			vector<int> v_pidlist = m_map_process_name_pid[process_name[i].c_str()];
+			vector<int> v_pidlist = m_map_process_name_pid[process_name[i]];
 			for (int j = 0; j < v_pidlist.size(); j++){
 				while (fgets(pbuffer, 1000, ppipe)){
 					if (nread_line>3){
@@ -175,7 +175,7 @@ CProcessMonitor::write(int fd, Value& json_value)
 			}
 		}
 		Value process_data;
-		process_data.append(process_name[i].c_str());
+		process_data.append(process_name[i]);
 		process_data.append(tcpnum);
 		process_data.append(process_status);
 		json_value.append(process_data);
@@ -212,10 +212,10 @@ CProcessMonitor::GetProcessList()
 		if (hProcess == NULL)
 			printError(TEXT("OpenProcess"));
 		else{
-			vector< string > process_name = CLoadConfig::CreateInstance()->get_process_name();
+			char** process_name = CLoadConfig::CreateInstance()->get_process_name();
 			int procee_num = CLoadConfig::CreateInstance()->get_process_num();
 			for (int i = 0; i < procee_num;i++){
-				if (!process_name[i].compare(pe32.szExeFile))
+				if (!strcmp(process_name[i],pe32.szExeFile))
 					m_map_process_name_pid[pe32.szExeFile].push_back(pe32.th32ProcessID);
 			}
 			CloseHandle(hProcess);

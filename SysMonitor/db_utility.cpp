@@ -20,40 +20,40 @@
 #define STRCHR(s,l,c)   strchr(s,c)
 #define STRLWR          _strlwr_s
 
-static rc_t get_param_value(uint32_t* pos, uint32_t* len, const int8_t* str, const int8_t* param) {
+static rc_t get_param_value(UINT32_T* pos, UINT32_T* len, const INT8_T* str, const INT8_T* param) {
 
-  const int8_t* pdest;
+  const INT8_T* pdest;
 
   DBUG_ENTER("get_param_value");
   if (NULL == pos || NULL == len || NULL == str || NULL == param) { return RC_S_NULL_VALUE; }
 
-  pdest = STRSTR(str, STRLEN(str), param);
+  pdest = strstr((const char*)str,  (const char*)param);
   if (NULL == pdest || str == pdest || ' ' != (*(pdest - 1))) { DBUG_RETURN(RC_S_NOTFOUND); }
 
-  (*pos) = (uint32_t)(pdest - str) + 1 + STRLEN(param) + 1; /* " */
+  (*pos) = (UINT32_T)(pdest - str) + 1 + STRLEN(param) + 1; /* " */
 
   /* len */
   pdest = str + (*pos);
-  pdest = STRCHR(pdest, STRLEN(pdest), '"');
+  pdest = strchr((const char*)pdest,  '"');
   if (NULL == pdest) { DBUG_RETURN(RC_S_NOTFOUND); }
 
-  (*len) = (uint32_t)(pdest - str) + 1 - (*pos) - 1;  /* " */
+  (*len) = (UINT32_T)(pdest - str) + 1 - (*pos) - 1;  /* " */
   DBUG_RETURN(RC_S_OK);
 }
 
-rc_t db_parse_cs(db_conn_str_t* db_cs, const int8_t* str) {
+rc_t db_parse_cs(db_conn_str_t* db_cs, const INT8_T* str) {
 
-  uint32_t value_pos;
-  uint32_t value_len;
+  UINT32_T value_pos;
+  UINT32_T value_len;
 
-  char_t lowercase_cs_buf[MAX_DB_CS_LEN] = {0};
-  const char_t* strLCS = lowercase_cs_buf;
+  CHAR_T lowercase_cs_buf[MAX_DB_CS_LEN] = {0};
+  const CHAR_T* strLCS = lowercase_cs_buf;
 
   DBUG_ENTER("db_parse_cs");
   DBUG_ASSERT(db_cs);
   DBUG_ASSERT(str);
 
-  DBUG_ASSERT(DB_CS_LAST + 1 == sizeof(db_cs_param) / sizeof(const char_t*));
+  DBUG_ASSERT(DB_CS_LAST + 1 == sizeof(db_cs_param) / sizeof(const CHAR_T*));
 
   if (MAX_DB_CS_LEN < STRLEN(str)) { DBUG_RETURN(RC_E_NOMEM); }
 
@@ -76,10 +76,10 @@ rc_t db_parse_cs(db_conn_str_t* db_cs, const int8_t* str) {
   db_cs->db_max_conn    = db_default_value;
   db_cs->db_base_conn   = db_default_value;
 
-  STRCPY(db_cs->cs_buf, sizeof(db_cs->cs_buf), str);
+  STRCPY(db_cs->cs_buf, str);
   //STRCPY(db_cs->cs_org, sizeof(db_cs->cs_buf), str);
 
-  STRCPY(lowercase_cs_buf, sizeof(db_cs->cs_buf), db_cs->cs_buf);
+  STRCPY(lowercase_cs_buf, db_cs->cs_buf);
   STRLWR(lowercase_cs_buf, sizeof(lowercase_cs_buf));
 
   /* name */
@@ -105,7 +105,7 @@ rc_t db_parse_cs(db_conn_str_t* db_cs, const int8_t* str) {
     && value_len
   ) {
 
-    const int8_t* pdest;
+    const INT8_T* pdest;
 
     db_cs->db_source = db_cs->cs_buf + value_pos;
     db_cs->cs_buf[value_pos + value_len] = 0x00;

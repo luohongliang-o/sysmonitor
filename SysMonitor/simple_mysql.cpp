@@ -16,55 +16,55 @@ if (idx > m_filed_count) { return RC_E_INDEX; }\
 	CHECK_FIELD_EX  \
 if (NULL == *(m_row + idx)) { return RC_S_NULL_VALUE; }\
 
-rc_t CMysqlRecord::get_data(uint32_t idx, uint8_t** val, uint32_t* len) {
+rc_t CMysqlRecord::get_data(UINT32_T idx, UINT8_T** val, UINT32_T* len) {
 
 	CHECK_FIELD_EX;
 	if (NULL == m_lengths || *(m_lengths + idx) > kuint32max) { return RC_E_NOMEM; }
 
-	(*val) = (uint8_t *)(*(m_row + idx));
-	(*len) = (uint32_t)*(m_lengths + idx);
+	(*val) = (UINT8_T *)(*(m_row + idx));
+	(*len) = (UINT32_T)*(m_lengths + idx);
 	return RC_S_OK;
 }
 
-rc_t CMysqlRecord::get_data(uint32_t idx, uchar_t** val) {
+rc_t CMysqlRecord::get_data(UINT32_T idx, UCHAR_T** val) {
 
 	CHECK_FIELD;
-	(*val) = (uint8_t*)(*(m_row + idx));
+	(*val) = (UINT8_T*)(*(m_row + idx));
 	return RC_S_OK;
 }
 
-rc_t CMysqlRecord::get_data(uint32_t idx, uint16_t* val) {
+rc_t CMysqlRecord::get_data(UINT32_T idx, UINT16_T* val) {
 
 	CHECK_FIELD;
-	(*val) = (uint16_t)ATOI(*(m_row + idx));
+	(*val) = (UINT16_T)ATOI(*(m_row + idx));
 	return RC_S_OK;
 }
 
-rc_t CMysqlRecord::get_data(uint32_t idx, uint32_t* val) {
+rc_t CMysqlRecord::get_data(UINT32_T idx, UINT32_T* val) {
 
 	CHECK_FIELD;
-	(*val) = (uint32_t)ATOI(*(m_row + idx));
+	(*val) = (UINT32_T)ATOI(*(m_row + idx));
 	return RC_S_OK;
 }
 
-rc_t CMysqlRecord::get_data(uint32_t idx, uint64_t* val) {
+rc_t CMysqlRecord::get_data(UINT32_T idx, UINT64_T* val) {
 
 	CHECK_FIELD;
-	(*val) = (uint64_t)_atoi64(*(m_row + idx));
+	(*val) = (UINT64_T)_atoi64(*(m_row + idx));
 	return RC_S_OK;
 }
 
-rc_t CMysqlRecord::get_data(uint32_t idx, float_t* val) {
+rc_t CMysqlRecord::get_data(UINT32_T idx, FLOAT_T* val) {
 
 	CHECK_FIELD;
-	(*val) = (float_t)ATOI(*(m_row + idx));
+	(*val) = (FLOAT_T)ATOI(*(m_row + idx));
 	return RC_S_OK;
 }
 
-rc_t CMysqlRecord::get_data(uint32_t idx, double_t* val) {
+rc_t CMysqlRecord::get_data(UINT32_T idx, DOUBLE_T* val) {
 
 	CHECK_FIELD;
-	(*val) = (double_t)atof(*(m_row + idx));
+	(*val) = (DOUBLE_T)atof(*(m_row + idx));
 	return RC_S_OK;
 }
 
@@ -79,7 +79,7 @@ CMysqlRecord::CMysqlRecord()
 
 CMysqlRecord::~CMysqlRecord() {}
 
-void CMysqlRecord::set_mysql_row(const MYSQL_ROW row, uint32_t filed_count, const unsigned long* lengths) {
+void CMysqlRecord::set_mysql_row(const MYSQL_ROW row, UINT32_T filed_count, const unsigned long* lengths) {
 
 	m_row = row;
 	m_filed_count = filed_count;
@@ -140,7 +140,7 @@ rc_t CMysqlRecordSet::prev() {
 	return m_row ? RC_S_OK : RC_S_CURSOR_END;
 }
 
-rc_t CMysqlRecordSet::get_field_count(uint32_t* count) {
+rc_t CMysqlRecordSet::get_field_count(UINT32_T* count) {
 
 	ASSERT(m_res);
 
@@ -148,12 +148,12 @@ rc_t CMysqlRecordSet::get_field_count(uint32_t* count) {
 	return RC_S_OK;
 }
 
-rc_t CMysqlRecordSet::get_field_name(char_t** name, uint32_t idx) {
+rc_t CMysqlRecordSet::get_field_name(CHAR_T** name, UINT32_T idx) {
 	
 	ASSERT(m_res);
 	MYSQL_FIELD *fields;
 	fields = mysql_fetch_fields(m_res);
-	for (uint32_t i = 0; i < m_filed_count; i++){
+	for (UINT32_T i = 0; i < m_filed_count; i++){
 		if (idx == i){
 			*name = fields[i].name;
 			break;
@@ -162,24 +162,24 @@ rc_t CMysqlRecordSet::get_field_name(char_t** name, uint32_t idx) {
 	return RC_E_UNSUPPORTED;
 }
 
-rc_t CMysqlRecordSet::get_field_idx(uint32_t* idx, const char_t* name) {
+rc_t CMysqlRecordSet::get_field_idx(UINT32_T* idx, const CHAR_T* name) {
 
 	UNUSED_PARAM(name);
 	UNUSED_PARAM(idx);
 	return RC_E_UNSUPPORTED;
 }
 
-rc_t CMysqlRecordSet::get_row_count(uint32_t* count) {
+rc_t CMysqlRecordSet::get_row_count(UINT32_T* count) {
 
 	ASSERT(count);
 
 	if (m_row_count > kuint32max) { return RC_E_NOMEM; }
 
-	(*count) = static_cast<uint32_t>(m_row_count);
+	(*count) = static_cast<UINT32_T>(m_row_count);
 	return RC_S_OK;
 }
 
-rc_t CMysqlRecordSet::get_row_count(uint64_t* count) {
+rc_t CMysqlRecordSet::get_row_count(UINT64_T* count) {
 
 	(*count) = m_row_count;
 	return RC_S_OK;
@@ -226,9 +226,9 @@ void CMysqlRecordSet::set_mysql_res(MYSQL_RES* res) {
 
 //////////////////////////////////////////////////////////////////////////
 //
-const char_t*     CMysqlConnection::m_gcStrName = _STR("MYSQLCI");
+const CHAR_T*     CMysqlConnection::m_gcStrName = _STR("MYSQLCI");
 
-CMysqlConnection* CMysqlConnection::CreateInstance(const char_t*) {
+CMysqlConnection* CMysqlConnection::CreateInstance(const CHAR_T*) {
 
 	CHECK_MYSQL_API(NULL);
 	return new CMysqlConnection();
@@ -260,7 +260,7 @@ CMysqlConnection::~CMysqlConnection() {
 	}
 }
 
-rc_t CMysqlConnection::connect(const char_t* strParam) {
+rc_t CMysqlConnection::connect(const CHAR_T* strParam) {
 
 	if (RC_S_INIT != m_nStatus) { return RC_S_STATUS; }
 
@@ -329,7 +329,7 @@ rc_t CMysqlConnection::reconnect() {
 	if (RC_S_OPEN != m_nStatus) { return RC_S_STATUS; }
 
 	/* get mysql err */
-	uint32_t mysql_err_no;
+	UINT32_T mysql_err_no;
 
 	clear_all_result_set();
 
@@ -370,7 +370,7 @@ rc_t CMysqlConnection::reconnect() {
 	return RC_S_FAILED;
 }
 
-rc_t CMysqlConnection::check_connect(bool_t bKeepAlive, bool_t bFix) {
+rc_t CMysqlConnection::check_connect(BOOL_T bKeepAlive, BOOL_T bFix) {
 
 	if (RC_S_OPEN != m_nStatus) { return RC_S_STATUS; }
 
@@ -410,7 +410,7 @@ static rc_t exchange_error(int error) {
 	return RC_E_DB_QUERY;
 }
 
-rc_t CMysqlConnection::execute(const int8_t *strSQL, bool_t bNeedResult) {
+rc_t CMysqlConnection::execute(const INT8_T *strSQL, BOOL_T bNeedResult) {
 
 	if (RC_S_OPEN != m_nStatus/* || FALSE == didConnected()*/) { return RC_S_STATUS; }
 
@@ -470,7 +470,7 @@ rc_t CMysqlConnection::clear_all_result_set() {
 void CMysqlConnection::reset_error() {
 }
 
-bool_t CMysqlConnection::didConnected() {
+BOOL_T CMysqlConnection::didConnected() {
 
 	return (m_mysql.host)
 		&& (m_mysql.user)
@@ -501,7 +501,7 @@ rc_t CMysqlConnection::rollback() {
 	return MYSQL_CAPI_CALL(rollback)(&m_mysql) ? RC_S_FAILED : RC_S_OK;
 }
 
-const char_t* CMysqlConnection::get_last_error(uint32_t* err_no) {
+const CHAR_T* CMysqlConnection::get_last_error(UINT32_T* err_no) {
 
 	ASSERT(err_no);
 

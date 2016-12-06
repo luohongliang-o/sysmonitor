@@ -9,8 +9,19 @@ CLoadConfig::CLoadConfig()
 
 CLoadConfig::~CLoadConfig()
 {
- 	TDEL(m_monitor_config);
-	
+	for (int i = 0; i < m_monitor_config->counter_num; i++)
+		TDELARRAY(m_monitor_config->counter_name[i]);
+	TDELARRAY(m_monitor_config->counter_name);
+
+	for (int i = 0; i < m_monitor_config->web_counter_num; i++)
+		TDELARRAY(m_monitor_config->web_counter_name[i]);
+	TDELARRAY(m_monitor_config->web_counter_name);
+
+	for (int i = 0; i < m_monitor_config->process_num; i++)
+		TDELARRAY(m_monitor_config->process_name[i]);
+	TDELARRAY(m_monitor_config->process_name);
+	TDEL(m_monitor_config);
+
 }
 
 CLoadConfig* CLoadConfig::_instance = NULL;
@@ -44,11 +55,13 @@ void CLoadConfig::LoadConfig()
 		for (int i = 0; i < OBJECT_NUM; i++){
 			if (m_monitor_config->object_type[i] == CONFIG_SYSTEM){
 				m_monitor_config->counter_num = GetIniKeyInt("system", "counter_num", filebuf);
-				m_monitor_config->counter_name.resize(m_monitor_config->counter_num);
+				m_monitor_config->counter_name = new char*[m_monitor_config->counter_num];
 				for (int i = 0; i < m_monitor_config->counter_num; i++){
 					char counter_key[20] = "";
 					sprintf_s(counter_key, sizeof(counter_key), "%s%d", "counter_name", i + 1);
-					m_monitor_config->counter_name[i] = GetIniKeyString("system", counter_key, filebuf);
+					char* counter_name = GetIniKeyString("system", counter_key, filebuf);
+					m_monitor_config->counter_name[i] = new char[strlen(counter_name)+1];
+					memcpy(m_monitor_config->counter_name[i], counter_name, strlen(counter_name) + 1);
 				}
 			}
 			else if (m_monitor_config->object_type[i] == CONFIG_MYSQL){
@@ -56,20 +69,24 @@ void CLoadConfig::LoadConfig()
 			}
 			else if (m_monitor_config->object_type[i] == CONFIG_WEB){
 				m_monitor_config->web_counter_num = GetIniKeyInt("web", "counter_num", filebuf);
-				m_monitor_config->web_counter_name.resize(m_monitor_config->web_counter_num);
+				m_monitor_config->web_counter_name = new char*[m_monitor_config->web_counter_num];
 				for (int i = 0; i < m_monitor_config->web_counter_num; i++){
 					char counter_key[20] = "";
 					sprintf_s(counter_key, sizeof(counter_key), "%s%d", "counter_name", i + 1);
-					m_monitor_config->web_counter_name[i] = GetIniKeyString("web", counter_key, filebuf);
+					char* counter_name = GetIniKeyString("system", counter_key, filebuf);
+					m_monitor_config->web_counter_name[i] = new char[strlen(counter_name) + 1];
+					memcpy(m_monitor_config->web_counter_name[i], counter_name, strlen(counter_name) + 1);
 				}
 			}
 			else if (m_monitor_config->object_type[i] == CONFIG_PROCESS){
 				m_monitor_config->process_num = GetIniKeyInt("process", "process_num", filebuf);
-				m_monitor_config->process_name.resize(m_monitor_config->process_num);
+				m_monitor_config->process_name = new char*[m_monitor_config->process_num];
 				for (int i = 0; i < m_monitor_config->process_num; i++){
 					char process_key[20] = "";
 					sprintf_s(process_key, sizeof(process_key), "%s%d", "process_name", i + 1);
-					m_monitor_config->process_name[i] = GetIniKeyString("process", process_key, filebuf);
+					char* process_name = GetIniKeyString("process", process_key, filebuf);
+					m_monitor_config->process_name[i] = new char[strlen(process_name)+1];
+					memcpy(m_monitor_config->process_name[i], process_name, strlen(process_name) + 1);
 				}
 			}
 			else if (m_monitor_config->object_type[i] == CONFIG_MSSQL){
@@ -133,11 +150,11 @@ int CLoadConfig::get_counter_num()
 	return 0;
 }
 
-vector< string > CLoadConfig::get_counter_name()
+char** CLoadConfig::get_counter_name()
 {
 	if (m_monitor_config)
 		return m_monitor_config->counter_name;
-	return vector< string >(NULL);
+	return NULL;
 }
 
 int CLoadConfig::get_web_counter_num()
@@ -147,11 +164,11 @@ int CLoadConfig::get_web_counter_num()
 	return 0;
 }
 
-vector< string > CLoadConfig::get_web_counter_name()
+char** CLoadConfig::get_web_counter_name()
 {
 	if (m_monitor_config)
 		return m_monitor_config->web_counter_name;
-	return vector< string >(NULL);
+	return NULL;
 }
 
 
@@ -201,11 +218,11 @@ int CLoadConfig::get_process_num()
 		return m_monitor_config->process_num;
 	return 0;
 }
-vector< string > CLoadConfig::get_process_name()
+char** CLoadConfig::get_process_name()
 {
 	if (m_monitor_config)
 		return m_monitor_config->process_name;
-	return vector< string >(NULL);
+	return NULL;
 }
 short CLoadConfig::get_db_count()
 {
