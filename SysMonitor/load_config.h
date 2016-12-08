@@ -1,5 +1,6 @@
 #ifndef LOAD_CONFIG_H
 #define LOAD_CONFIG_H
+
 #include "sys_config.h"
 #define MAX_LINK_NUM 30
 #define MAX_DBCOUNT  5

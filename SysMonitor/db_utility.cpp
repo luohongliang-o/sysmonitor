@@ -1,14 +1,8 @@
 /*
   db utility
 */
-#include <stdint.h>
-#include "db_utility.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <error.h>
-#include <assert.h>
+#include "db_utility.h"
 /*****************************************************************************/
 /* connect string
 

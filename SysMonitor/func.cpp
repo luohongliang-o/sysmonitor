@@ -1,5 +1,4 @@
 #include "func.h"
-
 int GetCurrentPath(char buf[], char *pFileName)
 {
 #ifdef WIN32

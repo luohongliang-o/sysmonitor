@@ -1,4 +1,3 @@
-#include "func.h"
 #include "monitor_system.h"
 #include "mysql_monitor.h"
 #include "Oracle_Monitor.h"
@@ -258,21 +257,21 @@ void CBuildMonitor::ConcreteMonitor(int object_index,int type)
 #ifdef WIN32
 	if (MONITORTYPE_SYSTEM_INFO == type)
 		m_vector_system_monitor[object_index]= CSysInfo::get_instance();
-	else if (MONITORTYPE_PROCESS == type)
+	if (MONITORTYPE_PROCESS == type)
 		m_vector_system_monitor[object_index] = CProcessMonitor::get_instance();
-	else if (MONITORTYPE_MSSQL == type)
+	if (MONITORTYPE_MSSQL == type)
 		m_vector_system_monitor[object_index] = CMsSqlMonitor::get_instance();
 #endif // WEIN32
 #if defined(HAS_MYSQL)
-	else if (MONITORTYPE_MYSQL == type)
+	if (MONITORTYPE_MYSQL == type)
 		m_vector_system_monitor[object_index] = CMysqlMonitor::get_instance();
 #endif
-	else if (MONITORTYPE_LINUX_SYSINFO == type)
+	if (MONITORTYPE_LINUX_SYSINFO == type)
 		m_vector_system_monitor[object_index] = CLinuxSysinfo::get_instance();
-	else if (MONITORTYPE_WEB == type)
+	if (MONITORTYPE_WEB == type)
 		m_vector_system_monitor[object_index] = CWebMonitor::get_instance();
 #if defined(HAS_ORACLE)
-	else if (MONITORTYPE_ORACAL == type)
+	if (MONITORTYPE_ORACAL == type)
 		m_vector_system_monitor[object_index] = COracleMonitor::get_instance();
 #endif
 }

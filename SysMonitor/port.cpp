@@ -53,3 +53,19 @@ char * strncpy_s_(char * _Dst, size_t dlen, const char * src, size_t slen) {
 	}
 	return _Dst;
 }
+#if !defined(WIN32)
+
+char* strlwr(char *s)
+{
+	char *str;
+	str = s;
+	while (*str != '\0')
+	{
+		if (*str >= 'A' && *str <= 'Z') {
+			*str += 'a' - 'A';
+		}
+		str++;
+	}
+	return s;
+}
+#endif

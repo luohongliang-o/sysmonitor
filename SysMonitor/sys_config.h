@@ -1,15 +1,12 @@
 #ifndef SYS_CONFIG_H
 #define SYS_CONFIG_H
 #define LOGFILENAME "sysmonitor"
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <string.h>
 #ifdef WIN32
 #define _WIN32_WINNT 0x0501 
 //#include <targetver.h>
 #include <afx.h>
 #else
-//#include <sys/types.h>
+
 #if !defined(SSIZE_T)
 typedef int SSIZE_T;
 #endif
@@ -24,7 +21,7 @@ typedef int SSIZE_T;
 #include <vector>
 #include <list>
 using namespace std;
-//#include "port.h"
+#include "port.h"
 
 #if defined(NDEBUG)
 #pragma comment(lib,"ws2_32.lib")
@@ -58,7 +55,7 @@ using namespace std;
 #endif
 
 #if !defined(ASSERT)
-//#include <assert.h>
+#include <assert.h>
 # define ASSERT                         assert
 #endif // ASSERT
 
@@ -176,6 +173,9 @@ typedef char                            CHAR_T;
 typedef unsigned char                   UCHAR_T;
 #   define _STR(x)                      (x)
 #   define _CHAR(x)                     (x)
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #if defined(WIN32)
 #   define STRLWR						_strlwr_s
 #   define VSNPRINTF                    vsnprintf_s

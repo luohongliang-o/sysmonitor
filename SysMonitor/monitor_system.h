@@ -1,15 +1,16 @@
 #ifndef MONITOR_SYSTEM_H
 #define MONITOR_SYSTEM_H
-#include "load_config.h"
-#include "json.h"
+#include "../jsoncpp/include/json.h"
 using namespace Json;
+
+#include "load_config.h"
 
 #if !defined(HAS_MYSQL)
 #define HAS_MYSQL
 #endif
 
 #if !defined(HAS_ORACLE)
-#define HAS_ORACLE
+//#define HAS_ORACLE
 #endif
 enum
 {

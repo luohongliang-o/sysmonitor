@@ -28,6 +28,12 @@
     <Filter Include="database\oracle">
       <UniqueIdentifier>{80bc3ab6-f4a1-4549-84d8-a71efd1ee212}</UniqueIdentifier>
     </Filter>
+    <Filter Include="json\include">
+      <UniqueIdentifier>{1550d747-740e-4883-8736-2f25d65c7f0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="json\src">
+      <UniqueIdentifier>{eec19ab9-27a8-4f23-85f1-d888e4776bdb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -99,38 +105,38 @@
     <ClInclude Include="..\database\oracle\src\ocilib_impl.hpp">
       <Filter>database\oracle</Filter>
     </ClInclude>
-    <ClInclude Include="..\json\assertions.h">
-      <Filter>json</Filter>
+    <ClInclude Include="..\jsoncpp\include\assertions.h">
+      <Filter>json\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\json\autolink.h">
-      <Filter>json</Filter>
+    <ClInclude Include="..\jsoncpp\include\autolink.h">
+      <Filter>json\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\json\config.h">
-      <Filter>json</Filter>
+    <ClInclude Include="..\jsoncpp\include\config.h">
+      <Filter>json\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\json\features.h">
-      <Filter>json</Filter>
+    <ClInclude Include="..\jsoncpp\include\forwards.h">
+      <Filter>json\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\json\forwards.h">
-      <Filter>json</Filter>
+    <ClInclude Include="..\jsoncpp\include\json.h">
+      <Filter>json\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\json\json.h">
-      <Filter>json</Filter>
+    <ClInclude Include="..\jsoncpp\include\json_batchallocator.h">
+      <Filter>json\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\json\json_batchallocator.h">
-      <Filter>json</Filter>
+    <ClInclude Include="..\jsoncpp\include\json_features.h">
+      <Filter>json\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\json\json_tool.h">
-      <Filter>json</Filter>
+    <ClInclude Include="..\jsoncpp\include\json_tool.h">
+      <Filter>json\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\json\reader.h">
-      <Filter>json</Filter>
+    <ClInclude Include="..\jsoncpp\include\reader.h">
+      <Filter>json\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\json\value.h">
-      <Filter>json</Filter>
+    <ClInclude Include="..\jsoncpp\include\value.h">
+      <Filter>json\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\json\writer.h">
-      <Filter>json</Filter>
+    <ClInclude Include="..\jsoncpp\include\writer.h">
+      <Filter>json\include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -179,14 +185,25 @@
     <ClCompile Include="simple_mysql.cpp">
       <Filter>database\mysql</Filter>
     </ClCompile>
-    <ClCompile Include="..\json\json_reader.cpp">
-      <Filter>json</Filter>
+    <ClCompile Include="..\jsoncpp\src\json_reader.cpp">
+      <Filter>json\src</Filter>
     </ClCompile>
-    <ClCompile Include="..\json\json_value.cpp">
-      <Filter>json</Filter>
+    <ClCompile Include="..\jsoncpp\src\json_value.cpp">
+      <Filter>json\src</Filter>
     </ClCompile>
-    <ClCompile Include="..\json\json_writer.cpp">
-      <Filter>json</Filter>
+    <ClCompile Include="..\jsoncpp\src\json_writer.cpp">
+      <Filter>json\src</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\jsoncpp\src\json_internalarray.inl">
+      <Filter>json\src</Filter>
+    </None>
+    <None Include="..\jsoncpp\src\json_internalmap.inl">
+      <Filter>json\src</Filter>
+    </None>
+    <None Include="..\jsoncpp\src\json_valueiterator.inl">
+      <Filter>json\src</Filter>
+    </None>
   </ItemGroup>
 </Project>

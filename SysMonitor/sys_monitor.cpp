@@ -77,9 +77,54 @@ struct timeval time_val;
 #endif
 
 #ifdef WIN32
-#define WARN(erromsg) printf(erromsg);
+#define WARN(erromsg) printf(erromsg)
 #else
-#define WARN(erromsg) warn(erromsg);
+#define WARN(erromsg) warn(erromsg)
+#endif
+
+#if defined(WIN32)
+#include <dbghelp.h>  
+#pragma comment(lib,  "dbghelp.lib")
+LONG WINAPI MyExptFilter(EXCEPTION_POINTERS *pExptInfo)
+{
+	LONG ret = EXCEPTION_CONTINUE_SEARCH;
+	TCHAR szExePath[MAX_PATH] = { 0 };
+	if (::GetModuleFileName(NULL, szExePath, MAX_PATH) > 0)
+	{
+		int ch = _T('\\');
+		*_tcsrchr(szExePath, ch) = _T('\0');
+
+		CString strDumpFileName;
+		SYSTEMTIME st = { 0 };
+		GetLocalTime(&st);
+		CString strTime = _T("");
+		strTime.Format("%04d_%02d_%02d_%02d%02d%02d%03d", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+		strDumpFileName.Format("\\log\\%s_Dump.dmp", strTime);
+		_tcscat(szExePath, strDumpFileName);
+	}
+
+	// 程序崩溃时，将写入程序目录下的MyDump.dmp文件  
+	HANDLE hFile = ::CreateFile(szExePath, GENERIC_WRITE,
+		FILE_SHARE_WRITE, NULL, CREATE_NEW,
+		FILE_ATTRIBUTE_NORMAL, NULL);
+
+	if (hFile != INVALID_HANDLE_VALUE)
+	{
+		MINIDUMP_EXCEPTION_INFORMATION exptInfo;
+		exptInfo.ThreadId = ::GetCurrentThreadId();
+		exptInfo.ExceptionPointers = pExptInfo;
+
+		BOOL bOK = ::MiniDumpWriteDump(::GetCurrentProcess(),
+			::GetCurrentProcessId(),
+			hFile, MiniDumpNormal,
+			&exptInfo, NULL, NULL);
+		if (bOK)
+			ret = EXCEPTION_EXECUTE_HANDLER;
+	}
+
+	return ret;
+}
+
 #endif
 
 #if defined(WIN32)
@@ -246,6 +291,13 @@ on_accept(int fd, short ev, void *arg)
 int main()
 {
 #ifdef _WIN32
+	LPTOP_LEVEL_EXCEPTION_FILTER pPrevFilter = ::SetUnhandledExceptionFilter(MyExptFilter);
+	if (pPrevFilter != NULL)
+		_tprintf(_T("Previous exception filter exists.\n"));
+	else
+		_tprintf(_T("No Previous exception filter.\n"));
+
+
 	WORD w_version_requested;
 	WSADATA wsa_data;
 	w_version_requested = MAKEWORD(2, 2);

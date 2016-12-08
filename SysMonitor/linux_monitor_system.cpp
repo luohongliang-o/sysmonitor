@@ -1,4 +1,3 @@
-#include "monitor_system.h"
 #include "linux_monitor_system.h"
 #include "func.h"
 #ifndef WIN32
@@ -11,25 +10,26 @@
 #include <stdlib.h>
 #include <string.h>
 #endif
+
+
+
 CLinuxSysinfo* CLinuxSysinfo::_instance = NULL;
 
 int 
 CLinuxSysinfo::write(int fd, Value& json_value)
 {
-	Value temp_json_value;
-	get_diskinfo(temp_json_value);
-	get_meminfo(temp_json_value);
-	temp_json_value.append(0);//带宽 linux 暂未实现
-	get_loadavg(temp_json_value);
-	temp_json_value.append(0);//系统进程数 linux 暂未实现
-	temp_json_value.append(0);//系统线程数 linux 暂未实现
-	temp_json_value.append(0);//系统句柄数 linux 暂未实现
-	get_tcp_connections(temp_json_value);
-	get_monitor_data_sec(temp_json_value);
-	get_kernel_version(temp_json_value);
-	get_os_name(temp_json_value);
-	get_systemtime(temp_json_value);
-	json_value["linux_system"]=temp_json_value;
+	get_diskinfo(json_value);
+	get_meminfo(json_value);
+	json_value.append(0);//带宽 linux 暂未实现
+	get_loadavg(json_value);
+	json_value.append(0);//系统进程数 linux 暂未实现
+	json_value.append(0);//系统线程数 linux 暂未实现
+	json_value.append(0);//系统句柄数 linux 暂未实现
+	get_tcp_connections(json_value);
+	get_monitor_data_sec(json_value);
+	get_kernel_version(json_value);
+	get_os_name(json_value);
+	get_systemtime(json_value);
 	return 0;
 }
 
@@ -122,7 +122,6 @@ void CLinuxSysinfo::get_diskinfo(Value& json_value){
 		exit(EXIT_FAILURE);
 	}
 	Value disk_data;
-	int disk_num = 0;
 	while ((nread = getline(&buffer, &len, fp)) != -1) {
 		sscanf(buffer, "%s %s %s %s",&buf[0],&buf[1],&buf[2],&buf[3]);
 		if (strstr(buf[3],"da")!=NULL){
@@ -130,11 +129,9 @@ void CLinuxSysinfo::get_diskinfo(Value& json_value){
 			disk_item.append( buf[3]);
 			disk_item.append(buf[2]) ;
 			disk_item.append(0);
-			disk_data["disk"].append(disk_item);
-			disk_num++;
+			disk_data.append(disk_item);
 		}
 	}
-	disk_data["num"] = disk_num;
 	json_value.append(disk_data);
 	if (buffer)
 		free(buffer);
