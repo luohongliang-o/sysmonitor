@@ -87,7 +87,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;NO_WARN_MBCS_MFC_DEPRECATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../database/mysql/include;../database/ado/src;../SysMonitor;../database/oracle/src;../database/ado;../libevent/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../json;../database/mysql/include;../database/ado/src;../SysMonitor;../database/oracle/src;../database/ado;../libevent/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -108,17 +108,20 @@
     <ClInclude Include="..\database\oracle\src\ocilib.hpp" />
     <ClInclude Include="..\database\oracle\src\ocilib_core.hpp" />
     <ClInclude Include="..\database\oracle\src\ocilib_impl.hpp" />
-    <ClInclude Include="assertions.h" />
-    <ClInclude Include="autolink.h" />
-    <ClInclude Include="config.h" />
+    <ClInclude Include="..\json\assertions.h" />
+    <ClInclude Include="..\json\autolink.h" />
+    <ClInclude Include="..\json\config.h" />
+    <ClInclude Include="..\json\features.h" />
+    <ClInclude Include="..\json\forwards.h" />
+    <ClInclude Include="..\json\json.h" />
+    <ClInclude Include="..\json\json_batchallocator.h" />
+    <ClInclude Include="..\json\json_tool.h" />
+    <ClInclude Include="..\json\reader.h" />
+    <ClInclude Include="..\json\value.h" />
+    <ClInclude Include="..\json\writer.h" />
     <ClInclude Include="db_utility.h" />
     <ClInclude Include="error.h" />
-    <ClInclude Include="features.h" />
-    <ClInclude Include="forwards.h" />
     <ClInclude Include="func.h" />
-    <ClInclude Include="json.h" />
-    <ClInclude Include="json_batchallocator.h" />
-    <ClInclude Include="json_tool.h" />
     <ClInclude Include="link_manager.h" />
     <ClInclude Include="linux_monitor_system.h" />
     <ClInclude Include="load_config.h" />
@@ -128,22 +131,19 @@
     <ClInclude Include="Oracle_Monitor.h" />
     <ClInclude Include="port.h" />
     <ClInclude Include="protocol_manage.h" />
-    <ClInclude Include="reader.h" />
     <ClInclude Include="simple_mysql.h" />
     <ClInclude Include="sys_config.h" />
     <ClInclude Include="sys_monitor.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="value.h" />
     <ClInclude Include="web_monitor.h" />
-    <ClInclude Include="writer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\database\ado\src\ado2.cpp" />
+    <ClCompile Include="..\json\json_reader.cpp" />
+    <ClCompile Include="..\json\json_value.cpp" />
+    <ClCompile Include="..\json\json_writer.cpp" />
     <ClCompile Include="db_utility.cpp" />
     <ClCompile Include="func.cpp" />
-    <ClCompile Include="json_reader.cpp" />
-    <ClCompile Include="json_value.cpp" />
-    <ClCompile Include="json_writer.cpp" />
     <ClCompile Include="link_manager.cpp" />
     <ClCompile Include="linux_monitor_system.cpp" />
     <ClCompile Include="load_config.cpp" />

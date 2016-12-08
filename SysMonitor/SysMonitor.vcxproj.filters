@@ -36,39 +36,6 @@
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="assertions.h">
-      <Filter>json</Filter>
-    </ClInclude>
-    <ClInclude Include="autolink.h">
-      <Filter>json</Filter>
-    </ClInclude>
-    <ClInclude Include="config.h">
-      <Filter>json</Filter>
-    </ClInclude>
-    <ClInclude Include="features.h">
-      <Filter>json</Filter>
-    </ClInclude>
-    <ClInclude Include="forwards.h">
-      <Filter>json</Filter>
-    </ClInclude>
-    <ClInclude Include="json.h">
-      <Filter>json</Filter>
-    </ClInclude>
-    <ClInclude Include="json_batchallocator.h">
-      <Filter>json</Filter>
-    </ClInclude>
-    <ClInclude Include="json_tool.h">
-      <Filter>json</Filter>
-    </ClInclude>
-    <ClInclude Include="reader.h">
-      <Filter>json</Filter>
-    </ClInclude>
-    <ClInclude Include="value.h">
-      <Filter>json</Filter>
-    </ClInclude>
-    <ClInclude Include="writer.h">
-      <Filter>json</Filter>
-    </ClInclude>
     <ClInclude Include="sys_config.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -132,17 +99,41 @@
     <ClInclude Include="..\database\oracle\src\ocilib_impl.hpp">
       <Filter>database\oracle</Filter>
     </ClInclude>
+    <ClInclude Include="..\json\assertions.h">
+      <Filter>json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\autolink.h">
+      <Filter>json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\config.h">
+      <Filter>json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\features.h">
+      <Filter>json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\forwards.h">
+      <Filter>json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\json.h">
+      <Filter>json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\json_batchallocator.h">
+      <Filter>json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\json_tool.h">
+      <Filter>json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\reader.h">
+      <Filter>json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\value.h">
+      <Filter>json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\json\writer.h">
+      <Filter>json</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="json_reader.cpp">
-      <Filter>json</Filter>
-    </ClCompile>
-    <ClCompile Include="json_value.cpp">
-      <Filter>json</Filter>
-    </ClCompile>
-    <ClCompile Include="json_writer.cpp">
-      <Filter>json</Filter>
-    </ClCompile>
     <ClCompile Include="monitor_system.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -187,6 +178,15 @@
     </ClCompile>
     <ClCompile Include="simple_mysql.cpp">
       <Filter>database\mysql</Filter>
+    </ClCompile>
+    <ClCompile Include="..\json\json_reader.cpp">
+      <Filter>json</Filter>
+    </ClCompile>
+    <ClCompile Include="..\json\json_value.cpp">
+      <Filter>json</Filter>
+    </ClCompile>
+    <ClCompile Include="..\json\json_writer.cpp">
+      <Filter>json</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

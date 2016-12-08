@@ -1,11 +1,15 @@
 #ifndef SYS_CONFIG_H
 #define SYS_CONFIG_H
 #define LOGFILENAME "sysmonitor"
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <string.h>
 #ifdef WIN32
 #define _WIN32_WINNT 0x0501 
 //#include <targetver.h>
 #include <afx.h>
 #else
+//#include <sys/types.h>
 #if !defined(SSIZE_T)
 typedef int SSIZE_T;
 #endif
@@ -19,9 +23,8 @@ typedef int SSIZE_T;
 #include <map>
 #include <vector>
 #include <list>
-#include <string>
 using namespace std;
-#include "port.h"
+//#include "port.h"
 
 #if defined(NDEBUG)
 #pragma comment(lib,"ws2_32.lib")
@@ -55,7 +58,7 @@ using namespace std;
 #endif
 
 #if !defined(ASSERT)
-#include <assert.h>
+//#include <assert.h>
 # define ASSERT                         assert
 #endif // ASSERT
 
@@ -173,9 +176,8 @@ typedef char                            CHAR_T;
 typedef unsigned char                   UCHAR_T;
 #   define _STR(x)                      (x)
 #   define _CHAR(x)                     (x)
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#if defined(WIN32)
+#   define STRLWR						_strlwr_s
 #   define VSNPRINTF                    vsnprintf_s
 #   define SNPRINTF                     _snprintf_s
 #   define STRCPY                       strcpy_s
@@ -199,6 +201,33 @@ typedef unsigned char                   UCHAR_T;
 #   define ATOI64                       _atoi64
 #   define ITOA                         _itoa_s
 #   define I64TOA                       _ui64toa_s
+#else
+#   define STRLWR(s,l)					strlwr(s)
+#   define VSNPRINTF                    vsnprintf
+#   define SNPRINTF                     snprintf
+#   define STRCPY                       strcpy
+#   define STRNCPY                      strncpy
+#   define STRLEN                       strlen
+#   define STRNLEN                      strnlen
+#   define STRCHR                       strchr
+//#   define STRSTR                       strstr_s
+//#   define STRSTR(s,l,f)                strstr(s, f)
+#   define STRCAT                       strcat
+#   define STRNCAT                      strncat
+#   define STRCMP                       strcmp
+#   define STRNCMP                      strncmp
+#   define STRICMP                      stricmp
+#   define STRNICMP                     strnicmp
+#   define PRINTF                       printf
+//#   define SSCANF                       sscanf_s
+#   define SSCANF                       snscanf
+// 
+#   define ATOI                         atoi
+#   define ATOI64                       _atoi64
+#   define ITOA                         _itoa_s
+#   define I64TOA                       _ui64toa_s
+
+#endif
 # else
 # define HAS_STRING                     0
 #   error "UNICODE string is not implemented!"

@@ -1,9 +1,14 @@
 /*
   db utility
 */
-
+#include <stdint.h>
 #include "db_utility.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <error.h>
+#include <assert.h>
 /*****************************************************************************/
 /* connect string
 
@@ -18,7 +23,7 @@
 
 #undef  STRCHR
 #define STRCHR(s,l,c)   strchr(s,c)
-#define STRLWR          _strlwr_s
+
 
 static rc_t get_param_value(UINT32_T* pos, UINT32_T* len, const INT8_T* str, const INT8_T* param) {
 

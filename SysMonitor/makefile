@@ -6,6 +6,7 @@ TARGET = ./sysmonitor
 INC_SYSMONITOR = ../Sysmonitor/
 INC_LIBEVENT = ../libevent/include/ 
 INC_MYSQL = ../database/mysql/include/
+INC_JSON = ../json/
 #INC_ORACLE = ../database/oracle/include/
 
 %.o: %.c
@@ -14,7 +15,7 @@ INC_MYSQL = ../database/mysql/include/
 
 %.o:%.cpp
 
-	$(XX) $(CFLAGS) -c -I$(INC_SYSMONITOR) -I$(INC_LIBEVENT)  -I$(INC_MYSQL)$< -o $@
+	$(XX) $(CFLAGS) -c -I$(INC_SYSMONITOR) -I$(INC_LIBEVENT)  -I$(INC_MYSQL) -I$(INC_JSON) $< -o $@
 
  
 
