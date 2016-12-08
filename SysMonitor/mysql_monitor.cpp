@@ -31,6 +31,7 @@ CMysqlMonitor::write(int fd, Value& json_value)
 , 'Queries'\
 , 'Table_locks_waited'\
 );";
+
 	m_mysql_connection->execute(m_mysql_default_proc, TRUE);
 	CMysqlRecordSet* record_set = m_mysql_connection->get_record_set();
 	if (record_set){

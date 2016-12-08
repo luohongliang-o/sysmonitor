@@ -14,7 +14,7 @@ INC_MYSQL = ../database/mysql/include/
 
 %.o:%.cpp
 
-	$(XX) $(CFLAGS) -c -I$(INC) $< -o $@
+	$(XX) $(CFLAGS) -c -I$(INC_SYSMONITOR) -I$(INC_LIBEVENT)  -I$(INC_MYSQL)$< -o $@
 
  
 
@@ -24,9 +24,9 @@ OBJS = $(patsubst %.c,%.o,$(patsubst %.cpp,%.o,$(SOURCES)))
 LIBPATH_LIBEVENT = -L../libevent/lib
 LIBPATH_MYSQL = -L../database/mysql/lib
 LIB_LIBEVENT = -levent -levent_core -levent_extra 
-LIB_MYSQL = -llibmysqlclient
+LIB_MYSQL = -lmysqlclient
 $(TARGET) : $(OBJS)
-	$(XX) $(OBJS) $(LIBPATH) $(LIB) -lm -lrt -o $(TARGET)  
+	$(XX) $(OBJS) $(LIBPATH_LIBEVENT) $(LIB_LIBEVENT) $(LIBPATH_MYSQL) $(LIB_MYSQL) -lm -lrt -o $(TARGET)  
 
 	chmod a+x $(TARGET)
 
