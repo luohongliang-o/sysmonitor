@@ -75,6 +75,7 @@ public:
 
 private:
 	MYSQL_RES*  m_res;
+	MYSQL_FIELD *m_fields;
 	MYSQL_ROW   m_row;
 	UINT64_T    m_curr_row_no;
 
@@ -84,6 +85,7 @@ private:
 	UINT32_T    m_filed_count;
 
 	CMysqlRecord m_rec;
+	
 
 	DISALLOW_COPY_AND_ASSIGN(CMysqlRecordSet);
 }; // CMysqlRecordSet

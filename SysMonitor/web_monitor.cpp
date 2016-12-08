@@ -25,7 +25,7 @@ int CWebMonitor::write(int fd, Value& json_value)
 
 bool CWebMonitor::IsW3wpRun()
 {
-	BOOL bret = FALSE;
+	bool bret = FALSE;
 	HANDLE hProcessSnap;
 	HANDLE hProcess;
 	PROCESSENTRY32 pe32;

@@ -127,7 +127,7 @@ CSysInfo::WriteCounterVaule(int counter_num,char** list_counter, Value* json_val
 	}
 	
 Cleanup:
-	for (int x = 0; x < vt_hcounter.size(); x++){
+	for (unsigned int x = 0; x < vt_hcounter.size(); x++){
 		PdhRemoveCounter(*vt_hcounter[x]);
 		GlobalFree(vt_hcounter[x]);
 	}
@@ -161,7 +161,7 @@ CProcessMonitor::write(int fd, Value& json_value)
 			process_status = 1;                     // 查看进程状态
 		if (process_status){
 			vector<int> v_pidlist = m_map_process_name_pid[process_name[i]];
-			for (int j = 0; j < v_pidlist.size(); j++){
+			for (unsigned int j = 0; j < v_pidlist.size(); j++){
 				while (fgets(pbuffer, 1000, ppipe)){
 					if (nread_line>3){
 						sscanf(pbuffer, "%s %s %s %s %d\n", 
@@ -279,7 +279,7 @@ void CBuildMonitor::ConcreteMonitor(int object_index,int type)
 
 CBuildMonitor::~CBuildMonitor()
 {
-	for (int i = 0; i < m_vector_system_monitor.size();i++){
+	for (unsigned int i = 0; i < m_vector_system_monitor.size();i++){
 		TDEL(m_vector_system_monitor[i]);
 	}
 	m_vector_system_monitor.clear();

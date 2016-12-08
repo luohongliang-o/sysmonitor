@@ -8,6 +8,7 @@ class CMysqlMonitor :public CMonitorSystem
 public:
 	CMysqlMonitor()
 	{
+		m_mysql_default_proc = "call proc_general_monitor()";
 		m_mysql_connection = new CMysqlConnection;
 	};
 	~CMysqlMonitor(){
@@ -25,6 +26,8 @@ private:
 	CMysqlConnection*  m_mysql_connection;
 	DISALLOW_COPY_AND_ASSIGN(CMysqlMonitor);
 	static CMysqlMonitor* _instance;
+	const char* m_mysql_default_proc;
+
 };
 
 #endif

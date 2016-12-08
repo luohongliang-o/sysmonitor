@@ -150,15 +150,8 @@ rc_t CMysqlRecordSet::get_field_count(UINT32_T* count) {
 
 rc_t CMysqlRecordSet::get_field_name(CHAR_T** name, UINT32_T idx) {
 	
-	ASSERT(m_res);
-	MYSQL_FIELD *fields;
-	fields = mysql_fetch_fields(m_res);
-	for (UINT32_T i = 0; i < m_filed_count; i++){
-		if (idx == i){
-			*name = fields[i].name;
-			break;
-		}	
-	}
+	ASSERT(m_fields);	
+	*name = m_fields[idx].name;
 	return RC_E_UNSUPPORTED;
 }
 
@@ -219,6 +212,7 @@ void CMysqlRecordSet::set_mysql_res(MYSQL_RES* res) {
 	ASSERT_MYSQL_API;
 	m_filed_count = MYSQL_CAPI_CALL(num_fields)(m_res);
 	m_row_count = MYSQL_CAPI_CALL(num_rows)(m_res);
+	m_fields = MYSQL_CAPI_CALL(fetch_fields)(m_res);
 
 	// open first
 	m_row = MYSQL_CAPI_CALL(fetch_row)(m_res);

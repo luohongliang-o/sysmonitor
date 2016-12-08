@@ -25,7 +25,6 @@ int CMsSqlMonitor::write(int fd, Value& json_value)
 		}
 		json_value.append(temp_json_value);
 	}
-
 	return 0;
 }
 
