@@ -51,7 +51,7 @@ static void WriteLog(int logflag, char* p_lpcszFileNamePrifix, char* p_lpcszForm
 		{
 			sprintf_s(szPrefix, sizeof(szPrefix), "%s", p_lpcszFileNamePrifix);
 		}
-		char path[256] = "";
+		CHAR path[256] = "";
 #ifdef WIN32
 		GetModuleFileName(NULL, path, sizeof(path));
 		long nLen = strlen(path);
@@ -63,7 +63,10 @@ static void WriteLog(int logflag, char* p_lpcszFileNamePrifix, char* p_lpcszForm
 				break;
 			}
 		}
-		sprintf_s(szFileName, sizeof(szFileName), "%s\\%s%04d%02d%02d.log", path, szPrefix, stNow.wYear, stNow.wMonth, stNow.wDay);
+		CHAR folder_path[256] = "";
+		sprintf_s(folder_path,"%s\\log",path);
+		CreateDirectory(folder_path,NULL);
+		sprintf_s(szFileName, sizeof(szFileName), "%s\\log\\%s%04d%02d%02d.log", path, szPrefix, stNow.wYear, stNow.wMonth, stNow.wDay);
 #else
 
 		sprintf_s(szFileName, sizeof(szFileName), "%s%04d%02d%02d.log", szPrefix, stNow->tm_year, stNow->tm_mon, stNow->tm_mday);

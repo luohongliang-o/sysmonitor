@@ -240,5 +240,5 @@ typedef unsigned char                   UCHAR_T;
 	void operator=(const TypeName&)
 #endif
 
-
+#include "func.h"
 #endif // SYS_CONFIG_H

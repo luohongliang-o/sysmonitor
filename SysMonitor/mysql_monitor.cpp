@@ -1,4 +1,5 @@
 #include "mysql_monitor.h"
+
 #ifdef HAS_MYSQL
 CMysqlMonitor* CMysqlMonitor::_instance = NULL;
 int
@@ -6,7 +7,6 @@ CMysqlMonitor::write(int fd, Value& json_value)
 {
 	UINT64_T row_count = 0;
 	UINT32_T field_count = 0;
-	m_mysql_connection->connect(CLoadConfig::CreateInstance()->get_mysql_connection_string());
 	const char* str_mysql_status = "show status where variable_name in\
 (\
 'Questions'\
@@ -31,7 +31,6 @@ CMysqlMonitor::write(int fd, Value& json_value)
 , 'Queries'\
 , 'Table_locks_waited'\
 );";
-
 	m_mysql_connection->execute(m_mysql_default_proc, TRUE);
 	CMysqlRecordSet* record_set = m_mysql_connection->get_record_set();
 	if (record_set){

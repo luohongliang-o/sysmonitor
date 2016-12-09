@@ -10,6 +10,7 @@ public:
 	{
 		m_mysql_default_proc = "call proc_general_monitor()";
 		m_mysql_connection = new CMysqlConnection;
+		m_mysql_connection->connect(CLoadConfig::CreateInstance()->get_mysql_connection_string());
 	};
 	~CMysqlMonitor(){
 		TDEL(m_mysql_connection);
