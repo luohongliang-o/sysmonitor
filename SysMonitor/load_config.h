@@ -43,10 +43,12 @@ public:
 		int        counter_num;
 		char**     counter_name;
 		//mysql
-		char       mysql_connstr[256];
+		int        mysql_type;
+		int        mysql_database_num;
+		char**     mysql_connstr;
 		//web
 		int        web_counter_num;
-		char**   web_counter_name;
+		char**     web_counter_name;
 		//mssql
 		short      db_count;
 		short      db_default_sel;
@@ -54,7 +56,7 @@ public:
 
 		//process
 		int        process_num;
-		char**   process_name;
+		char**     process_name;
 	};
 
 	void LoadConfig();
@@ -76,7 +78,10 @@ public:
 	int      get_process_num();
 	char**   get_process_name();
  
-	const char* get_mysql_connection_string();
+	int      get_mysql_type();
+	int      get_mysql_dbcount();
+	const char* get_mysql_connection_string(int con_index);
+
 	short    get_db_count();
 	short    get_db_default_sel();
 	LPDBCONFIG get_db_config();

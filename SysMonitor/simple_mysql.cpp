@@ -237,10 +237,8 @@ CMysqlConnection::CMysqlConnection()
 , m_strDB(NULL)
 , m_dbCon(NULL)
 {
-
 	ASSERT_MYSQL_API;
 	if (MYSQL_CAPI_CALL(init)(&m_mysql)) {
-
 		/* disable mysql auto reconnect */
 		m_mysql.reconnect = 0;
 		m_nStatus = RC_S_INIT;

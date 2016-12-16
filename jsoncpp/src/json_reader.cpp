@@ -22,6 +22,7 @@
 #if defined(_MSC_VER) && _MSC_VER >= 1400 // VC++ 8.0
 // Disable warning about strdup being deprecated.
 #pragma warning(disable : 4996)
+#pragma warning(disable : 4018)
 #endif
 
 namespace Json {

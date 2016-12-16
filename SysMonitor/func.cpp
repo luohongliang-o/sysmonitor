@@ -1,4 +1,5 @@
 #include "func.h"
+#pragma warning(disable : 4244)
 int GetCurrentPath(char buf[], char *pFileName)
 {
 #ifdef WIN32

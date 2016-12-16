@@ -3,7 +3,7 @@
 
 #define ChunkSize 100
 
-
+#pragma warning(disable : 4244)
 ///////////////////////////////////////////////////////
 //
 // CJetEngine Class

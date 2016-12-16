@@ -433,8 +433,8 @@ public:
 	BOOL GetValue(CString& strValue, CString strDateFormat = _T(""));
 	BOOL GetValue(COleDateTime& time);
 	BOOL GetValue(_variant_t& vtValue);
-	void SetPrecision(int nPrecision)	{m_pParameter->PutPrecision(nPrecision);};
-	void SetScale(int nScale)			{m_pParameter->PutNumericScale(nScale);};
+	void SetPrecision(int nPrecision)	{m_pParameter->PutPrecision((unsigned char)nPrecision);};
+	void SetScale(int nScale)			{ m_pParameter->PutNumericScale((unsigned char)nScale); };
 
 	void SetName(CString strName)		{m_strName = strName;};
 	CString GetName()					{return m_strName;};

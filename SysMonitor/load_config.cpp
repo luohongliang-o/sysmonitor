@@ -20,6 +20,9 @@ CLoadConfig::~CLoadConfig()
 	for (int i = 0; i < m_monitor_config->process_num; i++)
 		TDELARRAY(m_monitor_config->process_name[i]);
 	TDELARRAY(m_monitor_config->process_name);
+	for (int i = 0; i < m_monitor_config->mysql_database_num; i++)
+		TDELARRAY(m_monitor_config->mysql_connstr[i]);
+	TDELARRAY(m_monitor_config->mysql_connstr);
 	TDEL(m_monitor_config);
 
 }
@@ -65,7 +68,17 @@ void CLoadConfig::LoadConfig()
 				}
 			}
 			else if (m_monitor_config->object_type[i] == CONFIG_MYSQL){
-				strcpy(m_monitor_config->mysql_connstr, GetIniKeyString("mysql", "connectonstr", filebuf));
+				m_monitor_config->mysql_type = GetIniKeyInt("mysql", "dbtype", filebuf);
+				m_monitor_config->mysql_database_num = GetIniKeyInt("mysql", "dbcount", filebuf);
+				m_monitor_config->mysql_connstr = new char*[m_monitor_config->mysql_database_num];
+				for (int i = 0; i < m_monitor_config->mysql_database_num;i++){
+					char connstr_key[20] = "";
+					sprintf_s(connstr_key, sizeof(connstr_key), "%s%d", "connectonstr", i + 1);
+					char* con_str = GetIniKeyString("mysql", connstr_key, filebuf);
+					m_monitor_config->mysql_connstr[i] = new char[strlen(con_str) + 1];
+					strcpy(m_monitor_config->mysql_connstr[i], con_str);
+				}
+				
 			}
 			else if (m_monitor_config->object_type[i] == CONFIG_WEB){
 				m_monitor_config->web_counter_num = GetIniKeyInt("web", "counter_num", filebuf);
@@ -184,16 +197,18 @@ void CLoadConfig::get_sys_os_info()
 	char* tembufer = pbuffer;
 	while (nread_line < 3){
 		char* tempstr = strchr(tembufer, ',');
-		len = tempstr - tembufer;
-		char* tempvalue = new char[len + 1];
-		strncpy(tempvalue, tembufer, len);
-		tempvalue[len] = '\0';
-		if (nread_line == 1)
-			strcpy_s(m_os_name, tempvalue);
-		else if (nread_line == 2)
-			strcpy_s(m_os_version, tempvalue);
-		TDELARRAY(tempvalue);
-		tembufer = tembufer + len + 1;
+		if (tempstr){
+			len = tempstr - tembufer;
+			char* tempvalue = new char[len + 1];
+			strncpy(tempvalue, tembufer, len);
+			tempvalue[len] = '\0';
+			if (nread_line == 1)
+				strcpy_s(m_os_name, tempvalue);
+			else if (nread_line == 2)
+				strcpy_s(m_os_version, tempvalue);
+			TDELARRAY(tempvalue);
+			tembufer = tembufer + len + 1;
+		}
 		nread_line++;
 	}
 	TDELARRAY(pbuffer);
@@ -243,9 +258,23 @@ LPDBCONFIG CLoadConfig::get_db_config()
 	return NULL;
 }
 
-const char* CLoadConfig::get_mysql_connection_string()
+const char* CLoadConfig::get_mysql_connection_string(int con_index)
 {
 	if (m_monitor_config)
-		return m_monitor_config->mysql_connstr;
+		return m_monitor_config->mysql_connstr[con_index];
 	return NULL;
+}
+
+int CLoadConfig::get_mysql_type()
+{
+	if (m_monitor_config)
+		return m_monitor_config->mysql_type;
+	return 0;
+}
+
+int CLoadConfig::get_mysql_dbcount()
+{
+	if (m_monitor_config)
+		return m_monitor_config->mysql_database_num;
+	return 0;
 }

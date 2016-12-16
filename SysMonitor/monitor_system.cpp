@@ -52,10 +52,10 @@ CSysInfo::write(int fd, Value& json_value)
 					(PULARGE_INTEGER)&i64freebytes);
 				if (fResult){
 					Value disk_item;
-					_gcvt(i64totalbytes / 1024, 31, json_data);
+					_gcvt((double)i64totalbytes / 1024, 31, json_data);
 					AddJsonKeyValue((char*)strdriver.substr(0, 1).c_str(), disk_item);//disk_name 
 					AddJsonKeyValue(json_data, disk_item);//DISK_TOTAL
-					_gcvt(i64freebytes / 1024, 31, json_data);
+					_gcvt((double)i64freebytes / 1024, 31, json_data);
 					AddJsonKeyValue(json_data, disk_item); // DISK_FREE
 					disk_data.append(disk_item);
 				}
@@ -69,16 +69,15 @@ CSysInfo::write(int fd, Value& json_value)
 		MEMORYSTATUSEX memory_status;
 		memory_status.dwLength = sizeof(memory_status);
 		GlobalMemoryStatusEx(&memory_status);
-		_gcvt(memory_status.ullTotalPhys, 31, json_data);
+		_gcvt((double)memory_status.ullTotalPhys, 31, json_data);
 		AddJsonKeyValue(json_data, json_value);//MEMORY_TOTAL
-		_gcvt(memory_status.ullAvailPhys, 31, json_data);
+		_gcvt((double)memory_status.ullAvailPhys, 31, json_data);
 		AddJsonKeyValue(json_data, json_value);//MEMORY_FREE
-		_gcvt(memory_status.ullTotalVirtual, 31, json_data);
+		_gcvt((double)memory_status.ullTotalVirtual, 31, json_data);
 		AddJsonKeyValue(json_data, json_value);//VIRTUAL_MEM_TATAL
-		_gcvt(memory_status.ullAvailVirtual, 31, json_data);
+		_gcvt((double)memory_status.ullAvailVirtual, 31, json_data);
 		AddJsonKeyValue(json_data, json_value); // VIRTUAL_MEM_FREE
 	}
-	
 	//pdh performance counter
 	{
 		int counter_num = CLoadConfig::CreateInstance()->get_counter_num();
@@ -140,6 +139,7 @@ CProcessMonitor* CProcessMonitor::_instance = NULL;
 int
 CProcessMonitor::write(int fd, Value& json_value)
 {
+	
 	if (!GetProcessList()) return 0;
 	char pbuffer[1000];
 	FILE *ppipe = NULL;
@@ -181,6 +181,7 @@ CProcessMonitor::write(int fd, Value& json_value)
 	}	
 	if (feof(ppipe))
 		_pclose(ppipe);
+
 	return 0;
 }
 
