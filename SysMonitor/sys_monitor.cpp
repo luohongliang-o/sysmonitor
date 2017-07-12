@@ -128,6 +128,7 @@ LONG WINAPI MyExptFilter(EXCEPTION_POINTERS *pExptInfo)
 #endif
 
 #if defined(WIN32)
+
 static unsigned __stdcall
 on_timer(void *arg)
 {

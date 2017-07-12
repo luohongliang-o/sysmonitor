@@ -245,6 +245,7 @@ CProcessMonitor::printError(TCHAR* msg)
 		++p;
 	do { *p-- = 0; } while ((p >= sysMsg) &&
 		((*p == '.') || (*p < 33)));
+	_tprintf(TEXT("\n  WARNING: %s failed with error %d (%s)"), msg, eNum, sysMsg);
 }
 
 

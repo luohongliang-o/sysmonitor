@@ -8,7 +8,7 @@
 
 CMysqlMonitor* CMysqlMonitor::_instance = NULL;
 
-void CMysqlMonitor::get_master_slave_data(CMysqlConnection* pconn,Value& json_value)
+void CMysqlMonitor::get_master_slave_data(CMysqlConnection* pconn, Value& json_data)
 {
 	UINT64_T row_count = 0;
 	UINT32_T field_count = 0;
@@ -31,12 +31,31 @@ void CMysqlMonitor::get_master_slave_data(CMysqlConnection* pconn,Value& json_va
 			if (RC_S_OK == record->get_data(32, &temp_value))
 				item.append((char*)temp_value);
 			else item.append("");
-			json_value.append(item);
+			json_data.append(item);
 			record_set->next();
 		}
 	}
 }
+#ifndef WIN32
+void CMysqlMonitor::get_ndb_show_state(char* line_str, Value& json_data)
+{
+	char tempvalue[7][40];
+	sscanf(line_str, "%s %s %s %s %s %s %s", &tempvalue[0], &tempvalue[1], &tempvalue[2], &tempvalue[3], &tempvalue[4], &tempvalue[5], &tempvalue[6]);
+	json_data.append(tempvalue[0] + 3);
+	char tempstr[128] = "";
+	if (strstr(tempvalue[1], "@")) {
+		json_data.append(tempvalue[1] + 1);	
+		sprintf_s(tempstr, 128, "%s %s", tempvalue[2], tempvalue[3]);
+		json_data.append(tempstr);
+	}
+	if (strstr(tempvalue[1], "(not")){
+		strncpy(tempstr, tempvalue[6], (size_t)strlen(tempvalue[6]) - 1);
+		json_data.append(tempstr);
+		json_data.append("not connected");
+	}
 
+}
+#endif
 int CMysqlMonitor::write(int fd, Value& json_value)
 {	
 	UINT64_T row_count = 0;
@@ -60,11 +79,11 @@ int CMysqlMonitor::write(int fd, Value& json_value)
 	json_value.append(master_slave_json_data);
 
 #ifndef WIN32
-	Value ndb_state_data,ndb_json_data;
+	Value ndb_memoryusage_json_data,ndb_state_data,mgm_state_data,api_state_data;
 	if(mysql_type == MYSQL_NDB){
 		char line_buf[256];
-		int ndb_node_count = 0,api_node_coudnt=0;
-		int ndb_node_line_end = -1,api_node_line_end = -1;
+		int ndb_node_count = 0,api_node_count=0,mgm_node_count;
+		int ndb_node_line_end = -1,api_node_line_end =-1,mgm_node_line_end= -1;
 		int index = 0;
 		std::map<int,char*> map_id_ip;
 		FILE *pFile = popen("ndb_mgm -e 'show'", "r");
@@ -77,41 +96,42 @@ int CMysqlMonitor::write(int fd, Value& json_value)
 				strcpy(ip,tempIP+1);
 				map_id_ip[id] = ip;
 			}
+			if(index<=ndb_node_line_end){
+				Value item;
+				get_ndb_show_state(line_buf,item);
+				ndb_state_data.append(item);
+			}
+			if(index <= mgm_node_line_end){
+				Value item;
+				get_ndb_show_state(line_buf,item);
+				mgm_state_data.append(item);
+			}
 			if(index <= api_node_line_end){
 				Value item;
-				char tempvalue[7][40];
-				sscanf(line_buf, "%s %s %s %s %s %s %s", &tempvalue[0],&tempvalue[1], &tempvalue[2],&tempvalue[3],&tempvalue[4],&tempvalue[5],&tempvalue[6]);
-				item.append(tempvalue[0]+3);
-				char tempstr[128]="";
-				if(strstr(tempvalue[1],"@")) {
-					item.append(tempvalue[1]+1);
-					sprintf_s(tempstr,128,"%s %s",tempvalue[2],tempvalue[3]);
-					item.append(tempstr);
-				}
-				if(strstr(tempvalue[1],"(not")){
-					
-					strncpy(tempstr,tempvalue[6],(size_t)strlen(tempvalue[6])-1);
-					item.append(tempstr);
-					item.append("not connected");
-				}
-				ndb_state_data.append(item);
-				
+				get_ndb_show_state(line_buf,item);
+				api_state_data.append(item);
 			}
 			if (strstr(line_buf, "[ndbd(NDB)]")){
 				char tempvalue[40];
 				sscanf(line_buf, "%s %d", tempvalue, &ndb_node_count);
 				ndb_node_line_end = ndb_node_count + index;
 			}
+			if (strstr(line_buf, "[ndb_mgmd(MGM)]")){
+				char tempvalue[40];
+				sscanf(line_buf, "%s %d", tempvalue, &mgm_node_count);
+				mgm_node_line_end = mgm_node_count + index;
+			}
 			if (strstr(line_buf, "[mysqld(API)]")){
 				char tempvalue[40];
-				sscanf(line_buf, "%s %d", tempvalue, &api_node_coudnt);
-				
-				api_node_line_end = api_node_coudnt + index;
+				sscanf(line_buf, "%s %d", tempvalue, &api_node_count);
+				api_node_line_end = api_node_count + index;
 			}
 			index++;
 		}
 		
 		json_value.append(ndb_state_data);
+		json_value.append(mgm_state_data);
+		json_value.append(api_state_data);
 		pclose(pFile);
 		pFile = popen("ndb_mgm -e 'all report memoryusage'", "r");
 		index=0;
@@ -138,10 +158,10 @@ int CMysqlMonitor::write(int fd, Value& json_value)
 			sprintf_s(tempvalue,40,"%d",it_map->second.at(1));
 			item.append(tempvalue);
 			it_map++;
-			ndb_json_data.append(item);
+			ndb_memoryusage_json_data.append(item);
 		}
 		pclose(pFile);
-		json_value.append(ndb_json_data);
+		json_value.append(ndb_memoryusage_json_data);
 		std::map<int,char*>::iterator it_map_id = map_id_ip.begin();
 		while (it_map_id!=map_id_ip.end()){
 			TDELARRAY(it_map_id->second);
