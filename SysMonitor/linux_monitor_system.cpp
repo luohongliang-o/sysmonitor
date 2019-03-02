@@ -310,7 +310,6 @@ void CLinuxSysinfo::get_network_transfers(long& bytes)
 				&buf[3], &buf[4], &buf[5], &buf[6],&transmit_bytes, &buf[7]);
 			bytes+=receive_bytes+transmit_bytes;
 		}
-		
 	}
 	if (buffer)
 		free(buffer);

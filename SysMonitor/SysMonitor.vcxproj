@@ -129,6 +129,7 @@
     <ClInclude Include="monitor_system.h" />
     <ClInclude Include="mssql_monitor.h" />
     <ClInclude Include="mysql_monitor.h" />
+    <ClInclude Include="ndb_monitor.h" />
     <ClInclude Include="Oracle_Monitor.h" />
     <ClInclude Include="port.h" />
     <ClInclude Include="protocol_manage.h" />
@@ -151,6 +152,7 @@
     <ClCompile Include="monitor_system.cpp" />
     <ClCompile Include="mssql_monitor.cpp" />
     <ClCompile Include="mysql_monitor.cpp" />
+    <ClCompile Include="ndb_monitor.cpp" />
     <ClCompile Include="Oracle_Monitor.cpp" />
     <ClCompile Include="port.cpp" />
     <ClCompile Include="protocol_manage.cpp" />

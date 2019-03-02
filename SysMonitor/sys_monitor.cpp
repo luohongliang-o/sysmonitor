@@ -21,7 +21,6 @@
 #include <time.h>
 #include <WinSock2.h>
 #include <io.h>
-#include <process.h>
 #endif
 #ifdef __cplusplus
 extern "C" {
@@ -49,7 +48,7 @@ volatile bool g_thread_on_of = TRUE;
 #pragma pack(1)
 struct PacketHead{
 	short protocol_versoin;
-	long packet_len;
+	int packet_len;
 };
 struct packet{
 	PacketHead  packet_head;
@@ -181,7 +180,7 @@ on_timer(void *arg)
 				}
 			}
 			if (bsleep)
-				sleep(1);
+				sleep(5);
 		}
 	}
 	return 0;
@@ -202,12 +201,15 @@ buffered_on_read(struct bufferevent *bev, void *arg)
 			char send_buf[BUFLEN] = {0};
 			packet* packet_data = (packet*)send_buf;
 			client->buffer[buffer_len] = '\0';
-			int read_buf_len = client->proto_manage->read(client->fd, client->buffer);
+			WriteLog(1, LOGFILENAME, "read data before---%s", (char*)client->buffer);
+			long read_buf_len = client->proto_manage->read(client->fd, client->buffer);
+			WriteLog(1, LOGFILENAME, "read data---%s", client->buffer);
 			packet_data->packet_head.packet_len = read_buf_len ;
 			packet_data->packet_head.protocol_versoin = 1;
-			int sizelen = sizeof(PacketHead);
+			//int sizelen = sizeof(PacketHead);
 			int all_len = packet_data->packet_head.packet_len + sizeof(PacketHead);
 			memcpy(packet_data->buf, client->buffer, read_buf_len);
+			printf("read data---buf:%s\n", packet_data->buf);
 			if (read_buf_len > 0 && !strstr(client->buffer, "check error.")){
 				char current_time[128] = "";
 				GetFormatSystemTime(current_time,128);
@@ -260,7 +262,7 @@ on_accept(int fd, short ev, void *arg)
 
 	client_fd = accept(fd, (struct sockaddr *)&client_addr, &client_len);
 	if (client_fd < 0) {
-		WARN("accept failed");
+		printf("accept failed");
 		return;
 	}
 	ins_client = (client*)calloc(1, sizeof(*ins_client));
@@ -341,27 +343,28 @@ int main()
 		blisten = FALSE;
 		WriteLog(1, LOGFILENAME, "bind failed");
 		err_plantform(1, "\nbind failed");
-	}	
+	}
 	if (listen(listen_fd, 5) < 0){
 		blisten = FALSE;
 		err_plantform(1, "\nlisten failed");
 		WriteLog(1, LOGFILENAME, "listen failed");
 	}
-	
+
 	evutil_make_socket_nonblocking(listen_fd);
 	event_set(&ev_accept, listen_fd, EV_READ | EV_PERSIST, on_accept, g_monitor);
 	event_add(&ev_accept, NULL);
-	if (blisten){
-		unsigned threadid;
+	unsigned threadid;
 #ifdef WIN32
+	if (blisten){
 		load_config->get_sys_os_info();
 		g_time_handle = (HANDLE)_beginthreadex(NULL, 0, on_timer, g_monitor, 0, &threadid);
-#else
-		pthread_t a_thread; 
-		threadid = pthread_create(&a_thread, NULL, on_timer, (void*)g_monitor);
-#endif // WIN32
-
 	}
+#else
+	pthread_t a_thread=0;
+	if (blisten){
+		threadid = pthread_create(&a_thread, NULL, on_timer, (void*)g_monitor);
+	}
+#endif // WIN32
 	event_dispatch();
 
 	TDEL(g_monitor->proto_manage);
@@ -372,6 +375,9 @@ int main()
 	if (WaitForSingleObject(g_time_handle, 500) == WAIT_TIMEOUT)
 		TerminateThread(g_time_handle, 0);
 	CLOSEHANDLE(g_time_handle);
+#else
+	if(a_thread)
+		pthread_join(a_thread,NULL);
 #endif
 
 	return 0;

@@ -23,6 +23,7 @@ CLoadConfig::~CLoadConfig()
 	for (int i = 0; i < m_monitor_config->mysql_database_num; i++)
 		TDELARRAY(m_monitor_config->mysql_connstr[i]);
 	TDELARRAY(m_monitor_config->mysql_connstr);
+	TDEL(m_monitor_config->ndb_log_file_name);
 	TDEL(m_monitor_config);
 
 }
@@ -120,6 +121,13 @@ void CLoadConfig::LoadConfig()
 					strcpy(m_monitor_config->db_config[i].password, GetIniKeyString("mssql", db_password_key, filebuf));
 				}
 			}
+			else if (m_monitor_config->object_type[i] == CONFIG_NDB){
+				m_monitor_config->ndb_type = GetIniKeyInt("ndb", "type", filebuf);
+				m_monitor_config->ndb_log_file_name = new char[256];
+				strcpy(m_monitor_config->ndb_log_file_name , GetIniKeyString("ndb", "log_file_name", filebuf));
+				m_monitor_config->ndb_log_file_name[strlen(m_monitor_config->ndb_log_file_name)] = '\0';
+			}
+			
 		}
 	}
 
@@ -184,6 +192,19 @@ char** CLoadConfig::get_web_counter_name()
 	return NULL;
 }
 
+char* CLoadConfig::get_ndb_log_file_name()
+{
+	if (m_monitor_config)
+		return m_monitor_config->ndb_log_file_name;
+	return NULL;
+}
+
+int CLoadConfig::get_ndb_type()
+{
+	if (m_monitor_config)
+		return m_monitor_config->ndb_type;
+	return -1;
+}
 
 void CLoadConfig::get_sys_os_info()
 {	

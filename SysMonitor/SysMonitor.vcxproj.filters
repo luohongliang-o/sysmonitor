@@ -138,6 +138,9 @@
     <ClInclude Include="..\jsoncpp\include\writer.h">
       <Filter>json\include</Filter>
     </ClInclude>
+    <ClInclude Include="ndb_monitor.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="monitor_system.cpp">
@@ -193,6 +196,9 @@
     </ClCompile>
     <ClCompile Include="..\jsoncpp\src\json_writer.cpp">
       <Filter>json\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ndb_monitor.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

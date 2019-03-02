@@ -56,6 +56,17 @@ void CMysqlMonitor::get_ndb_show_state(char* line_str, Value& json_data)
 
 }
 #endif
+
+void CMysqlMonitor::InitJsonValue(Value& json_value)
+{
+	Reader temp_read;
+	Value master_slave_json_data;
+#ifndef WIN32
+	Value ndb_memoryusage_json_data, ndb_state_data, mgm_state_data, api_state_data;
+#endif;
+
+
+}
 int CMysqlMonitor::write(int fd, Value& json_value)
 {	
 	UINT64_T row_count = 0;
@@ -63,11 +74,26 @@ int CMysqlMonitor::write(int fd, Value& json_value)
 	CMysqlRecordSet* record_set = NULL;
 	int mysql_type = CLoadConfig::CreateInstance()->get_mysql_type();
 	Value master_slave_json_data;
+	Value ndb_memoryusage_json_data, ndb_state_data, mgm_state_data, api_state_data;
 	Reader temp_read;
-	FastWriter tepm_write;
+	//FastWriter tepm_write;
 	temp_read.parse("[]", master_slave_json_data);
-	
-	CMysqlConnection* mysql_connection = m_mysql_list_connection.at(0);
+	temp_read.parse("[]", ndb_state_data);
+	temp_read.parse("[]", mgm_state_data);
+	temp_read.parse("[]", api_state_data);
+	temp_read.parse("[]", ndb_memoryusage_json_data);
+	if (m_mysql_list_connection.size() == 0) {
+		json_value.append(master_slave_json_data);
+		json_value.append(ndb_state_data);
+		json_value.append(mgm_state_data);
+		json_value.append(api_state_data);
+		json_value.append(ndb_memoryusage_json_data);
+		for (int i = 0; i < 22;i++){
+			json_value.append("");
+		}
+		return 0;
+	}
+	CMysqlConnection* mysql_connection = m_mysql_list_connection[0];
 	
 	if (mysql_type == MYSQL_MASTER_SLAVE){
 		int dbcount = CLoadConfig::CreateInstance()->get_mysql_dbcount();
@@ -77,9 +103,8 @@ int CMysqlMonitor::write(int fd, Value& json_value)
 		}
 	}
 	json_value.append(master_slave_json_data);
-
+	
 #ifndef WIN32
-	Value ndb_memoryusage_json_data,ndb_state_data,mgm_state_data,api_state_data;
 	if(mysql_type == MYSQL_NDB){
 		char line_buf[256];
 		int ndb_node_count = 0,api_node_count=0,mgm_node_count;
@@ -170,12 +195,12 @@ int CMysqlMonitor::write(int fd, Value& json_value)
 
 	}
 #else
-	Value ndb_json_data;
-	temp_read.parse("[]", ndb_json_data);
-	json_value.append(ndb_json_data);
-	json_value.append(ndb_json_data);
+	json_value.append(ndb_state_data);
+	json_value.append(mgm_state_data);
+	json_value.append(api_state_data);
+	json_value.append(ndb_memoryusage_json_data);
 #endif
-	
+
 	mysql_connection->execute(m_mysql_default_proc, TRUE);
 	record_set = mysql_connection->get_record_set();
 	if (record_set){

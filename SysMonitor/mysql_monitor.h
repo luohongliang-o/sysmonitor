@@ -41,6 +41,7 @@ public:
 	virtual int write(int fd, Value& json_value);
 	virtual int get_object_type(){ return MONITORTYPE_MYSQL; }
 protected:
+	void InitJsonValue(Value& json_value);
 	void get_master_slave_data(CMysqlConnection* pconn, Value& json_data);
 #ifndef WIN32
 	void get_ndb_show_state(char* line_str,Value& json_data);

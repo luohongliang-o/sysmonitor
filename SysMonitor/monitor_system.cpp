@@ -4,10 +4,10 @@
 #include "web_monitor.h"
 #include "linux_monitor_system.h"
 #include "mssql_monitor.h"
+#include "ndb_monitor.h"
 #ifdef WIN32
 #include <pdh.h>
 #include <pdhmsg.h>
-#include <process.h>
 #pragma comment(lib, "pdh.lib")
 #include <tlhelp32.h>
 #include <stdio.h>
@@ -275,6 +275,11 @@ void CBuildMonitor::ConcreteMonitor(int object_index,int type)
 #if defined(HAS_ORACLE)
 	if (MONITORTYPE_ORACAL == type)
 		m_vector_system_monitor[object_index] = COracleMonitor::get_instance();
+#endif
+
+#if defined(HAS_NDB)
+	if (MONITORTYPE_NDB == type)
+		m_vector_system_monitor[object_index] = CNdbMonitor::get_instance();
 #endif
 }
 

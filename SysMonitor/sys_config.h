@@ -21,6 +21,7 @@ typedef int SSIZE_T;
 #include <vector>
 #include <list>
 using namespace std;
+#include <stdio.h>
 #include "port.h"
 
 #if defined(NDEBUG)
@@ -43,6 +44,7 @@ using namespace std;
 #endif
 
 #if defined(_MSC_VER)
+
 #define COMPILER_MSVC
 #endif // MSC_VER
 
@@ -177,6 +179,7 @@ typedef unsigned char                   UCHAR_T;
 #include <stdlib.h>
 #include <string.h>
 #if defined(WIN32)
+#	define snprintf						_snprintf
 #   define STRLWR						_strlwr_s
 #   define VSNPRINTF                    vsnprintf_s
 #   define SNPRINTF                     _snprintf_s

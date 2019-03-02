@@ -4,7 +4,7 @@
 #include "sys_config.h"
 #define MAX_LINK_NUM 30
 #define MAX_DBCOUNT  5
-#define  OBJECT_NUM 6
+#define  OBJECT_NUM 7
 // 数据库配置
 typedef struct tagDBCONFIG
 {
@@ -29,7 +29,14 @@ public:
 		CONFIG_WEB,
 		CONFIG_PROCESS,
 		CONFIG_LINUX_SYSINFO,
-		CONFIG_LINUX_PROCESS
+		CONFIG_LINUX_PROCESS,
+		CONFIG_NDB
+	};
+	enum 
+	{
+		NDB_MYSQL=1, //NDB mysql节点
+		NDB_DATA,    //NDB 数据节点
+		NDB_CLUSTER  //NDB 管理节点
 	};
 	struct MonitorConfig
 	{
@@ -57,6 +64,9 @@ public:
 		//process
 		int        process_num;
 		char**     process_name;
+		// ndblog
+		char*     ndb_log_file_name;
+		int      ndb_type;
 	};
 
 	void LoadConfig();
@@ -85,6 +95,9 @@ public:
 	short    get_db_count();
 	short    get_db_default_sel();
 	LPDBCONFIG get_db_config();
+
+	char*    get_ndb_log_file_name();
+	int      get_ndb_type();
 
 private:
 	CLoadConfig();

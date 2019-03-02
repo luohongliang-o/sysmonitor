@@ -4,9 +4,19 @@
 using namespace Json;
 
 #include "load_config.h"
+#ifdef WIN32
+#include <process.h>
+#else
+#include <pthread.h>
+#endif // WIN32
+
 
 #if !defined(HAS_MYSQL)
 #define HAS_MYSQL
+#endif
+
+#if !defined(HAS_NDB)
+#define HAS_NDB
 #endif
 
 #if !defined(HAS_ORACLE)
@@ -22,6 +32,7 @@ enum
 	MONITORTYPE_PROCESS,
 	MONITORTYPE_LINUX_SYSINFO,
 	MONITORTYPE_LINUX_PROCESS,
+	MONITORTYPE_NDB
 };
 class CMonitorSystem
 {
@@ -121,4 +132,55 @@ private:
 	vector<CMonitorSystem*> m_vector_system_monitor;
 
 };
+
+class CLock
+{
+public:
+	CLock()	{ 
+#ifdef WIN32
+		InitializeCriticalSection(&m_cs); 
+#else
+		pthread_mutex_init(&m_cs, NULL);
+#endif
+	}
+	~CLock() { 
+#ifdef DEBUG
+		DeleteCriticalSection(&m_cs);
+#else
+		pthread_mutex_destroy(&m_cs);
+#endif // DEBUG
+	};
+	void Lock() { 
+#ifdef WIN32
+		EnterCriticalSection(&m_cs); 
+#else
+		pthread_mutex_lock(&m_cs);
+#endif
+	};
+	void Unlock() { 
+#ifdef WIN32
+		LeaveCriticalSection(&m_cs); 
+#else
+		pthread_mutex_unlock(&m_cs);
+#endif;
+	};
+private:
+#ifndef WIN32
+	pthread_mutex_t m_cs;
+#else
+	CRITICAL_SECTION m_cs;
+#endif
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ×Ô¶¯Ëø
+class CAutoLock
+{
+public:
+	CAutoLock(CLock* pLock){ m_pLock = pLock; pLock->Lock(); }
+	~CAutoLock() { m_pLock->Unlock(); }
+protected:
+	CLock* m_pLock;
+};
+
 #endif

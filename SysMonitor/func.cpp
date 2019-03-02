@@ -59,8 +59,12 @@ char *GetIniKeyString(char *title, char *key, char *filename)
 				if (strstr(szLine, key) != NULL){
 					if ('#' == szLine[0]){}
 					else if ('/' == szLine[0] && '/' == szLine[1]){}
-					else{//找打key对应变量
+					else{//找到key对应变量
+#ifdef WIN32
 						strcpy(tmpstr, tmp + 1);
+#else
+						strncpy(tmpstr, tmp + 1, strlen(tmp) - 2);
+#endif
 						fclose(fp);
 						return tmpstr;
 					}

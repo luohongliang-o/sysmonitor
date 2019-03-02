@@ -1,8 +1,13 @@
 #include "protocol_manage.h"
 #include "func.h"
 #include "load_config.h"
+#ifdef HAS_NDB
+#include "ndb_monitor.h"
+#endif
+
 #define  CHECK_WORD "sysmonitor"
 #define  CHECK_ERROR "check error."
+#define  DEAL_NDB_OPERATION "ignore"
 
 CProtocolManage::CProtocolManage()
 {
@@ -35,6 +40,15 @@ CProtocolManage::read(int fd, char *buf)
 		if (m_bCheck)
 			return get_last_buf(buf);
 	}
+#ifdef HAS_NDB
+	// ºöÂÔ±¨¾¯²Ù×÷
+	else if (DEAL_NDB_OPERATION == check_word){
+		CNdbMonitor* monitorsys = (CNdbMonitor*)m_build_monitor->get_monitor_obj(6);
+		if (monitorsys)
+			monitorsys->reset_log_status();
+		return get_last_buf(buf);
+	}
+#endif
 	else{
 		memcpy(buf, CHECK_ERROR, strlen(CHECK_ERROR)+1);
 		return strlen(CHECK_ERROR)+1;
@@ -81,30 +95,20 @@ int CProtocolManage::write(int fd)
 	Value last_json_value;
 	vector< short > object_type = CLoadConfig::CreateInstance()->get_object_type();
 	for (int i = 0; i < OBJECT_NUM; i++){
-		Value json_value;
+		Value json_value, json_value1;
+		Reader temp_read;
+		temp_read.parse("[]", json_value);
 		CMonitorSystem* monitorsys = m_build_monitor->get_monitor_obj(i);
-		if (monitorsys){
-			monitorsys->write(fd, json_value);
-			if (json_value.isNull()){
-				Reader temp_read;
-				Value temp_value;
-				temp_read.parse("[]", temp_value);
-				last_json_value.append(temp_value);
-			}
-			else
-				last_json_value.append(json_value);	
-		}
-		else{
-			Reader temp_read;
-			Value temp_value;
-			temp_read.parse("[]", temp_value);
-			last_json_value.append(temp_value);
-		}
+		if (monitorsys) monitorsys->write(fd, json_value);
+		last_json_value.append(json_value);
 	}
 	strJsonData = temp_inswrite.write(last_json_value);
-	strJsonData.replace(strJsonData.rfind("\n"), strJsonData.rfind("\n"), "");
+	size_t found = strJsonData.rfind("\n");
+	if (found != string::npos){
+		strJsonData.replace(found, 2, "");
+	}
 	m_list_buf.push_back(strJsonData);
-	WriteLog(m_log_flag, LOGFILENAME, "write data---%s", strJsonData.c_str());
-	
+	WriteLog(m_log_flag, LOGFILENAME, "write:%s", strJsonData.c_str());
+	printf("%s", strJsonData.c_str());
 	return strJsonData.length()+1;
 }
