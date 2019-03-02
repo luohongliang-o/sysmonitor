@@ -180,7 +180,7 @@ on_timer(void *arg)
 				}
 			}
 			if (bsleep)
-				sleep(5);
+				sleep(1);
 		}
 	}
 	return 0;

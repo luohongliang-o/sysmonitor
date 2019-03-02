@@ -23,7 +23,9 @@ CLoadConfig::~CLoadConfig()
 	for (int i = 0; i < m_monitor_config->mysql_database_num; i++)
 		TDELARRAY(m_monitor_config->mysql_connstr[i]);
 	TDELARRAY(m_monitor_config->mysql_connstr);
-	TDEL(m_monitor_config->ndb_log_file_name);
+	for (int i = 0; i < m_monitor_config->ndb_file_num; i++)
+		TDELARRAY(m_monitor_config->ndb_log_file_name[i]);
+	TDELARRAY(m_monitor_config->ndb_log_file_name);
 	TDEL(m_monitor_config);
 
 }
@@ -122,10 +124,15 @@ void CLoadConfig::LoadConfig()
 				}
 			}
 			else if (m_monitor_config->object_type[i] == CONFIG_NDB){
-				m_monitor_config->ndb_type = GetIniKeyInt("ndb", "type", filebuf);
-				m_monitor_config->ndb_log_file_name = new char[256];
-				strcpy(m_monitor_config->ndb_log_file_name , GetIniKeyString("ndb", "log_file_name", filebuf));
-				m_monitor_config->ndb_log_file_name[strlen(m_monitor_config->ndb_log_file_name)] = '\0';
+				m_monitor_config->ndb_file_num = GetIniKeyInt("ndb", "num", filebuf);
+				m_monitor_config->ndb_log_file_name = new char*[m_monitor_config->ndb_file_num];
+				for (int i = 0; i < m_monitor_config->ndb_file_num; i++){
+					char process_key[20] = "";
+					sprintf_s(process_key, sizeof(process_key), "%s%d", "name", i + 1);
+					char* process_name = GetIniKeyString("ndb", process_key, filebuf);
+					m_monitor_config->ndb_log_file_name[i] = new char[strlen(process_name) + 1];
+					memcpy(m_monitor_config->ndb_log_file_name[i], process_name, strlen(process_name) + 1);
+				}
 			}
 			
 		}
@@ -192,17 +199,17 @@ char** CLoadConfig::get_web_counter_name()
 	return NULL;
 }
 
-char* CLoadConfig::get_ndb_log_file_name()
+char** CLoadConfig::get_ndb_log_file_name()
 {
 	if (m_monitor_config)
 		return m_monitor_config->ndb_log_file_name;
 	return NULL;
 }
 
-int CLoadConfig::get_ndb_type()
+int CLoadConfig::get_ndb_log_num()
 {
 	if (m_monitor_config)
-		return m_monitor_config->ndb_type;
+		return m_monitor_config->ndb_file_num;
 	return -1;
 }
 

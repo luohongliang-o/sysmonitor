@@ -11,12 +11,40 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <map>
 #endif
 #ifdef HAS_NDB
+
+
+static void* thread_func(void *pv);
 #ifndef WIN32
-	static void* thread_func(void *pv);
+#define PTHREAD_T pthread_t
+#define PTHREAD_CREATE pthread_create
+#define STAT stat
+#define PTHREAD_SELF pthread_self
+#define OPEN open
+#define __O_RDONLY O_RDONLY
+#define LSEEK  lseek
+#define CLOSE  close
+
+#define PTHREAD_JOIN pthread_join
+#define SLEEP  sleep
+#else
+#define PTHREAD_T long long
+#define PTHREAD_CREATE(a ,b, c,d) 1
+#define STAT(file_name, buf)   1
+#define PTHREAD_SELF() 1
+#define OPEN(a,b) 1
+#define __O_RDONLY
+#define LSEEK
+#define CLOSE
+
+#define PTHREAD_JOIN
+#define SLEEP Sleep
 #endif // !WIN32
 #define READ_LINE_NUM 500
+
+
 enum
 {
 	LOG_NORMAL = 0, //Õý³£×´Ì¬
@@ -24,17 +52,19 @@ enum
 	LOG_ERROR     // error
 };
 
+typedef struct log_state_data{
+	long file_size;
+	long file_pos;
+	short log_status;
+	string log_err_msg;
+	string file_name;
+}LOG_STATE_DATA;
+
 class CNdbMonitor : public CMonitorSystem
 {
 public:
-
-	
 	CNdbMonitor();
-	~CNdbMonitor(){ 
-#ifndef WIN32
-		pthread_join(m_work_thread,NULL);
-#endif // !WIN32
-	};
+	~CNdbMonitor();
 
 	virtual int write(int fd, Value& json_value);
 	virtual int get_object_type(){ return MONITORTYPE_NDB; }
@@ -43,34 +73,8 @@ public:
 		if (!_instance) _instance = new CNdbMonitor;
 		return _instance;
 	}
-
-	void set_file_pos(long pos)
-	{
-		CAutoLock auto_lock(&m_lock);
-		m_file_pos = pos;
-	}
-	void reset_log_status()
-	{
-		CAutoLock auto_lock(&m_lock);
-		m_cur_err_msg = "";
-		m_cur_log_status = LOG_NORMAL;
-	}
-	
-	void set_log_msg(const char* msg)
-	{
-		CAutoLock auto_lock(&m_lock);
-		m_cur_err_msg = msg;
-	}
-	void set_cur_log_status(int status)
-	{ 
-		CAutoLock auto_lock(&m_lock);
-		m_cur_log_status = status; 
-	}
-
 	void compare_file_state();
-	
-	CLock m_lock;
-
+	void scan_log(PTHREAD_T tid);
 	char *strupr(char *str)
 	{
 		char *cp;       /* traverses string for C locale conversion */
@@ -81,20 +85,20 @@ public:
 
 		return str;
 	}
-	void scan_log();
+
+	void reset_log_status(PTHREAD_T tid=0);
+public:
+	CLock m_lock;
+protected:
+	void set_file_state(PTHREAD_T tid, LOG_STATE_DATA* plog_data);
+	LOG_STATE_DATA* get_file_sate(PTHREAD_T tid);
 protected:
 	DISALLOW_COPY_AND_ASSIGN(CNdbMonitor);
 	static CNdbMonitor* _instance;
-	int m_cur_log_type;
-	string m_cur_file_name;
-	string m_cur_err_msg;
-	int m_cur_log_status;
-	long m_file_size;
-	long m_file_pos;
-	
-#ifndef  WIN32
-	pthread_t m_work_thread;
-#endif // ! WIN32
+	int m_log_file_num;
+	typedef map<PTHREAD_T, LOG_STATE_DATA*> MAPLOG;
+	MAPLOG m_map_log_state;
+
 
 
 };

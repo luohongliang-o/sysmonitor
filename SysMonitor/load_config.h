@@ -65,8 +65,8 @@ public:
 		int        process_num;
 		char**     process_name;
 		// ndblog
-		char*     ndb_log_file_name;
-		int      ndb_type;
+		char**     ndb_log_file_name;
+		int		   ndb_file_num;
 	};
 
 	void LoadConfig();
@@ -96,8 +96,8 @@ public:
 	short    get_db_default_sel();
 	LPDBCONFIG get_db_config();
 
-	char*    get_ndb_log_file_name();
-	int      get_ndb_type();
+	char**    get_ndb_log_file_name();
+	int      get_ndb_log_num();
 
 private:
 	CLoadConfig();
