@@ -42,7 +42,7 @@ static void* thread_func(void *pv);
 #define PTHREAD_JOIN
 #define SLEEP Sleep
 #endif // !WIN32
-#define READ_LINE_NUM 500
+#define READ_LINE_NUM 100
 
 
 enum
@@ -58,6 +58,7 @@ typedef struct log_state_data{
 	short log_status;
 	string log_err_msg;
 	string file_name;
+	bool b_reset_status;
 }LOG_STATE_DATA;
 
 class CNdbMonitor : public CMonitorSystem
@@ -98,6 +99,7 @@ protected:
 	int m_log_file_num;
 	typedef map<PTHREAD_T, LOG_STATE_DATA*> MAPLOG;
 	MAPLOG m_map_log_state;
+	
 
 
 

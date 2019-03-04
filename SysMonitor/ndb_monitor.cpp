@@ -32,6 +32,7 @@ CNdbMonitor::CNdbMonitor() :m_lock()
 		log_state_data->log_status = LOG_NORMAL;
 		log_state_data->log_err_msg = "";
 		log_state_data->file_name = log_file_list[i];
+		log_state_data->b_reset_status = false;
 		PTHREAD_T tid = 0;
 		unsigned threadid;
 		threadid = PTHREAD_CREATE(&tid, NULL, thread_func, (void*)this);
@@ -66,6 +67,7 @@ void CNdbMonitor::set_file_state(PTHREAD_T tid, LOG_STATE_DATA* plog_data)
 		ilog_state->second->file_pos = plog_data->file_pos;
 		ilog_state->second->log_err_msg = plog_data->log_err_msg;
 		ilog_state->second->log_status = plog_data->log_status;
+		ilog_state->second->b_reset_status = plog_data->b_reset_status;
 	}
 }
 
@@ -85,6 +87,7 @@ void CNdbMonitor::reset_log_status(PTHREAD_T tid)
 		{	
 			ilog_state->second->log_err_msg = "";
 			ilog_state->second->log_status = 0;
+			ilog_state->second->b_reset_status = true;
 			ilog_state++;
 		}
 	}
@@ -93,6 +96,7 @@ void CNdbMonitor::reset_log_status(PTHREAD_T tid)
 		if (ilog_state != m_map_log_state.end()){
 			ilog_state->second->log_err_msg = "";
 			ilog_state->second->log_status = 0;
+			ilog_state->second->b_reset_status = true;
 		}
 	}
 }
@@ -164,7 +168,7 @@ void CNdbMonitor::scan_log(PTHREAD_T tid)
 			fseek(pFile, plog_state_data->file_pos, SEEK_SET);
 		}
 		printf("file_name:%s file_pos:%ld tid:%ld\n", plog_state_data->file_name.c_str(), plog_state_data->file_pos, tid);
-		while (pFile && line_num < READ_LINE_NUM) {
+		while (pFile && line_num < READ_LINE_NUM ) {
 			if (!fgets(buf, sizeof(buf), pFile)){
 				fprintf(stderr, "error fget :%s file:%s\n", strerror(errno), plog_state_data->file_name.c_str());
 				printf("%s\n", buf);
@@ -198,6 +202,11 @@ void CNdbMonitor::scan_log(PTHREAD_T tid)
 				err_msg.append(":");
 				err_msg.append(buf_more_str);
 				plog_state_data->log_err_msg = buf_more_str;
+				if (true == plog_state_data->b_reset_status){
+					plog_state_data->log_err_msg = "";
+					plog_state_data->log_status = 0;
+					plog_state_data->b_reset_status = false;
+				}
 				//WriteLog(1, LOGFILENAME, "buf[0]:%s buf[1]:%s buf[2]:%s buf[3]:%s %s" , date_str, time_str, other_str, tag_str,err_msg.c_str());
 			}
 			line_num++;
